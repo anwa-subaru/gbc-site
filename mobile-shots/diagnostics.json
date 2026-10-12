@@ -1,0 +1,129 @@
+[
+  {
+    "page": "index",
+    "url": "https://gbc.misakamikoto.xyz/",
+    "viewportW": 390,
+    "scrollW": 390,
+    "overflowX": 0,
+    "wideCount": 3,
+    "wide": [
+      "img.hero__img w=398",
+      "img.hero__img w=398",
+      "img.hero__img w=398"
+    ],
+    "smallTapCount": 11,
+    "smallTap": [
+      "a \"\" 35x44",
+      "button \"\" 36x44",
+      "button \"\" 36x44",
+      "button \"\" 36x44",
+      "a \"45    井芹仁菜 N\" 2x204",
+      "a \"游戏官方网站\" 86x17",
+      "a \"萌娘百科\" 57x17",
+      "a \"角色\" 29x44",
+      "a \"音乐\" 29x44",
+      "a \"画廊\" 29x44",
+      "a \"剧情\" 29x44"
+    ]
+  },
+  {
+    "page": "characters",
+    "url": "https://gbc.misakamikoto.xyz/characters/",
+    "viewportW": 390,
+    "scrollW": 390,
+    "overflowX": 0,
+    "wideCount": 0,
+    "wide": [],
+    "smallTapCount": 16,
+    "smallTap": [
+      "a \"\" 35x44",
+      "a \"萌娘百科\" 57x17",
+      "a \"girls-band-c\" 230x16",
+      "a \"萌娘百科：井芹仁菜\" 304x37",
+      "a \"girls-band-c\" 258x16",
+      "a \"萌娘百科：河原木桃香\" 127x16",
+      "a \"girls-band-c\" 249x16",
+      "a \"萌娘百科：安和昴\" 310x37",
+      "a \"girls-band-c\" 236x16",
+      "a \"萌娘百科：海老塚智\" 310x37",
+      "a \"girls-band-c\" 233x16",
+      "a \"萌娘百科：ルパ\" 307x37",
+      "a \"角色\" 29x44",
+      "a \"音乐\" 29x44",
+      "a \"画廊\" 29x44"
+    ]
+  },
+  {
+    "page": "story",
+    "url": "https://gbc.misakamikoto.xyz/story/",
+    "viewportW": 390,
+    "scrollW": 390,
+    "overflowX": 0,
+    "wideCount": 0,
+    "wide": [],
+    "smallTapCount": 33,
+    "smallTap": [
+      "a \"\" 35x44",
+      "a \"出典：官方网站\" 93x16",
+      "a \"出典：萌娘百科\" 89x16",
+      "a \"出典：官方网站\" 93x16",
+      "a \"出典：萌娘百科\" 89x16",
+      "a \"出典：官方网站\" 93x16",
+      "a \"出典：萌娘百科\" 89x16",
+      "a \"出典：官方网站\" 93x16",
+      "a \"出典：萌娘百科\" 89x16",
+      "a \"出典：官方网站\" 93x16",
+      "a \"出典：萌娘百科\" 89x16",
+      "a \"出典：官方网站\" 93x16",
+      "a \"出典：萌娘百科\" 89x16",
+      "a \"出典：官方网站\" 93x16",
+      "a \"出典：萌娘百科\" 89x16"
+    ]
+  },
+  {
+    "page": "gallery",
+    "url": "https://gbc.misakamikoto.xyz/gallery/",
+    "viewportW": 390,
+    "scrollW": 390,
+    "overflowX": 0,
+    "wideCount": 0,
+    "wide": [],
+    "smallTapCount": 7,
+    "smallTap": [
+      "a \"\" 35x44",
+      "a \"动画官方网站\" 86x17",
+      "a \"游戏官方网站\" 86x17",
+      "a \"角色\" 29x44",
+      "a \"音乐\" 29x44",
+      "a \"画廊\" 29x44",
+      "a \"剧情\" 29x44"
+    ]
+  },
+  {
+    "page": "music",
+    "url": "https://gbc.misakamikoto.xyz/music/",
+    "viewportW": 390,
+    "scrollW": 390,
+    "overflowX": 0,
+    "wideCount": 0,
+    "wide": [],
+    "smallTapCount": 23,
+    "smallTap": [
+      "a \"\" 35x44",
+      "a \"萌娘百科\" 57x17",
+      "a \"出典：官方网站\" 93x16",
+      "a \"出典：萌娘百科\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16",
+      "a \"出典：官方网站\" 89x16"
+    ]
+  }
+]

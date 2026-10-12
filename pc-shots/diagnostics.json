@@ -1,0 +1,99 @@
+[
+  {
+    "page": "index",
+    "url": "https://gbc.misakamikoto.xyz/",
+    "viewportW": 1440,
+    "scrollW": 1440,
+    "overflowX": 0,
+    "mainW": 1440,
+    "wideCount": 3,
+    "wide": [
+      "img w=1469",
+      "img w=1469",
+      "img w=1469"
+    ],
+    "tinyTextCount": 6,
+    "tinyText": [
+      "\"ホーム\" 10px",
+      "\"キャラクター\" 10px",
+      "\"ミュージック\" 10px",
+      "\"ギャラリー\" 10px",
+      "\"ストーリー\" 10px",
+      "\"Nina Iseri\" 10px"
+    ]
+  },
+  {
+    "page": "characters",
+    "url": "https://gbc.misakamikoto.xyz/characters/",
+    "viewportW": 1440,
+    "scrollW": 1440,
+    "overflowX": 0,
+    "mainW": 1440,
+    "wideCount": 0,
+    "wide": [],
+    "tinyTextCount": 6,
+    "tinyText": [
+      "\"ホーム\" 10px",
+      "\"キャラクター\" 10px",
+      "\"ミュージック\" 10px",
+      "\"ギャラリー\" 10px",
+      "\"ストーリー\" 10px",
+      "\"Nina Iseri\" 10px"
+    ]
+  },
+  {
+    "page": "story",
+    "url": "https://gbc.misakamikoto.xyz/story/",
+    "viewportW": 1440,
+    "scrollW": 1440,
+    "overflowX": 0,
+    "mainW": 1440,
+    "wideCount": 0,
+    "wide": [],
+    "tinyTextCount": 5,
+    "tinyText": [
+      "\"ホーム\" 10px",
+      "\"キャラクター\" 10px",
+      "\"ミュージック\" 10px",
+      "\"ギャラリー\" 10px",
+      "\"ストーリー\" 10px"
+    ]
+  },
+  {
+    "page": "gallery",
+    "url": "https://gbc.misakamikoto.xyz/gallery/",
+    "viewportW": 1440,
+    "scrollW": 1440,
+    "overflowX": 0,
+    "mainW": 1440,
+    "wideCount": 0,
+    "wide": [],
+    "tinyTextCount": 5,
+    "tinyText": [
+      "\"ホーム\" 10px",
+      "\"キャラクター\" 10px",
+      "\"ミュージック\" 10px",
+      "\"ギャラリー\" 10px",
+      "\"ストーリー\" 10px"
+    ]
+  },
+  {
+    "page": "music",
+    "url": "https://gbc.misakamikoto.xyz/music/",
+    "viewportW": 1440,
+    "scrollW": 1440,
+    "overflowX": 0,
+    "mainW": 1440,
+    "wideCount": 0,
+    "wide": [],
+    "tinyTextCount": 6,
+    "tinyText": [
+      "\"ホーム\" 10px",
+      "\"キャラクター\" 10px",
+      "\"ミュージック\" 10px",
+      "\"ギャラリー\" 10px",
+      "\"ストーリー\" 10px",
+      "\"Nina Iseri\" 10px"
+    ]
+  }
+]

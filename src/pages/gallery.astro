@@ -258,6 +258,19 @@ const EAGER = 6;
     overflow-x: auto;
     border-bottom: 1px solid var(--border);
     scrollbar-width: none;
+    /* 隐藏滚动条后给"还有 tab 在右侧"的提示：右缘渐隐 */
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - 28px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - 28px),
+      transparent 100%
+    );
   }
 
   .gp-tabs::-webkit-scrollbar {
@@ -307,13 +320,14 @@ const EAGER = 6;
     outline-offset: 2px;
   }
 
-  /* ---- 瀑布流：DESIGN.md §7.4 —— 移动 1 列，桌面 3 列，24px 间距 ---- */
+  /* ---- 瀑布流：DESIGN.md §7.4 —— 移动 2 列，桌面 3 列，24px 间距 ---- */
   .gal {
     column-gap: var(--sp-4);
   }
 
   .gal--masonry {
-    columns: 1;
+    /* 1 列时整页高达 8 万 px（≈103 屏）；手机端直接 2 列，页高砍到一半。 */
+    columns: 2;
   }
 
   .gal--masonry .gal__item {

@@ -52,7 +52,10 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
@@ -88,6 +91,17 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
     <meta name="twitter:card" content="summary_large_image" />
 
     <ClientRouter />
+
+    <!-- 无 JS / JS 失败时的兜底：[data-reveal] 由脚本触发入场，
+         脚本没跑时必须让内容直接可见，否则整页正文永久隐藏。 -->
+    <noscript>
+      <style>
+        [data-reveal] {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      </style>
+    </noscript>
   </head>
 
   <body class:list={[player && "has-player"]}>

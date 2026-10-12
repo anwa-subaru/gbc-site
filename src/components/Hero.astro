@@ -219,6 +219,10 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     line-height: 1.02;
     letter-spacing: -0.03em;
     white-space: pre-line;
+    /* 中文/日文默认允许任意字间折行，标题会出现「悲／しみも」这种词中折行；
+       keep-all 只在 \n 与半角空格处断行，配合 overflow-wrap 兜底不溢出。 */
+    word-break: keep-all;
+    overflow-wrap: break-word;
     text-shadow: 0 2px 32px rgba(0, 0, 0, 0.5);
   }
 
@@ -279,11 +283,11 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
   }
 
   .hero__dot[aria-current="true"] {
-    background: var(--gbc-red);
+    background-color: var(--gbc-red);
   }
 
   .hero__dot:hover {
-    background: var(--ink-300);
+    background-color: var(--ink-300);
   }
 
   @media (prefers-reduced-motion: reduce) {

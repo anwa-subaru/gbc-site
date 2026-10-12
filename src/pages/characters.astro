@@ -494,6 +494,19 @@ if (missing.length) {
     padding-block: var(--sp-2);
     scroll-snap-type: x proximity;
     scrollbar-width: none;
+    /* 隐藏滚动条后必须给"还能右滑"的提示：右缘渐隐 */
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - 28px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - 28px),
+      transparent 100%
+    );
   }
 
   .rail::-webkit-scrollbar {
@@ -509,12 +522,18 @@ if (missing.length) {
     scroll-snap-align: start;
     background: var(--ink-950);
     border: 1px solid var(--border);
-    opacity: 0.72;
     transition: opacity var(--dur-base) var(--ease-out-cubic);
   }
 
-  .rail img:hover {
-    opacity: 1;
+  /* 仅悬停设备做 0.72 压暗；触屏没有 hover，压暗后无法提亮 */
+  @media (hover: hover) and (pointer: fine) {
+    .rail img {
+      opacity: 0.72;
+    }
+
+    .rail img:hover {
+      opacity: 1;
+    }
   }
 
   /* ---- 签名 + PV ---- */

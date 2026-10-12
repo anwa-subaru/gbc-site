@@ -203,9 +203,9 @@ body.is-locked {
   overflow: hidden;
 }
 
-/* 底部固定播放器占位，避免遮挡页脚内容 */
+/* 底部固定播放器占位，避免遮挡页脚内容（含 iOS 安全区） */
 body.has-player {
-  padding-bottom: 64px;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 1024px) {
@@ -458,13 +458,28 @@ p {
   line-height: 1.7;
 }
 
-.cite a {
+.cite a,
+.src a,
+.mu-src a,
+.member__quote footer a {
+  /* 出典链接触控目标 ≥44px（WCAG 2.5.8）：
+     inline-block + 上下 padding 撑高命中区，负 margin 抵消对排版的影响。 */
+  display: inline-block;
+  min-height: 44px;
+  padding-block: 12px;
+  margin-block: -12px;
+  line-height: 1.3;
   color: var(--ink-300);
-  text-decoration: underline;
-  text-underline-offset: 4px;
   transition: color var(--dur-base) var(--ease-out-cubic);
 }
-.cite a:hover {
+.cite a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.cite a:hover,
+.src a:hover,
+.mu-src a:hover,
+.member__quote footer a:hover {
   color: var(--neon-cyan);
 }
 
