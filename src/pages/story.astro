@@ -217,23 +217,20 @@ const SOURCE_LABEL = "官方网站";
 
 <Layout
   title="剧情"
-  description="GIRLS BAND CRY TV 动画全 13 话分话梗概、制作 Staff 与标题致敬典故。日文梗概与标题取自官方网站。"
+  description="GIRLS BAND CRY TV 动画全 13 话分话梗概、制作 Staff 与标题致敬典故"
 >
   <article class="story">
     <header class="story__head container">
       <p class="story__ja">ストーリー</p>
       <h1 class="story__en">STORY</h1>
-      <p class="story__lead">
-        TV 动画全 13 话。以下日文梗概与标题取自
-        <a href="https://girls-band-cry.com/story/" target="_blank" rel="noopener noreferrer">官方网站 STORY 页</a>。
-      </p>
+      <p class="story__lead">TV 动画全 13 话</p>
     </header>
 
     {
       introJa.text ? (
         <section class="intro container" aria-label="企划总导言">
           <blockquote class="intro__quote">
-            <p>怒りも喜びも哀しさも全部ぶちこめ。</p>
+            <p>怒りも喜びも哀しさも全部ぶちこめ</p>
           </blockquote>
           <p class="intro__ja">{introJa.text}</p>
           {introZh.text ? <p class="intro__zh">{introZh.text}</p> : null}

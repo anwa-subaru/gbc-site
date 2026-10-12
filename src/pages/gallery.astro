@@ -132,14 +132,14 @@ const EAGER = 6;
 
 <Layout
   title="画廊"
-  description="GIRLS BAND CRY 官方视觉资料：宣发海报、贺图与周边收藏集，点击可全屏放大浏览。"
+  description="GIRLS BAND CRY 官方视觉资料：宣发海报、贺图与周边收藏集，点击可全屏放大浏览"
 >
   <header class="gp-head container">
     <p class="gp-head__ja">ギャラリー</p>
     <h1 class="gp-head__en">GALLERY</h1>
     <p class="gp-head__lead">
       站内收录官方宣发海报、贺图与周边收藏集视觉资料，共
-      <span class="num">{TOTAL}</span> 张。版权归原权利人所有，不作二次创作。
+      <span class="num">{TOTAL}</span> 张
     </p>
   </header>
 
@@ -202,18 +202,7 @@ const EAGER = 6;
       }
     </div>
 
-    <p class="gp-empty" data-gal-empty hidden>该分类下暂无素材。</p>
-
-    <section class="gp-sources" aria-label="素材出处">
-      <h2 class="gp-sources__title label">SOURCES</h2>
-      <p>
-        海报与贺图来自
-        <a href="https://girls-band-cry.com/" target="_blank" rel="noopener noreferrer">动画官方网站</a>
-        及官方社交账号公开物料；周边与联动视觉资料来自
-        <a href="https://girlsbandcry.jp/" target="_blank" rel="noopener noreferrer">游戏官方网站</a>。
-        版权归东映动画及原权利人所有。
-      </p>
-    </section>
+    <p class="gp-empty" data-gal-empty hidden>该分类下暂无素材</p>
   </div>
 </Layout>
 
@@ -486,36 +475,6 @@ const EAGER = 6;
     text-align: center;
     color: var(--ink-300);
     font-size: var(--fs-sm);
-  }
-
-  /* ---- 出处 ---- */
-  .gp-sources {
-    margin-block: var(--sp-6);
-    padding-top: var(--sp-5);
-    border-top: 1px solid var(--border);
-  }
-
-  .gp-sources__title {
-    color: var(--ink-300);
-    margin-bottom: var(--sp-3);
-  }
-
-  .gp-sources p {
-    max-width: 76ch;
-    color: var(--ink-300);
-    font-size: var(--fs-sm);
-    line-height: 1.9;
-  }
-
-  .gp-sources a {
-    color: var(--ink-100);
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    transition: color var(--dur-base) var(--ease-out-cubic);
-  }
-
-  .gp-sources a:hover {
-    color: var(--gbc-red-text);
   }
 
   @media (prefers-reduced-motion: reduce) {
