@@ -258,9 +258,10 @@ const EAGER = 6;
     border-bottom: 1px solid var(--border);
     scrollbar-width: none;
     /* 201 张图 ≈ 35 屏，筛选条必须吸顶，否则下滚后够不到。
-       吸顶元素不能用 mask（会随滚动一起渐隐），故只在手机横滚时保留渐隐。 */
+       吸顶元素不能用 mask（会随滚动一起渐隐），故只在手机横滚时保留渐隐。
+       偏移必须取 --nav-h（64/72 随断点变），写死数值会在另一断点漏出缝隙。 */
     position: sticky;
-    top: 72px; /* 页头实测高度（sticky 72px） */
+    top: var(--nav-h);
     z-index: 5;
     background: var(--ink-950);
     -webkit-mask-image: none;

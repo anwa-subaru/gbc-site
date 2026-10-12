@@ -570,7 +570,8 @@ if (missing.length) {
 
     .member__art {
       position: sticky;
-      top: var(--sp-5);
+      /* 页头 sticky 且 z-index 更高，吸顶偏移必须让开 --nav-h，否则被盖住 */
+      top: calc(var(--nav-h) + var(--sp-3));
     }
 
     .member__art img {

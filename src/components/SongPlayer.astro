@@ -663,7 +663,8 @@ const mmss = (sec: number): string =>
       grid-column: 1;
       grid-row: 1;
       position: sticky;
-      top: var(--sp-5);
+      /* 让开页头（sticky + 更高 z-index），否则面板顶部被压住 */
+      top: calc(var(--nav-h) + var(--sp-3));
       bottom: auto;
       display: block;
       margin-top: 0;
