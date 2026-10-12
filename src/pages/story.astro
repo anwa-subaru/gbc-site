@@ -209,13 +209,15 @@ const artOf = (sub: string, n: number): AssetEntry[] =>
 const OPENING_ART = artOf("anime", 1)[0] ?? artOf("movie", 1)[0];
 const INLINE_ART = [...artOf("movie", 2), ...artOf("character-design", 1)];
 
-const sourceLabel = (u: string): string =>
-  u.includes("moegirl") ? "萌娘百科" : "官方网站";
+/* 来源仅保留官方链接（萌娘百科来源不再出现在站内文案中） */
+const officialOnly = (urls: string[]): string[] =>
+  urls.filter((u) => !u.includes("moegirl"));
+const SOURCE_LABEL = "官方网站";
 ---
 
 <Layout
   title="剧情"
-  description="GIRLS BAND CRY TV 动画全 13 话分话梗概、制作 Staff 与标题致敬典故。日文梗概取自官方网站，中文译名与 Staff 参考萌娘百科。"
+  description="GIRLS BAND CRY TV 动画全 13 话分话梗概、制作 Staff 与标题致敬典故。日文梗概与标题取自官方网站。"
 >
   <article class="story">
     <header class="story__head container">
@@ -223,9 +225,7 @@ const sourceLabel = (u: string): string =>
       <h1 class="story__en">STORY</h1>
       <p class="story__lead">
         TV 动画全 13 话。以下日文梗概与标题取自
-        <a href="https://girls-band-cry.com/story/" target="_blank" rel="noopener noreferrer">官方网站 STORY 页</a>，
-        中文译名、制作 Staff 与致敬典故参考
-        <a href="https://zh.moegirl.org.cn/GIRLS_BAND_CRY" target="_blank" rel="noopener noreferrer">萌娘百科</a>。
+        <a href="https://girls-band-cry.com/story/" target="_blank" rel="noopener noreferrer">官方网站 STORY 页</a>。
       </p>
     </header>
 
@@ -238,11 +238,11 @@ const sourceLabel = (u: string): string =>
           <p class="intro__ja">{introJa.text}</p>
           {introZh.text ? <p class="intro__zh">{introZh.text}</p> : null}
           <p class="src num">
-            {[...introJa.sources, ...introZh.sources].map((u, i) => (
+            {officialOnly([...introJa.sources, ...introZh.sources]).map((u, i) => (
               <>
                 {i > 0 ? " · " : ""}
                 <a href={u} target="_blank" rel="noopener noreferrer">
-                  出典：{sourceLabel(u)}
+                  出典：{SOURCE_LABEL}
                 </a>
               </>
             ))}
@@ -300,13 +300,13 @@ const sourceLabel = (u: string): string =>
               </p>
             ) : null}
 
-            {ep.sources.length ? (
+            {officialOnly(ep.sources).length ? (
               <p class="src num">
-                {ep.sources.map((u, k) => (
+                {officialOnly(ep.sources).map((u, k) => (
                   <>
                     {k > 0 ? " · " : ""}
                     <a href={u} target="_blank" rel="noopener noreferrer">
-                      出典：{sourceLabel(u)}
+                      出典：{SOURCE_LABEL}
                     </a>
                   </>
                 ))}

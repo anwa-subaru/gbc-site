@@ -162,13 +162,15 @@ const OST = RELEASES.find((r) => r.group === "ost");
 const MISSING_ART = RELEASES.filter((r) => r.art.length === 0).map((r) => r.ja);
 
 const PVS = videos();
-const sourceLabel = (u: string): string =>
-  u.includes("moegirl") ? "萌娘百科" : "官方网站";
+/* 来源仅保留官方链接（萌娘百科来源不再出现在站内文案中） */
+const officialOnly = (urls: string[]): string[] =>
+  urls.filter((u) => !u.includes("moegirl"));
+const SOURCE_LABEL = "官方网站";
 ---
 
 <Layout
   title="音乐"
-  description="トゲナシトゲアリ 历代单曲、专辑与 EP 全曲目资料，封面取自官方发行物。曲目信息与出处整理自官方网站与萌娘百科。"
+  description="トゲナシトゲアリ 历代单曲、专辑与 EP 全曲目资料，封面取自官方发行物。曲目信息与出处整理自官方网站。"
 >
   <header class="mu-head container">
     <p class="mu-head__ja">ミュージック</p>
@@ -176,9 +178,7 @@ const sourceLabel = (u: string): string =>
     <p class="mu-head__lead">
       トゲナシトゲアリ 历代单曲、录音室专辑与 EP，共
       <span class="num">{RELEASES.length}</span> 张发行物。曲目与制作名单整理自
-      <a href="https://girls-band-cry.com/goods/" target="_blank" rel="noopener noreferrer">官方网站 GOODS 页</a>
-      与
-      <a href="https://zh.moegirl.org.cn/TOGENASHI_TOGEARI" target="_blank" rel="noopener noreferrer">萌娘百科</a>，不翻译、不改写曲名。
+      <a href="https://girls-band-cry.com/goods/" target="_blank" rel="noopener noreferrer">官方网站 GOODS 页</a>，不翻译、不改写曲名。
     </p>
   </header>
 
@@ -275,13 +275,13 @@ const sourceLabel = (u: string): string =>
               </ol>
             ) : null}
 
-            {r.urls.length ? (
+            {officialOnly(r.urls).length ? (
               <p class="mu-src num">
-                {r.urls.map((u, i) => (
+                {officialOnly(r.urls).map((u, i) => (
                   <>
                     {i > 0 ? " · " : ""}
                     <a href={u} target="_blank" rel="noopener noreferrer">
-                      出典：{sourceLabel(u)}
+                      出典：{SOURCE_LABEL}
                     </a>
                   </>
                 ))}
