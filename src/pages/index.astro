@@ -203,7 +203,12 @@ const entryCards = [
   .cc-rail {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 68%);
+    /* 必须清掉 .grid/.grid--5 的显式列轨道(grid-template-columns:1fr)，
+       否则显式列与 auto 列争抢宽度，5 张卡被挤成 ~49px(名字竖排断行、
+       轨道剩大片空白)。另外 auto 列的百分比(minmax(0,68%))在 overflow
+       网格里会被浏览器按"均分容器"解析(仍 49px)，故用 vw 长度单位。 */
+    grid-template-columns: none;
+    grid-auto-columns: min(68vw, 280px);
     gap: var(--sp-4);
     overflow-x: auto;
     scroll-snap-type: x mandatory;

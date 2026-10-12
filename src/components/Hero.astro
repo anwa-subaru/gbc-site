@@ -1,23 +1,30 @@
 ---
 /**
- * Hero 轮播
- *  - 全幅主视觉，交叉淡入 400ms（--dur-enter，DESIGN.md 上限）
- *  - 自动轮播 6s；悬停 / 聚焦 / 切到后台标签页时暂停
+ * Hero 角色轮播（杂志式：左文案 + 右立绘）
+ *  - 5 名成员各一屏：角色立绘(完整 contain，不 cover 裁切) + 角色主题色 + 标语
+ *  - 解决旧 cover 全屏的痛点：特写失焦、文字压脸、人物被裁只剩 1/3
+ *  - 自动轮播 6s；悬停/聚焦/切后台暂停；← → 键盘可切；圆点为 button
  *  - prefers-reduced-motion：不自动轮播、不做位移动画
- *  - 键盘可达：← → 切换，圆点为 button
  */
-import { assetUrl, posters, url, type AssetEntry } from "../lib/assets";
+import {
+  assetUrl,
+  characterPrimary,
+  charactersMeta,
+  url,
+  type AssetEntry,
+} from "../lib/assets";
 
 interface Slide {
   entry: AssetEntry;
+  slug: string;
+  color: string;
   kicker: string;
-  title: string;
-  sub: string;
+  nameJa: string;
+  nameEn: string;
+  part: string;
+  tagline: string;
   href: string;
   cta: string;
-  /** 移动端竖屏下 object-position 水平聚焦点(%)，对准 KV 主体避免 cover 裁切人物。
-      桌面端横屏统一用 center。 */
-  focal?: string;
 }
 
 interface Props {
@@ -25,210 +32,185 @@ interface Props {
   interval?: number;
 }
 
-const fallback = posters().slice(0, 3);
+// 每名成员一屏。part 取 manifest 官方定位，tagline 为角色印象短句。
+const TAGLINES: Record<string, string> = {
+  nina: "怒りも、悲しみも、全部ぶつけろ。",
+  momoka: "音楽への嘘は、つかない。",
+  subaru: "頑張るあなたの、隣に。",
+  tomo: "私の歌で、届けたい。",
+  rupa: "心のままに、刻もう。",
+};
+const ORDER = ["nina", "momoka", "subaru", "tomo", "rupa"];
 
-const defaultSlides: Slide[] = fallback.map((entry, i) => {
-  const presets = [
-    {
-      kicker: "TV ANIME / 2024",
-      title: "怒りも、悲しみも、\n全部ぶつけろ。",
-      sub: "少女乐队哭泣 · 官方主视觉",
-      href: "/story",
-      cta: "查看剧情",
-      // poster 01：人物在画面右侧(掀帘探头)，移动端右移对准人物。
-      // 实测 70% 人物脸部完整居中；62% 会裁到人物右脸，勿降。
-      focal: "70%",
-    },
-    {
-      kicker: "TOGENASHI TOGEARI",
-      title: "トゲナシトゲアリ",
-      sub: "5 人编制的少女乐队",
-      href: "/characters",
-      cta: "认识成员",
-      // poster 02：掀帘探脸特写，人物略偏中右
-      focal: "58%",
-    },
-    {
-      kicker: "GALLERY",
-      title: "キービジュアル",
-      sub: "官方宣传视觉资料",
-      href: "/gallery",
-      cta: "浏览画廊",
-      // poster 03：五人群像横向分布，居中即可
-      focal: "50%",
-    },
-  ];
-  return { entry, ...presets[i % presets.length] };
-});
+const defaultSlides: Slide[] = ORDER.map((slug) => {
+  const meta = (charactersMeta as any)[slug];
+  const entry = characterPrimary(slug);
+  return {
+    entry: entry!,
+    slug,
+    color: meta?.color ?? "#D90E2C",
+    kicker: meta?.part ? `${meta.part.toUpperCase?.() ?? meta.part}` : "TOGENASHI TOGEARI",
+    nameJa: meta?.ja ?? slug,
+    nameEn: meta?.romaji ?? meta?.en ?? "",
+    part: meta?.part ?? "",
+    tagline: TAGLINES[slug] ?? "",
+    href: `/characters#${slug}`,
+    cta: `认识${meta?.ja ?? slug}`,
+  };
+}).filter((s) => s.entry);
 
 const { slides = defaultSlides, interval = 6000 } = Astro.props;
 ---
 
-<section class="hero halftone" data-carousel data-interval={interval} aria-roledescription="carousel" aria-label="主视觉轮播">
-  <div class="hero__stage">
-    {
-      slides.map((s, i) => (
-        <div
-          class="hero__slide"
-          data-slide
-          data-active={i === 0 ? "" : undefined}
-          aria-hidden={i !== 0 ? "true" : "false"}
-          role="group"
-          aria-roledescription="slide"
-          aria-label={`${i + 1} / ${slides.length}`}
-        >
-          <img
-            class="hero__img"
-            src={assetUrl(s.entry.path)}
-            alt={s.entry.source_name.replace(/\.[^.]+$/, "")}
-            width={s.entry.width}
-            height={s.entry.height}
-            style={`--focal:${s.focal ?? "50%"}`}
-            loading={i === 0 ? "eager" : "lazy"}
-            fetchpriority={i === 0 ? "high" : "auto"}
-            decoding="async"
-          />
-        </div>
-      ))
-    }
-    <div class="hero__scrim" aria-hidden="true"></div>
-  </div>
+<section class="hero halftone" data-carousel data-interval={interval} aria-roledescription="carousel" aria-label="成员轮播">
+  {
+    slides.map((s, i) => (
+      <div
+        class="hero__slide"
+        data-slide
+        data-active={i === 0 ? "" : undefined}
+        aria-hidden={i !== 0 ? "true" : "false"}
+        role="group"
+        aria-roledescription="slide"
+        aria-label={`${i + 1} / ${slides.length} ${s.nameJa}`}
+        style={`--c:${s.color}`}
+      >
+        {/* 角色主题色的氛围底(低饱和，不抢立绘) */}
+        <div class="hero__bg" aria-hidden="true" />
 
-  <div class="hero__content container">
-    {
-      slides.map((s, i) => (
-        <div class="hero__copy" data-slide data-active={i === 0 ? "" : undefined} aria-hidden={i !== 0 ? "true" : "false"}>
-          <p class="hero__kicker label">{s.kicker}</p>
-          {i === 0 ? (
-            <h1 class="hero__title">{s.title}</h1>
-          ) : (
-            <p class="hero__title" role="heading" aria-level="2">{s.title}</p>
-          )}
-          <p class="hero__sub">{s.sub}</p>
-          <a class="btn btn--primary hero__cta" href={url(s.href)}>
-            {s.cta}
-          </a>
-        </div>
-      ))
-    }
+        <div class="hero__inner container">
+          {/* 左：文案 */}
+          <div class="hero__copy">
+            <p class="hero__kicker label">{s.kicker}</p>
+            {i === 0 ? (
+              <h1 class="hero__name">
+                <span class="hero__name-ja">{s.nameJa}</span>
+                <span class="hero__name-en">{s.nameEn}</span>
+              </h1>
+            ) : (
+              <p class="hero__name" role="heading" aria-level="2">
+                <span class="hero__name-ja">{s.nameJa}</span>
+                <span class="hero__name-en">{s.nameEn}</span>
+              </p>
+            )}
+            <p class="hero__tagline">{s.tagline}</p>
+            <a class="btn btn--primary hero__cta" href={url(s.href)}>
+              {s.cta}
+            </a>
+          </div>
 
-    <div class="hero__controls">
-      <button class="hero__arrow" type="button" data-carousel-prev aria-label="上一张">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M15 5l-7 7 7 7" />
-        </svg>
-      </button>
-      <div class="hero__dots" role="tablist" aria-label="选择主视觉">
-        {
-          slides.map((_, i) => (
-            <button
-              class="hero__dot"
-              type="button"
-              data-dot
-              role="tab"
-              aria-current={i === 0 ? "true" : "false"}
-              aria-label={`第 ${i + 1} 张`}
+          {/* 右：立绘（完整展示，不裁切） */}
+          <figure class="hero__art">
+            <img
+              src={assetUrl(s.entry.path)}
+              alt={`${s.nameJa} 立绘`}
+              width={s.entry.width}
+              height={s.entry.height}
+              loading={i === 0 ? "eager" : "lazy"}
+              fetchpriority={i === 0 ? "high" : "auto"}
+              decoding="async"
             />
-          ))
-        }
+          </figure>
+        </div>
       </div>
-      <button class="hero__arrow" type="button" data-carousel-next aria-label="下一张">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+    ))
+  }
+
+  <div class="hero__controls container">
+    <button class="hero__arrow" type="button" data-carousel-prev aria-label="上一张">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 5l-7 7 7 7" />
+      </svg>
+    </button>
+    <div class="hero__dots" role="tablist" aria-label="选择成员">
+      {
+        slides.map((s, i) => (
+          <button
+            class="hero__dot"
+            type="button"
+            data-dot
+            role="tab"
+            style={`--c:${s.color}`}
+            aria-current={i === 0 ? "true" : "false"}
+            aria-label={s.nameJa}
+          />
+        ))
+      }
     </div>
+    <button class="hero__arrow" type="button" data-carousel-next aria-label="下一张">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
   </div>
 </section>
 
 <style>
   .hero {
     position: relative;
-    display: grid;
-    align-items: end;
-    min-height: 76svh;
     background: var(--ink-950);
     overflow: hidden;
+    /* 移动端不宜过高(用户反馈影响观感)：内容自适应 + 上限，不再 78svh 撑满 */
+    min-height: 0;
+    display: grid;
   }
 
   @media (min-width: 1024px) {
     .hero {
-      min-height: 88svh;
+      min-height: 90svh;
     }
   }
 
-  .hero__stage {
-    position: absolute;
-    inset: 0;
-  }
-
+  /* 每张 slide 全幅叠放，交叉淡入。
+     注意：首屏 slide 必须在文档流内撑起 .hero 高度(否则 hero 塌陷为 0)，
+     故默认 relative 占位；非激活的用 absolute 叠在同一位置。 */
   .hero__slide {
-    position: absolute;
-    inset: 0;
+    position: relative;
+    grid-area: 1 / 1;
     opacity: 0;
     transition: opacity var(--dur-enter) var(--ease-out-expo);
+    display: grid;
+    visibility: hidden;
   }
 
   .hero__slide[data-active] {
     opacity: 1;
+    z-index: 1;
+    visibility: visible;
   }
 
-  .hero__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    /* 移动端(竖屏窄视口)：用每张 KV 的 --focal 水平聚焦点对齐主体，
-       避免 cover 把人物裁到只剩 1/3 脸(用户反馈)。每张 KV 主体位置不同
-       (掀帘在右/群像居中)，故逐张配 --focal。垂直 30% 对准眼睛高度。 */
-    object-position: var(--focal, 50%) 30%;
-    transform: scale(1.02);
-  }
-
-  @media (min-width: 1024px) {
-    .hero__img {
-      /* 桌面(横屏宽视口)：KV 横向舒展，人物居中即可，恢复统一居中。 */
-      object-position: center 30%;
-    }
-  }
-
-  /* 底部 + 左侧双重遮罩，保证白色文字在任意 KV 上都达 AA */
-  .hero__scrim {
+  /* 角色主题色的氛围底：左深右浅对角渐变 + 大块色晕，低饱和不抢立绘 */
+  .hero__bg {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(to top, var(--ink-900) 2%, rgba(14, 15, 19, 0.86) 34%, rgba(14, 15, 19, 0.25) 72%, rgba(14, 15, 19, 0.5) 100%),
-      linear-gradient(to right, rgba(14, 15, 19, 0.82) 0%, rgba(14, 15, 19, 0.2) 62%, transparent 100%);
+      radial-gradient(58% 78% at 76% 42%, color-mix(in oklab, var(--c) 34%, transparent), transparent 70%),
+      linear-gradient(112deg, var(--ink-950) 34%, color-mix(in oklab, var(--c) 16%, var(--ink-950)) 100%);
   }
 
-  .hero__content {
+  /* 左文案 + 右立绘的杂志式栅格。
+     移动端：文案左(限宽 62%)，立绘贴右下并延伸到底缘、底缘渐隐，
+     硬边消失，像"站出画面"，不会被看成断臂/硬切。 */
+  .hero__inner {
     position: relative;
     z-index: 2;
-    width: 100%;
-    padding-block: var(--sp-7) var(--sp-5);
     display: grid;
-    gap: var(--sp-5);
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: var(--sp-4);
+    width: 100%;
+    /* 底部留白给绝对定位的控制条，避免压住 CTA(用户反馈重叠) */
+    padding-block: var(--sp-5) calc(var(--sp-4) + 52px);
   }
 
-  /* 文案层与图片层共用同一套 data-slide 索引，但独立交叉淡入 */
   .hero__copy {
-    display: none;
-    /* 不能用 ch：ch 基于当前字体的「0」宽度，Barlow 的 0 很窄，
-       会让标题列塌成 230px 高 734px 的竖条。em 与字体无关。 */
+    grid-area: 1 / 1;
+    max-width: 62%;
+  }
+
+  .hero__copy {
     max-width: 34em;
     animation: hero-copy-in var(--dur-enter) var(--ease-out-expo) both;
-  }
-
-  .hero__copy[data-active] {
-    display: block;
-  }
-
-  @media (min-width: 1024px) {
-    /* 80px 的日文标题一行 7 字需 ≈560px，34em(544px) 会把标题挤成
-       「怒りも、悲／しみも、」这种词中断字；放宽到 48em 让
-       「怒りも、悲しみも、／全部ぶつけろ。」两行成立。桌面专属。 */
-    .hero__copy {
-      max-width: 48em;
-    }
   }
 
   @keyframes hero-copy-in {
@@ -239,38 +221,142 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
   }
 
   .hero__kicker {
-    color: var(--neon-cyan);
+    color: var(--c);
     margin-bottom: var(--sp-3);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.14em;
   }
 
-  .hero__title {
-    font-size: var(--fs-display);
+  .hero__name {
+    margin: 0;
+    display: grid;
+    gap: var(--sp-2);
+    line-height: 1.0;
+  }
+
+  .hero__name-ja {
+    /* 移动端名字用次大显示字阶，避免日文名过长撑高(用户反馈整体过高) */
+    font-size: clamp(2.4rem, 11vw, var(--fs-display));
     font-weight: var(--fw-black);
-    line-height: 1.02;
-    letter-spacing: -0.03em;
-    white-space: pre-line;
-    /* 中文/日文默认允许任意字间折行，标题会出现「悲／しみも」这种词中折行；
-       keep-all 只在 \n 与半角空格处断行，配合 overflow-wrap 兜底不溢出。 */
+    letter-spacing: -0.02em;
     word-break: keep-all;
-    overflow-wrap: break-word;
     text-shadow: 0 2px 32px rgba(0, 0, 0, 0.5);
   }
 
-  .hero__sub {
+  .hero__name-en {
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.3em;
+    color: var(--c);
+    text-transform: uppercase;
+  }
+
+  .hero__tagline {
     margin-top: var(--sp-3);
-    color: var(--ink-300);
-    font-size: var(--fs-body-lg);
+    color: var(--ink-200);
+    font-size: var(--fs-body);
+    max-width: 24em;
+    word-break: keep-all;
   }
 
   .hero__cta {
-    margin-top: var(--sp-5);
+    margin-top: var(--sp-4);
     justify-self: start;
   }
 
+  /* 立绘：移动端贴右下、延伸到底缘，底缘渐隐融入(消除硬切/断臂观感) */
+  .hero__art {
+    grid-area: 1 / 1;
+    margin: 0;
+    /* 负外边距把立绘拉到 hero 最底缘(抵消 inner 底部为控制条留的白) */
+    margin-bottom: calc(-1 * (var(--sp-4) + 52px));
+    margin-right: calc(-1 * var(--container-pad));
+    display: grid;
+    justify-items: end;
+    align-items: end;
+    order: 0;
+    justify-self: end;
+    width: 58%;
+    pointer-events: none;
+  }
+
+  .hero__art img {
+    height: 100%;
+    width: 100%;
+    max-height: 46svh;
+    object-fit: contain;
+    object-position: bottom right;
+    /* 底缘 1/4 渐隐：立绘下缘融入背景，不出现硬切边 */
+    -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+    filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.55));
+    animation: hero-art-in var(--dur-enter) var(--ease-out-expo) both;
+  }
+
+  @keyframes hero-art-in {
+    from {
+      opacity: 0;
+      transform: translateY(28px) scale(0.98);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero__inner {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      align-items: center;
+      gap: var(--sp-7);
+      /* 底部多留 64px 给固定播放条，立绘不被它切到 */
+      padding-block: var(--sp-6) calc(var(--sp-6) + 64px);
+    }
+
+    /* 桌面回到两列独立排布：文案左列、立绘右列 */
+    .hero__copy,
+    .hero__art {
+      grid-area: auto;
+    }
+
+    .hero__copy {
+      max-width: 30em;
+    }
+
+    .hero__art {
+      margin: 0;
+      justify-self: center;
+      width: auto;
+      max-width: 100%;
+      pointer-events: auto;
+    }
+
+    .hero__art img {
+      /* 62svh 保证立绘底缘停在播放条之上，不被切 */
+      max-height: 62svh;
+      /* 素材本身是半身立绘(到大腿截断)，底缘渐隐化解硬边 */
+      -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+    }
+
+    .hero__name-ja {
+      /* 桌面恢复满显示字阶 */
+      font-size: var(--fs-display);
+    }
+  }
+
+  /* 控制条：移动端在文案之下，桌面抬到固定播放条之上(否则被它盖住) */
   .hero__controls {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    bottom: var(--sp-4);
     display: flex;
     align-items: center;
     gap: var(--sp-3);
+  }
+
+  @media (min-width: 1024px) {
+    .hero__controls {
+      bottom: calc(var(--sp-4) + 64px);
+    }
   }
 
   .hero__arrow {
@@ -299,9 +385,6 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
   }
 
   .hero__dot {
-    /* 视觉上是 28×4 的指示条，但点击区必须 ≥44px（移动端触控目标），
-       故用 padding 撑开命中区 + background-clip 让底色只画内容盒。
-       横向再补 4px，命中框 36×44。 */
     width: 28px;
     height: 4px;
     padding-block: 20px;
@@ -312,8 +395,9 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     transition: background-color var(--dur-base) var(--ease-out-cubic);
   }
 
+  /* 当前指示点用该成员的主题色，五人五色 */
   .hero__dot[aria-current="true"] {
-    background-color: var(--gbc-red);
+    background-color: var(--c, var(--gbc-red));
   }
 
   .hero__dot:hover {
@@ -324,11 +408,9 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     .hero__slide {
       transition: none;
     }
-    .hero__copy {
+    .hero__copy,
+    .hero__art img {
       animation: none;
-    }
-    .hero__img {
-      transform: none;
     }
   }
 </style>
