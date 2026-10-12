@@ -15,6 +15,9 @@ interface Slide {
   sub: string;
   href: string;
   cta: string;
+  /** 移动端竖屏下 object-position 水平聚焦点(%)，对准 KV 主体避免 cover 裁切人物。
+      桌面端横屏统一用 center。 */
+  focal?: string;
 }
 
 interface Props {
@@ -32,6 +35,9 @@ const defaultSlides: Slide[] = fallback.map((entry, i) => {
       sub: "少女乐队哭泣 · 官方主视觉",
       href: "/story",
       cta: "查看剧情",
+      // poster 01：人物在画面右侧(掀帘探头)，移动端右移对准人物。
+      // 实测 70% 人物脸部完整居中；62% 会裁到人物右脸，勿降。
+      focal: "70%",
     },
     {
       kicker: "TOGENASHI TOGEARI",
@@ -39,6 +45,8 @@ const defaultSlides: Slide[] = fallback.map((entry, i) => {
       sub: "5 人编制的少女乐队",
       href: "/characters",
       cta: "认识成员",
+      // poster 02：掀帘探脸特写，人物略偏中右
+      focal: "58%",
     },
     {
       kicker: "GALLERY",
@@ -46,6 +54,8 @@ const defaultSlides: Slide[] = fallback.map((entry, i) => {
       sub: "官方宣传视觉资料",
       href: "/gallery",
       cta: "浏览画廊",
+      // poster 03：五人群像横向分布，居中即可
+      focal: "50%",
     },
   ];
   return { entry, ...presets[i % presets.length] };
@@ -73,6 +83,7 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
             alt={s.entry.source_name.replace(/\.[^.]+$/, "")}
             width={s.entry.width}
             height={s.entry.height}
+            style={`--focal:${s.focal ?? "50%"}`}
             loading={i === 0 ? "eager" : "lazy"}
             fetchpriority={i === 0 ? "high" : "auto"}
             decoding="async"
@@ -166,8 +177,18 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 30%;
+    /* 移动端(竖屏窄视口)：用每张 KV 的 --focal 水平聚焦点对齐主体，
+       避免 cover 把人物裁到只剩 1/3 脸(用户反馈)。每张 KV 主体位置不同
+       (掀帘在右/群像居中)，故逐张配 --focal。垂直 30% 对准眼睛高度。 */
+    object-position: var(--focal, 50%) 30%;
     transform: scale(1.02);
+  }
+
+  @media (min-width: 1024px) {
+    .hero__img {
+      /* 桌面(横屏宽视口)：KV 横向舒展，人物居中即可，恢复统一居中。 */
+      object-position: center 30%;
+    }
   }
 
   /* 底部 + 左侧双重遮罩，保证白色文字在任意 KV 上都达 AA */
