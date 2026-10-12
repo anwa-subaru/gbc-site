@@ -188,6 +188,18 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 兜底：该属性并非所有浏览器都从 html 继承，可点元素再声明一次 */
+a,
+button,
+input,
+label,
+select,
+summary,
+textarea,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   min-height: 100vh;
   background: var(--bg);
