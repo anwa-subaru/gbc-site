@@ -435,8 +435,12 @@ def encode_image(src: str, dst: str, quality: int, max_edge: int, keep_alpha: bo
         }
 
 
-def encode_gif(src: str, dst: str, max_edge: int) -> dict:
-    """动图 GIF → 动画 WebP（保留帧序与透明）。"""
+def encode_animated(src: str, dst: str, max_edge: int) -> dict:
+    """多帧素材（GIF / 动态 WebP）→ 动画 WebP（保留帧序与透明）。
+
+    注意：以前只对 .gif 走这条路径，.webp 源的动态表情包被 encode_image
+    按静图存了，40 个 10 帧贴纸全被压成单帧（画面上只剩一条残影）。
+    """
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     with Image.open(src) as im:
         n = getattr(im, "n_frames", 1)
@@ -544,6 +548,15 @@ def encode_video(src: str, dst: str, max_edge: int) -> dict:
 # --------------------------------------------------------------------------
 
 
+def is_animated(path: str) -> bool:
+    """源文件是否多帧（动态 WebP 也要走动画编码，否则动画会丢）。"""
+    try:
+        with Image.open(path) as im:
+            return getattr(im, "n_frames", 1) > 1
+    except Exception:
+        return False
+
+
 def process_one(job: dict) -> dict:
     src = job["src"]
     dst = job["dst"]
@@ -556,9 +569,9 @@ def process_one(job: dict) -> dict:
         shutil.copyfile(src, dst)
         return {"ok": True, "bytes": os.path.getsize(dst), "kind": "vector"}
 
-    if ext in GIF_EXT:
-        info = encode_gif(src, dst, max_edge)
-        return {"ok": True, "bytes": os.path.getsize(dst), "kind": "gif", **info}
+    if ext in GIF_EXT or is_animated(src):
+        info = encode_animated(src, dst, max_edge)
+        return {"ok": True, "bytes": os.path.getsize(dst), "kind": "animated", **info}
 
     if ext in VIDEO_EXT:
         info = encode_video(src, dst, VIDEO_MAX_EDGE)

@@ -14572,7 +14572,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U4f60#U5e72#U561b.webp",
         "source_name": "少女乐队呐喊动态表情_你干嘛.webp",
         "source_bytes": 59460,
-        "bytes": 6398,
+        "bytes": 62252,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14580,7 +14580,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/02.webp",
@@ -14589,7 +14591,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U51fa#U73b0.webp",
         "source_name": "少女乐队呐喊动态表情_出现.webp",
         "source_bytes": 40936,
-        "bytes": 356,
+        "bytes": 43238,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14597,7 +14599,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/03.webp",
@@ -14606,7 +14610,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U53f9#U6c14.webp",
         "source_name": "少女乐队呐喊动态表情_叹气.webp",
         "source_bytes": 57960,
-        "bytes": 6036,
+        "bytes": 60898,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14614,7 +14618,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/04.webp",
@@ -14623,7 +14629,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U554a.webp",
         "source_name": "少女乐队呐喊动态表情_啊.webp",
         "source_bytes": 68598,
-        "bytes": 7560,
+        "bytes": 72004,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14631,7 +14637,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/05.webp",
@@ -14640,7 +14648,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5632#U7b11.webp",
         "source_name": "少女乐队呐喊动态表情_嘲笑.webp",
         "source_bytes": 59032,
-        "bytes": 4516,
+        "bytes": 61674,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14648,7 +14656,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/06.webp",
@@ -14657,7 +14667,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d.webp",
         "source_name": "少女乐队呐喊动态表情_干饭.webp",
         "source_bytes": 70320,
-        "bytes": 7358,
+        "bytes": 73964,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14665,7 +14675,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/07.webp",
@@ -14674,7 +14686,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5f00#U8f66.webp",
         "source_name": "少女乐队呐喊动态表情_开车.webp",
         "source_bytes": 59116,
-        "bytes": 6260,
+        "bytes": 62018,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14682,7 +14694,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/08.webp",
@@ -14691,7 +14705,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U60ca#U8bb6.webp",
         "source_name": "少女乐队呐喊动态表情_惊讶.webp",
         "source_bytes": 61378,
-        "bytes": 6704,
+        "bytes": 64472,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14699,7 +14713,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/09.webp",
@@ -14708,7 +14724,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U626d#U5c41#U80a1.webp",
         "source_name": "少女乐队呐喊动态表情_扭屁股.webp",
         "source_bytes": 46516,
-        "bytes": 5052,
+        "bytes": 48454,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14716,7 +14732,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/10.webp",
@@ -14725,7 +14743,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U62c9#U4eba.webp",
         "source_name": "少女乐队呐喊动态表情_拉人.webp",
         "source_bytes": 66466,
-        "bytes": 6980,
+        "bytes": 69780,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14733,7 +14751,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/11.webp",
@@ -14742,7 +14762,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U6307#U4eba.webp",
         "source_name": "少女乐队呐喊动态表情_指人.webp",
         "source_bytes": 59062,
-        "bytes": 6884,
+        "bytes": 61718,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14750,7 +14770,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/12.webp",
@@ -14759,7 +14781,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U634f#U8138.webp",
         "source_name": "少女乐队呐喊动态表情_捏脸.webp",
         "source_bytes": 69928,
-        "bytes": 7686,
+        "bytes": 73290,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14767,7 +14789,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/13.webp",
@@ -14776,7 +14800,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U63a2#U5934.webp",
         "source_name": "少女乐队呐喊动态表情_探头.webp",
         "source_bytes": 42306,
-        "bytes": 2716,
+        "bytes": 44568,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14784,7 +14808,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/14.webp",
@@ -14793,7 +14819,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U63a5#U7bb1#U5b50.webp",
         "source_name": "少女乐队呐喊动态表情_接箱子.webp",
         "source_bytes": 42352,
-        "bytes": 2024,
+        "bytes": 44340,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14801,7 +14827,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/15.webp",
@@ -14810,7 +14838,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U6478#U540e#U8111#U52fa.webp",
         "source_name": "少女乐队呐喊动态表情_摸后脑勺.webp",
         "source_bytes": 56382,
-        "bytes": 5960,
+        "bytes": 59350,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14818,7 +14846,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/16.webp",
@@ -14827,7 +14857,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U6d41#U6c57.webp",
         "source_name": "少女乐队呐喊动态表情_流汗.webp",
         "source_bytes": 62058,
-        "bytes": 6788,
+        "bytes": 65370,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14835,7 +14865,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/17.webp",
@@ -14844,7 +14876,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U7761#U5927#U89c9.webp",
         "source_name": "少女乐队呐喊动态表情_睡大觉.webp",
         "source_bytes": 60366,
-        "bytes": 6384,
+        "bytes": 63898,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14852,7 +14884,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/18.webp",
@@ -14861,7 +14895,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U7bb1#U5b50#U5934.webp",
         "source_name": "少女乐队呐喊动态表情_箱子头.webp",
         "source_bytes": 50842,
-        "bytes": 4954,
+        "bytes": 53078,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14869,7 +14903,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/19.webp",
@@ -14878,7 +14914,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U88ab#U62c9.webp",
         "source_name": "少女乐队呐喊动态表情_被拉.webp",
         "source_bytes": 54822,
-        "bytes": 6138,
+        "bytes": 57326,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14886,7 +14922,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-1/20.webp",
@@ -14895,7 +14933,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U5e72#U996d#U7b49/#U5c11#U5973#U4e50#U961f#U5450#U558a#U52a8#U6001#U8868#U60c5_#U9f87#U7259.webp",
         "source_name": "少女乐队呐喊动态表情_龇牙.webp",
         "source_bytes": 58082,
-        "bytes": 5522,
+        "bytes": 60622,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14903,7 +14941,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-2/01.webp",
@@ -14912,7 +14952,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U4e00#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U4e00.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_一.webp",
         "source_bytes": 71734,
-        "bytes": 7580,
+        "bytes": 75032,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14920,7 +14960,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-2/02.webp",
@@ -14929,7 +14971,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U4e00#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U4e50.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_乐.webp",
         "source_bytes": 75150,
-        "bytes": 7526,
+        "bytes": 78720,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14937,7 +14979,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-2/03.webp",
@@ -14946,7 +14990,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U4e00#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U7ec4.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_组.webp",
         "source_bytes": 58964,
-        "bytes": 6464,
+        "bytes": 61872,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14954,7 +14998,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-2/04.webp",
@@ -14963,7 +15009,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U4e00#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U8d77.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_起.webp",
         "source_bytes": 75144,
-        "bytes": 8042,
+        "bytes": 79078,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14971,7 +15017,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated-2/05.webp",
@@ -14980,7 +15028,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U4e00#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U961f.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_队.webp",
         "source_bytes": 69522,
-        "bytes": 7592,
+        "bytes": 73164,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -14988,7 +15036,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/animated/01.webp",
@@ -15677,7 +15727,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U4ec0#U4e48.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_什么.webp",
         "source_bytes": 71796,
-        "bytes": 8350,
+        "bytes": 75826,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15685,7 +15735,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/02.webp",
@@ -15694,7 +15746,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U5077#U7784.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_偷瞄.webp",
         "source_bytes": 69334,
-        "bytes": 7754,
+        "bytes": 72222,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15702,7 +15754,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/03.webp",
@@ -15711,7 +15765,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U5192#U51fa.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_冒出.webp",
         "source_bytes": 61240,
-        "bytes": 7092,
+        "bytes": 64662,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15719,7 +15773,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/04.webp",
@@ -15728,7 +15784,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U52a0#U6cb9.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_加油.webp",
         "source_bytes": 63798,
-        "bytes": 7178,
+        "bytes": 66808,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15736,7 +15792,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/05.webp",
@@ -15745,7 +15803,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U5446#U4f4f.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_呆住.webp",
         "source_bytes": 71860,
-        "bytes": 6716,
+        "bytes": 75510,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15753,7 +15811,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/06.webp",
@@ -15762,7 +15822,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U563f#U563f.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_嘿嘿.webp",
         "source_bytes": 54144,
-        "bytes": 5968,
+        "bytes": 56576,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15770,7 +15830,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/07.webp",
@@ -15779,7 +15841,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U5c34#U5c2c.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_尴尬.webp",
         "source_bytes": 55240,
-        "bytes": 5724,
+        "bytes": 57164,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15787,7 +15849,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/08.webp",
@@ -15796,7 +15860,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U6293#U72c2.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_抓狂.webp",
         "source_bytes": 81508,
-        "bytes": 8298,
+        "bytes": 84836,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15804,7 +15868,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/09.webp",
@@ -15813,7 +15879,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U6376#U684c.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_捶桌.webp",
         "source_bytes": 67068,
-        "bytes": 7294,
+        "bytes": 70408,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15821,7 +15887,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/10.webp",
@@ -15830,7 +15898,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U63a2#U5934.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_探头.webp",
         "source_bytes": 51424,
-        "bytes": 4062,
+        "bytes": 53560,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15838,7 +15906,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/11.webp",
@@ -15847,7 +15917,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U6bd4#U8036.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_比耶.webp",
         "source_bytes": 62856,
-        "bytes": 6354,
+        "bytes": 65740,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15855,7 +15925,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/12.webp",
@@ -15864,7 +15936,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U72c2#U70b9.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_狂点.webp",
         "source_bytes": 68204,
-        "bytes": 6640,
+        "bytes": 71416,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15872,7 +15944,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/13.webp",
@@ -15881,7 +15955,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U73af#U62b1.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_环抱.webp",
         "source_bytes": 57092,
-        "bytes": 6830,
+        "bytes": 60388,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15889,7 +15963,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/14.webp",
@@ -15898,7 +15974,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U8bf6#Uff01.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_诶！.webp",
         "source_bytes": 53404,
-        "bytes": 6124,
+        "bytes": 56094,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15906,7 +15982,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/15.webp",
@@ -15915,7 +15993,7 @@
         "source": "#U6536#U85cf#U96c6#U7b2c#U4e00#U5f39/#U95f4#U594f#U65f6#U5149#U8868#U60c5#U5305_#U6b23#U6170#U7b49/#U5c11#U5973#U4e50#U961f#U7684#U5450#U558a#U7b2c#U4e8c#U5f39#U52a8#U6001#U8868#U60c5#U5305_#U9707#U60ca.webp",
         "source_name": "少女乐队的呐喊第二弹动态表情包_震惊.webp",
         "source_bytes": 68134,
-        "bytes": 7646,
+        "bytes": 72058,
         "kind": "image",
         "ok": true,
         "width": 162,
@@ -15923,7 +16001,9 @@
         "source_width": 162,
         "source_height": 162,
         "source_mode": "RGBA",
-        "alpha": true
+        "alpha": true,
+        "frames": 10,
+        "animated": true
       },
       {
         "path": "assets/emoji/interlude-2/16.webp",
