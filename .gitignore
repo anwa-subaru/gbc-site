@@ -1,0 +1,15 @@
+# 构建产物（由 GitHub Actions 构建，不入库）
+dist/
+.astro/
+
+# 依赖
+node_modules/
+
+# 审计截图（体积大，非站点内容，可选保留在仓库外）
+review-shots/
+
+# 系统/编辑器
+.DS_Store
+*.log
+.vscode/
+.idea/

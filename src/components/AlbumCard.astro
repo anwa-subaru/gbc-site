@@ -1,0 +1,161 @@
+---
+/**
+ * 专辑 / 封面卡
+ *  - 方形封面，悬停放大 1.04 + 红色扫描条（320ms ease-out-expo）
+ *  - 无 href 时降级为非交互容器（不产生假的链接语义）
+ */
+import { assetUrl, url, type AssetEntry } from "../lib/assets";
+
+interface Props {
+  entry: AssetEntry;
+  title?: string;
+  subtitle?: string;
+  badge?: string;
+  href?: string;
+  index?: number;
+  eager?: boolean;
+}
+
+const {
+  entry,
+  title,
+  subtitle,
+  badge,
+  href,
+  index = 0,
+  eager = false,
+} = Astro.props;
+
+const cleanTitle = title ?? entry.source_name.replace(/\.[^.]+$/, "");
+const autoBadge = entry.path.includes("/album/")
+  ? "ALBUM"
+  : entry.path.includes("/bd/")
+    ? "BLU-RAY"
+    : entry.path.includes("/pv/")
+      ? "PV"
+      : "COVER";
+const typeBadge = badge ?? autoBadge;
+
+const Tag = href ? "a" : "div";
+---
+
+<article class="ac" style={`--i:${index}`} data-reveal>
+  <Tag class="ac__link" href={href ? url(href) : undefined} aria-label={href ? cleanTitle : undefined}>
+    <div class="ac__frame">
+      <img
+        class="ac__img"
+        src={assetUrl(entry.path)}
+        alt={cleanTitle}
+        width={entry.width}
+        height={entry.height}
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
+      />
+      <span class="ac__badge label">{typeBadge}</span>
+      <span class="ac__scan" aria-hidden="true"></span>
+    </div>
+    <div class="ac__body">
+      <h3 class="ac__title">{cleanTitle}</h3>
+      {subtitle && <p class="ac__sub">{subtitle}</p>}
+    </div>
+  </Tag>
+</article>
+
+<style>
+  .ac {
+    min-width: 0;
+  }
+
+  .ac__link {
+    display: block;
+    color: inherit;
+  }
+
+  .ac__frame {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: var(--ink-850);
+    border: 1px solid var(--border);
+    transition: border-color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .ac__link:hover .ac__frame {
+    border-color: var(--gbc-red);
+  }
+
+  .ac__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-slow) var(--ease-out-expo);
+  }
+
+  .ac__link:hover .ac__img {
+    transform: scale(1.04);
+  }
+
+  .ac__badge {
+    position: absolute;
+    top: var(--sp-2);
+    left: var(--sp-2);
+    padding: 3px var(--sp-2);
+    background: rgba(14, 15, 19, 0.8);
+    color: var(--ink-100);
+    backdrop-filter: blur(4px);
+    border-radius: var(--r-sm);
+  }
+
+  /* 底部红色扫描条：悬停自左向右展开 */
+  .ac__scan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--gbc-red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-slow) var(--ease-out-expo);
+  }
+
+  .ac__link:hover .ac__scan {
+    transform: scaleX(1);
+  }
+
+  .ac__body {
+    padding-top: var(--sp-3);
+  }
+
+  .ac__title {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.01em;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .ac__sub {
+    margin-top: var(--sp-1);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--ink-300);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ac__img,
+    .ac__scan {
+      transition: none;
+    }
+    .ac__link:hover .ac__img {
+      transform: none;
+    }
+    .ac__link:hover .ac__scan {
+      transform: scaleX(1);
+    }
+  }
+</style>

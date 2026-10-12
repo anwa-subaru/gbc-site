@@ -1,0 +1,166 @@
+---
+/**
+ * 画廊灯箱（全局单例，由 Layout 渲染一次）
+ *  - 手机：全屏铺满
+ *  - 桌面：居中浮层，最大 90vw / 84vh
+ *  - 键盘：Esc 关闭、← → 切换；打开时锁定滚动并把焦点移入
+ *  - 由任意带 `data-lightbox-src` 的元素触发，同 `data-lightbox-group` 归为一组
+ */
+---
+
+<div
+  class="lb"
+  data-lightbox
+  role="dialog"
+  aria-modal="true"
+  aria-label="图片查看器"
+>
+  <div class="lb__bar">
+    <p class="lb__counter num" data-lightbox-counter aria-live="polite"></p>
+    <button class="lb__btn lb__btn--close" type="button" data-lightbox-close aria-label="关闭（Esc）">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </div>
+
+  <button class="lb__nav lb__nav--prev" type="button" data-lightbox-prev aria-label="上一张（←）">
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  </button>
+
+  <figure class="lb__figure">
+    <img class="lb__img" data-lightbox-img alt="" width="1200" height="1200" decoding="async" />
+    <figcaption class="lb__caption" data-lightbox-caption></figcaption>
+  </figure>
+
+  <button class="lb__nav lb__nav--next" type="button" data-lightbox-next aria-label="下一张（→）">
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
+</div>
+
+<style>
+  .lb {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2);
+    background: rgba(8, 9, 11, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--dur-base) var(--ease-out-cubic),
+      visibility var(--dur-base);
+  }
+
+  .lb[data-open] {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .lb__bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: var(--sp-1) var(--sp-2);
+  }
+
+  .lb__counter {
+    font-size: var(--fs-sm);
+    letter-spacing: 0.1em;
+    color: var(--ink-300);
+  }
+
+  .lb__btn,
+  .lb__nav {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--ink-000);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+    transition:
+      background-color var(--dur-base) var(--ease-out-cubic),
+      border-color var(--dur-base) var(--ease-out-cubic),
+      color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .lb__btn:hover,
+  .lb__nav:hover {
+    background: var(--gbc-red);
+    border-color: var(--gbc-red);
+  }
+
+  .lb__nav {
+    z-index: 2;
+  }
+
+  .lb__figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-3);
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+  }
+
+  /* 手机：铺满可用空间 */
+  .lb__img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .lb__caption {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--ink-300);
+    text-align: center;
+    max-width: 60ch;
+    padding-inline: var(--sp-2);
+  }
+
+  /* 桌面：限制尺寸并给出边框层次 */
+  @media (min-width: 1024px) {
+    .lb {
+      padding: var(--sp-4) var(--sp-6);
+    }
+
+    .lb__img {
+      max-width: 88vw;
+      max-height: 80vh;
+      border: 1px solid var(--border);
+    }
+
+    /* 桌面用悬停色，不做位移 */
+    .lb__nav--prev {
+      justify-self: start;
+    }
+    .lb__nav--next {
+      justify-self: end;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lb {
+      transition: none;
+    }
+  }
+</style>

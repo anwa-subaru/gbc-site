@@ -1,0 +1,601 @@
+---
+/**
+ * 音乐页 `/music`（t5d）
+ * 版式取自 DESIGN.md §7.3：发行物封面网格 + 曲目表。
+ * 文案 100% 来自 content/music.md（官网 goods 页 + 萌娘百科），构建期解析，零硬编码。
+ * 播放器复用既有 MusicPlayer 组件：其音源来自 assets/videos 的角色 PV（真实资产），
+ * 站内没有独立音源，因此不虚构任何音频 URL。
+ */
+import fs from "node:fs";
+import path from "node:path";
+import Layout from "../layouts/Layout.astro";
+import AlbumCard from "../components/AlbumCard.astro";
+import { assetUrl, category, videos, type AssetEntry } from "../lib/assets";
+
+/* ---------- 解析 content/music.md ---------- */
+const raw = fs.readFileSync(
+  path.resolve(process.cwd(), "content/music.md"),
+  "utf-8",
+);
+const lines = raw.split("\n");
+
+const heads: number[] = [];
+lines.forEach((l, i) => {
+  if (/^###\s+/.test(l)) heads.push(i);
+});
+
+interface Track {
+  disc: string;
+  title: string;
+  credits: string;
+}
+interface Release {
+  kind: string;
+  ja: string;
+  zh: string;
+  date: string;
+  cat: string;
+  tracks: Track[];
+  urls: string[];
+  files: string[];
+  art: AssetEntry[];
+  group: string;
+}
+
+const covers = category("covers");
+
+const RELEASES: Release[] = heads.map((start, k) => {
+  const head = lines[start].replace(/^###\s+/, "").trim();
+  const body = lines.slice(start + 1, heads[k + 1] ?? lines.length);
+
+  // `1st Single：《名もなき何もかも》（皆无其名）`；OST 无「Nth X：」前缀，
+  // 标题以《》包裹，需单独剥壳，避免出现《《…》》。
+  const m = head.match(/^(.+?)《(.+?)》\s*(?:[（(]([^）)]*)[）)])?\s*$/);
+  const kind = (m ? m[1] : "OST").replace(/[：:]\s*$/, "").trim();
+  // 标题本身可能也被《》包裹（OST），反复剥壳直到干净
+  let ja = (m ? m[2] : head).trim();
+  while (/^《.*》$/.test(ja)) ja = ja.slice(1, -1).trim();
+  const zh = (m?.[3] ?? "").trim();
+
+  const field = (key: string): string => {
+    const hit = body.find((l) => l.startsWith(`- **${key}**`));
+    return hit ? hit.replace(/^- \*\*[^*]+\*\*[：:]\s*/, "").trim() : "";
+  };
+
+  const urls: string[] = [];
+  for (const l of body) {
+    for (const u of l.match(/https?:\/\/[^\s）)\]]+/g) ?? []) {
+      if (!urls.includes(u)) urls.push(u);
+    }
+  }
+
+  const files: string[] = [];
+  const fileLine = body.find((l) => l.includes("对照素材文件"));
+  if (fileLine) {
+    for (const x of fileLine.match(/`[^`]+`/g) ?? []) files.push(x.slice(1, -1));
+  }
+
+  // 曲目：两种写法（`**曲名**（credit）` / `**曲名** / 艺人`），并跳过 Instrumental
+  const tracks: Track[] = [];
+  let disc = "";
+  for (const l of body) {
+    const dm = l.match(/DISC\s*(\d)/);
+    if (dm) disc = `DISC ${dm[1]}`;
+    const t = l.match(/^\s{2,}(\d+)\.\s+(.+)$/);
+    if (!t) continue;
+    let seg = t[2].trim();
+    if (/Instrumental/i.test(seg)) continue;
+    const bold = seg.match(/\*\*(.+?)\*\*/);
+    let title = "";
+    let credits = "";
+    if (bold) {
+      title = bold[1].trim();
+      credits = seg.slice(seg.indexOf(bold[0]) + bold[0].length).trim();
+    } else {
+      const c = seg.match(/[（(]([^）)]*)[）)]/);
+      if (c && /作词|作曲|编曲/.test(c[1])) {
+        credits = c[0];
+        title = seg.replace(c[0], "").trim();
+      } else {
+        title = seg;
+      }
+    }
+    title = title
+      .replace(/[（(][^）)]*[）)]/g, "")
+      .replace(/\s*\/\s*$/, "")
+      .trim();
+    credits = credits
+      .replace(/^[（(]|[）)]$/g, "")
+      .replace(/\s*\/\s*[\s\S]*$/, "")
+      .trim();
+    if (title) tracks.push({ disc, title, credits });
+  }
+
+  // OST 的曲目是行内顿号串，单独取前若干首作为精选
+  if (tracks.length === 0) {
+    for (const l of body) {
+      const dm = l.match(/DISC\s*(\d)/);
+      if (!dm) continue;
+      const seg = l.replace(/^.*?DISC\s*\d\s*[：:]\s*/, "").replace(/等全\s*\d+\s*曲。?$/, "");
+      seg
+        .split("、")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 8)
+        .forEach((s) => tracks.push({ disc: `DISC ${dm[1]}`, title: s, credits: "" }));
+    }
+  }
+
+  // 封面：按 source_name 精确匹配发行物标题（避免张冠李戴）
+  const art = covers.filter((e) => {
+    if (!e.path.includes("/album/")) return false;
+    const n = e.source_name;
+    if (kind.includes("OST")) return n.includes("オリジナルサウンドトラック");
+    return n.includes(ja);
+  });
+
+  return {
+    kind,
+    ja,
+    zh,
+    date: field("发售日期"),
+    cat: field("唱片规格与编号"),
+    tracks,
+    urls,
+    files,
+    art,
+    group: /Single/.test(kind)
+      ? "single"
+      : /Album/.test(kind)
+        ? "album"
+        : /EP/.test(kind)
+          ? "ep"
+          : "ost",
+  };
+});
+
+const SINGLES = RELEASES.filter((r) => r.group === "single");
+const ALBUMS = RELEASES.filter((r) => r.group === "album");
+const EPS = RELEASES.filter((r) => r.group === "ep");
+const OST = RELEASES.find((r) => r.group === "ost");
+
+const MISSING_ART = RELEASES.filter((r) => r.art.length === 0).map((r) => r.ja);
+
+const PVS = videos();
+const sourceLabel = (u: string): string =>
+  u.includes("moegirl") ? "萌娘百科" : "官方网站";
+---
+
+<Layout
+  title="音乐"
+  description="トゲナシトゲアリ 历代单曲、专辑与 EP 全曲目资料，封面取自官方发行物。曲目信息与出处整理自官方网站与萌娘百科。"
+>
+  <header class="mu-head container">
+    <p class="mu-head__ja">ミュージック</p>
+    <h1 class="mu-head__en">MUSIC</h1>
+    <p class="mu-head__lead">
+      トゲナシトゲアリ 历代单曲、录音室专辑与 EP，共
+      <span class="num">{RELEASES.length}</span> 张发行物。曲目与制作名单整理自
+      <a href="https://girls-band-cry.com/goods/" target="_blank" rel="noopener noreferrer">官方网站 GOODS 页</a>
+      与
+      <a href="https://zh.moegirl.org.cn/TOGENASHI_TOGEARI" target="_blank" rel="noopener noreferrer">萌娘百科</a>，不翻译、不改写曲名。
+    </p>
+  </header>
+
+  {
+    (
+      [
+        ["single", "SINGLES", "シングル", SINGLES],
+        ["album", "ALBUMS", "アルバム", ALBUMS],
+        ["ep", "EP", "ミニアルバム", EPS],
+        ["ost", "SOUNDTRACK", "オリジナルサウンドトラック", OST ? [OST] : []],
+      ] as const
+    ).map(([id, en, jaLabel, list]) => (
+      <section class="mu-sec container" id={id}>
+        <header class="mu-sec__head">
+          <h2 class="mu-sec__en">{en}</h2>
+          <p class="mu-sec__ja">{jaLabel}</p>
+          <p class="mu-sec__count num">{list.length} TITLES</p>
+        </header>
+
+        <div class="grid grid--4 mu-grid">
+          {list.map((r, i) =>
+            r.art[0] ? (
+              <AlbumCard
+                entry={r.art[0]}
+                title={r.ja}
+                subtitle={r.zh || r.kind}
+                badge={r.kind.replace(/^\d+\w+\s*/, "").toUpperCase()}
+                index={i}
+                eager={id === "single" && i < 4}
+              />
+            ) : (
+              <div class="mu-miss" data-reveal>
+                <svg
+                  class="mu-miss__disc"
+                  viewBox="0 0 64 64"
+                  width="64"
+                  height="64"
+                  aria-hidden="true"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <circle cx="32" cy="32" r="30" stroke-width="1.5" />
+                  <circle cx="32" cy="32" r="24" stroke-width="1" opacity=".55" />
+                  <circle cx="32" cy="32" r="18" stroke-width="1" opacity=".35" />
+                  <circle cx="32" cy="32" r="9" stroke-width="1.5" />
+                  <circle cx="32" cy="32" r="2.5" fill="currentColor" stroke="none" />
+                </svg>
+                <p class="mu-miss__t">{r.ja}</p>
+                <p class="mu-miss__n">素材库无对应封面</p>
+              </div>
+            ),
+          )}
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="mu-sec container" id="tracklist">
+    <header class="mu-sec__head">
+      <h2 class="mu-sec__en">TRACKLIST</h2>
+      <p class="mu-sec__ja">収録曲</p>
+    </header>
+
+    <ol class="mu-list">
+      {
+        RELEASES.map((r) => (
+          <li class="mu-rel" id={`rel-${r.group}-${r.ja}`}>
+            <div class="mu-rel__head">
+              <p class="mu-rel__kind label">{r.kind}</p>
+              <h3 class="mu-rel__title">{r.ja}</h3>
+              {r.zh ? <p class="mu-rel__zh">{r.zh}</p> : null}
+              <p class="mu-rel__meta num">
+                {r.date}
+                {r.cat ? ` · ${r.cat}` : ""}
+              </p>
+            </div>
+
+            {r.tracks.length ? (
+              <ol class="mu-tracks">
+                {r.tracks.map((t, i) => (
+                  <li class="mu-track">
+                    <span class="mu-track__no num">
+                      {t.disc ? `${t.disc} ` : ""}
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span class="mu-track__main">
+                      <span class="mu-track__name">{t.title}</span>
+                      {t.credits ? (
+                        <span class="mu-track__credit">{t.credits}</span>
+                      ) : null}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+
+            {r.urls.length ? (
+              <p class="mu-src num">
+                {r.urls.map((u, i) => (
+                  <>
+                    {i > 0 ? " · " : ""}
+                    <a href={u} target="_blank" rel="noopener noreferrer">
+                      出典：{sourceLabel(u)}
+                    </a>
+                  </>
+                ))}
+              </p>
+            ) : null}
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="mu-sec container" id="pv">
+    <header class="mu-sec__head">
+      <h2 class="mu-sec__en">ROLE PV</h2>
+      <p class="mu-sec__ja">キャラクター PV</p>
+      <p class="mu-sec__count num">{PVS.length} VIDEOS</p>
+    </header>
+
+    <p class="mu-note">
+      站内唯一可播放的音源为官方角色 PV（约 30 秒）。底部播放器的曲目即取自这五支 PV，
+      完整曲目请通过上方各发行物的官方渠道收听。
+    </p>
+
+    <div class="mu-pvs">
+      {
+        PVS.map((v) => (
+          <figure class="mu-pv" data-reveal>
+            <video
+              class="mu-pv__video"
+              src={assetUrl(v.path)}
+              preload="none"
+              playsinline
+              controls
+              width="720"
+              height="405"
+            />
+            <figcaption class="mu-pv__cap num">
+              {v.character ? `${v.character.toUpperCase()} · ` : ""}
+              {Math.round(v.duration ?? 0)}s
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .mu-head {
+    padding-block: var(--sp-6) var(--sp-5);
+  }
+
+  .mu-head__ja {
+    font-size: var(--fs-sm);
+    letter-spacing: 0.24em;
+    color: var(--gbc-red-text);
+  }
+
+  .mu-head__en {
+    font-size: var(--fs-display);
+    font-weight: var(--fw-black);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .mu-head__lead {
+    max-width: 64ch;
+    margin-top: var(--sp-4);
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    line-height: 1.9;
+  }
+
+  .mu-head__lead a {
+    color: var(--ink-100);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .mu-head__lead a:hover {
+    color: var(--gbc-red-text);
+  }
+
+  /* ---- 分区标题：英文大字 + 日文小标 + 计数 ---- */
+  .mu-sec {
+    padding-block: var(--sp-5) var(--sp-6);
+    border-top: 1px solid var(--border);
+  }
+
+  .mu-sec__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-5);
+  }
+
+  .mu-sec__en {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-black);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .mu-sec__ja {
+    font-size: var(--fs-sm);
+    color: var(--ink-300);
+    letter-spacing: 0.12em;
+  }
+
+  .mu-sec__count {
+    margin-left: auto;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.1em;
+    color: var(--ink-300);
+  }
+
+  /* 封面网格：mobile-first，2 列起 */
+  .mu-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 1024px) {
+    .mu-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* 缺封面占位：不伪造图片，只给同等尺寸的说明块 */
+  .mu-miss {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    aspect-ratio: 1 / 1;
+    padding: var(--sp-4);
+    background: var(--ink-950);
+    border: 1px dashed var(--border);
+  }
+
+  /* 唱片刻线：呼应唱片发行物的工业质感，纯线稿不冒充封面 */
+  .mu-miss__disc {
+    align-self: center;
+    margin-block: auto;
+    width: 64px;
+    height: 64px;
+    color: var(--ink-700);
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .mu-miss:hover .mu-miss__disc {
+    color: var(--ink-600);
+  }
+
+  .mu-miss__t {
+    font-size: var(--fs-sm);
+    color: var(--ink-100);
+    line-height: 1.5;
+  }
+
+  .mu-miss__n {
+    font-size: var(--fs-xs);
+    color: var(--ink-300);
+    letter-spacing: 0.06em;
+  }
+
+  /* ---- 曲目表 ---- */
+  .mu-list {
+    display: grid;
+    gap: var(--sp-5);
+    list-style: none;
+  }
+
+  .mu-rel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding-block: var(--sp-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mu-rel__kind {
+    color: var(--gbc-red-text);
+  }
+
+  .mu-rel__title {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-black);
+    line-height: 1.3;
+    margin-top: var(--sp-1);
+  }
+
+  .mu-rel__zh {
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    margin-top: var(--sp-1);
+  }
+
+  .mu-rel__meta {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--ink-300);
+  }
+
+  .mu-tracks {
+    display: grid;
+    gap: 0;
+    list-style: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .mu-track {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: var(--sp-3);
+    padding-block: var(--sp-2);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-sm);
+  }
+
+  .mu-track__no {
+    color: var(--ink-300);
+    letter-spacing: 0.06em;
+  }
+
+  .mu-track__main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .mu-track__name {
+    color: var(--ink-100);
+    line-height: 1.5;
+  }
+
+  .mu-track__credit {
+    color: var(--ink-300);
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+  }
+
+  .mu-src {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--ink-300);
+  }
+
+  .mu-src a {
+    color: var(--ink-300);
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .mu-src a:hover {
+    color: var(--gbc-red-text);
+  }
+
+  /* ---- 角色 PV ---- */
+  .mu-note {
+    max-width: 72ch;
+    margin-bottom: var(--sp-5);
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    line-height: 1.9;
+  }
+
+  .mu-pvs {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+
+  @media (min-width: 768px) {
+    .mu-pvs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .mu-pvs {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .mu-pv {
+    border: 1px solid var(--border);
+    background: var(--ink-950);
+  }
+
+  .mu-pv__video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: var(--ink-950);
+  }
+
+  .mu-pv__cap {
+    padding: var(--sp-2) var(--sp-3);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    color: var(--ink-300);
+    border-top: 1px solid var(--border);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mu-head__lead a,
+    .mu-src a {
+      transition: none;
+    }
+  }
+</style>

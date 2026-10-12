@@ -1,0 +1,339 @@
+---
+/**
+ * 响应式导航
+ *  - ≥1024px：顶部横向固定条（72px，backdrop blur）
+ *  - <1024px：汉堡按钮 → 全屏抽屉（右侧滑入 320ms ease-out-expo）
+ * 激活态：链接下方 2px 红条 scaleX(0→1)
+ */
+import { assetUrl, url, isActive } from "../lib/assets";
+
+const NAV = [
+  { href: "/", en: "HOME", ja: "ホーム", zh: "首页" },
+  { href: "/characters", en: "CHARACTER", ja: "キャラクター", zh: "角色" },
+  { href: "/music", en: "MUSIC", ja: "ミュージック", zh: "音乐" },
+  { href: "/gallery", en: "GALLERY", ja: "ギャラリー", zh: "画廊" },
+  { href: "/story", en: "STORY", ja: "ストーリー", zh: "剧情" },
+];
+
+const current = Astro.url.pathname;
+const logo = "assets/logo/brand/01-brand.webp"; // 白字 logo，透明底
+---
+
+<header class="nav" data-nav>
+  <div class="nav__inner container">
+    <a class="nav__brand" href={url("/")} aria-label="GIRLS BAND CRY 首页">
+      <img
+        src={assetUrl(logo)}
+        alt="GIRLS BAND CRY"
+        width="1024"
+        height="768"
+        loading="eager"
+        decoding="async"
+      />
+    </a>
+
+    <nav class="nav__desktop" aria-label="主导航">
+      <ul>
+        {
+          NAV.map((item) => (
+            <li>
+              <a
+                href={url(item.href)}
+                class="nav__link"
+                aria-current={isActive(current, item.href) ? "page" : undefined}
+              >
+                <span class="nav__link-en">{item.en}</span>
+                <span class="nav__link-ja">{item.ja}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <button
+      class="nav__toggle"
+      type="button"
+      data-nav-toggle
+      aria-expanded="false"
+      aria-controls="nav-drawer"
+    >
+      <span class="sr-only">打开菜单</span>
+      <span class="nav__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+    </button>
+  </div>
+</header>
+
+<!--
+  抽屉必须放在 <header class="nav"> 之外：
+  该 header 带 backdrop-filter，按 CSS Filter Effects 规范会为后代建立
+  Containing Block，使内部 position:fixed 的 inset 相对 64px 高的 header 计算，
+  高度塌成 0（菜单点开却看不见）。移出后 fixed 重新以 viewport 为基准。
+-->
+<div class="nav__drawer" id="nav-drawer" data-nav-drawer>
+  <nav class="nav__drawer-inner" aria-label="移动端导航">
+    <ul>
+      {
+        NAV.map((item, i) => (
+          <li style={`--i:${i}`}>
+            <a
+              href={url(item.href)}
+              aria-current={isActive(current, item.href) ? "page" : undefined}
+            >
+              <span class="nav__drawer-en">{item.en}</span>
+              <span class="nav__drawer-ja">{item.ja}</span>
+              <span class="nav__drawer-zh">{item.zh}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</div>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--nav-h);
+    background: rgba(14, 15, 19, 0.72);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    height: 100%;
+  }
+
+  .nav__brand {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-height: 44px; /* 移动端触控目标下限（Logo 视觉高度仍是 26px） */
+  }
+
+  .nav__brand img {
+    width: auto;
+    height: 26px;
+    object-fit: contain;
+  }
+
+  @media (min-width: 1024px) {
+    .nav__brand img {
+      height: 28px;
+    }
+  }
+
+  /* ---- 桌面横排 ---- */
+  .nav__desktop {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .nav__desktop {
+      display: block;
+    }
+    .nav__desktop ul {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-5);
+    }
+  }
+
+  .nav__link {
+    position: relative;
+    display: block;
+    /* 触控目标 ≥44px：正文 1rem ×1.2 ≈ 19px + 上下各 12px ≈ 43px，再补 1px */
+    min-height: 44px;
+    padding-block: 12px;
+    color: var(--ink-300);
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .nav__link-en {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+  }
+
+  .nav__link-ja {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    opacity: 0.7;
+    line-height: 1.2;
+  }
+
+  /* 激活 / 悬停：底部红条 scaleX 展开 */
+  .nav__link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--gbc-red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .nav__link:hover,
+  .nav__link[aria-current="page"] {
+    color: var(--ink-000);
+  }
+
+  .nav__link:hover::after,
+  .nav__link[aria-current="page"]::after {
+    transform: scaleX(1);
+  }
+
+  /* ---- 汉堡按钮 ---- */
+  .nav__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-right: calc(var(--sp-2) * -1);
+    color: var(--ink-000);
+  }
+
+  @media (min-width: 1024px) {
+    .nav__toggle {
+      display: none;
+    }
+  }
+
+  .nav__bars {
+    display: block;
+    width: 24px;
+  }
+
+  .nav__bars i {
+    display: block;
+    height: 2px;
+    background: currentColor;
+    transition: transform var(--dur-base) var(--ease-out-cubic),
+      opacity var(--dur-fast) var(--ease-out-cubic);
+  }
+
+  .nav__bars i + i {
+    margin-top: 6px;
+  }
+
+  .nav__toggle[aria-expanded="true"] .nav__bars i:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+  .nav__toggle[aria-expanded="true"] .nav__bars i:nth-child(2) {
+    opacity: 0;
+  }
+  .nav__toggle[aria-expanded="true"] .nav__bars i:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  /* ---- 全屏抽屉 ---- */
+  .nav__drawer {
+    position: fixed;
+    inset: var(--nav-h) 0 0;
+    z-index: 99;
+    background: var(--ink-950);
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(100%);
+    transition:
+      transform var(--dur-slow) var(--ease-out-expo),
+      opacity var(--dur-base) var(--ease-out-cubic),
+      visibility var(--dur-base);
+  }
+
+  .nav__drawer[data-open] {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  @media (min-width: 1024px) {
+    .nav__drawer {
+      display: none;
+    }
+  }
+
+  .nav__drawer-inner {
+    padding: var(--sp-6) var(--container-pad) var(--sp-8);
+  }
+
+  .nav__drawer-inner li + li {
+    border-top: 1px solid var(--border);
+  }
+
+  .nav__drawer-inner a {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: var(--sp-1) var(--sp-3);
+    padding-block: var(--sp-4);
+    color: var(--ink-000);
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  .nav__drawer[data-open] .nav__drawer-inner a {
+    animation: drawer-in var(--dur-enter) var(--ease-out-expo) both;
+    animation-delay: calc(var(--i) * 40ms);
+  }
+
+  @keyframes drawer-in {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .nav__drawer-en {
+    font-family: var(--font-display);
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-black);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .nav__drawer-ja {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    color: var(--gbc-red-text);
+  }
+
+  .nav__drawer-zh {
+    grid-column: 1 / -1;
+    font-size: var(--fs-sm);
+    color: var(--ink-300);
+    letter-spacing: 0.06em;
+  }
+
+  .nav__drawer-inner a[aria-current="page"] .nav__drawer-en {
+    color: var(--gbc-red-text); /* 深底上的红色正文色，5.86:1 达 AA */
+  }
+
+  /* 降级：抽屉不做位移动画，直接显示 */
+  @media (prefers-reduced-motion: reduce) {
+    .nav__drawer {
+      transition: none;
+    }
+    .nav__drawer[data-open] .nav__drawer-inner a {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,595 @@
+/* ==========================================================================
+   GBC 粉丝站 — 全局样式
+   严格对应 DESIGN.md：色板 / 字体 / 8px 网格 / 断点 768,1024 / mobile-first
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. 字体（自托管 latin 子集）
+   只自托管拉丁展示字体：Barlow（官方动画站）+ Tektur（官方游戏站，数字/编号用）。
+   中日文字形不下载 —— Noto Sans SC/JP 完整子集达数 MB，收益远低于代价，
+   交由各端系统字体（PingFang / Hiragino / Microsoft YaHei）承担，
+   字体栈已把 Noto 置于系统字体之前，装了 Noto 的用户仍会自动用上。
+   woff2 放在 src/assets/fonts/ 由 Vite 指纹化并自动带 base 前缀，
+   因此子路径部署（BASE_PATH=/repo）无需额外处理。
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: "Barlow";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/barlow-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Barlow";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../assets/fonts/barlow-600.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Barlow";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("../assets/fonts/barlow-900.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Tektur";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../assets/fonts/tektur-var.woff2") format("woff2");
+}
+
+/* --------------------------------------------------------------------------
+   1. 设计令牌
+   -------------------------------------------------------------------------- */
+:root {
+  /* ---- 品牌 ---- */
+  --gbc-red: #f40000;
+  --gbc-red-deep: #c60000;
+  --gbc-red-ui: #dc1d15;
+  --gbc-red-kv: #fa0808;
+  --gbc-red-text: #ff4d4d; /* 深底上的红色正文（5.86:1 达 AA） */
+
+  /* ---- 霓虹（KV 能量色，点缀用，单屏 ≤3%） ---- */
+  --neon-pink: #fe8ec7;
+  --neon-pink-deep: #e95991;
+  --neon-cyan: #2dfec6;
+  --neon-cyan-soft: #6bd6fd;
+
+  /* ---- 中性阶 ---- */
+  --ink-000: #ffffff;
+  --ink-050: #f5f5f5;
+  --ink-100: #e6e8ec;
+  --ink-300: #9aa1ae;
+  --ink-400: #6b7280;
+  --ink-600: #363a46;
+  --ink-700: #262932;
+  --ink-800: #1b1d24;
+  --ink-850: #14161b;
+  --ink-900: #0e0f13;
+  --ink-950: #08090b;
+
+  /* ---- 角色代表色（官方双源验证，勿改） ---- */
+  --c-nina: #d90e2c;
+  --c-momoka: #85c9dc;
+  --c-subaru: #76bd53;
+  --c-tomo: #e34d8d;
+  --c-rupa: #eeda01;
+
+  /* ---- 乐队色（官方游戏站 token） ---- */
+  --band-togetoge: #f40000;
+  --band-cannalily: #3953ef;
+  --band-f272: #808080;
+  --band-kuzumimizuku: #73a792;
+
+  /* ---- 语义 ---- */
+  --bg: var(--ink-900);
+  --bg-raised: var(--ink-800);
+  --bg-sunken: var(--ink-950);
+  --fg: var(--ink-000);
+  --fg-muted: var(--ink-300);
+  --border: var(--ink-700);
+  --accent: var(--gbc-red);
+  --focus: var(--neon-cyan);
+
+  /* ---- 字体 ---- */
+  --font-sans: "Noto Sans SC", "Noto Sans JP", "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "PingFang SC", "Microsoft YaHei", system-ui,
+    -apple-system, sans-serif;
+  --font-display: "Barlow", "Noto Sans JP", "Noto Sans SC", "Hiragino Sans",
+    system-ui, sans-serif;
+  --font-mono-num: "Tektur", "Barlow", ui-monospace, "SFMono-Regular",
+    monospace;
+
+  /* ---- 字重 ---- */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-bold: 700;
+  --fw-ex-bold: 800;
+  --fw-black: 900;
+
+  /* ---- 字号（mobile-first，桌面用 clamp 上探） ---- */
+  --fs-display: clamp(2.5rem, 8vw, 5rem);      /* 40 → 80 */
+  --fs-h1: clamp(2rem, 5vw, 3.5rem);           /* 32 → 56 */
+  --fs-h2: clamp(1.5rem, 3.2vw, 2.5rem);       /* 24 → 40 */
+  --fs-h3: clamp(1.25rem, 2vw, 1.5rem);        /* 20 → 24 */
+  --fs-h4: clamp(1.125rem, 1.4vw, 1.25rem);    /* 18 → 20 */
+  --fs-body-lg: clamp(1rem, 1.2vw, 1.125rem);  /* 16 → 18 */
+  --fs-body: 1rem;
+  --fs-sm: 0.875rem;
+  --fs-xs: 0.75rem;
+  --fs-label: 0.75rem;
+
+  /* ---- 动效（全部 ≤400ms） ---- */
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1); /* 官方签名曲线 */
+  --ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --dur-instant: 100ms;
+  --dur-fast: 160ms;
+  --dur-base: 240ms;
+  --dur-slow: 320ms;
+  --dur-enter: 400ms;
+  --opacity-hover: 0.7;
+
+  /* ---- 间距（8px 网格，4px 半格） ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 16px;
+  --sp-4: 24px;
+  --sp-5: 32px;
+  --sp-6: 48px;
+  --sp-7: 64px;
+  --sp-8: 96px;
+  --sp-9: 128px;
+
+  /* ---- 容器 / 栅格 ---- */
+  --container-max: 1280px;
+  --container-pad: 24px;
+  --grid-gap: 24px;
+  --nav-h: 64px;
+
+  /* ---- 圆角（直角是本设计的性格） ---- */
+  --r-none: 0;
+  --r-sm: 4px;
+  --r-pill: 999px;
+
+  color-scheme: dark;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --container-pad: 48px;
+    --nav-h: 72px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. Reset
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+body.is-locked {
+  overflow: hidden;
+}
+
+/* 底部固定播放器占位，避免遮挡页脚内容 */
+body.has-player {
+  padding-bottom: 64px;
+}
+
+@media (min-width: 1024px) {
+  body.has-player {
+    padding-bottom: 80px;
+  }
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* --------------------------------------------------------------------------
+   3. 排版
+   -------------------------------------------------------------------------- */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--fs-h1);
+  line-height: 1.05;
+}
+h2 {
+  font-size: var(--fs-h2);
+}
+h3 {
+  font-size: var(--fs-h3);
+  letter-spacing: -0.01em;
+}
+h4 {
+  font-size: var(--fs-h4);
+  letter-spacing: 0;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* 全大写英文标签：放开字距 */
+.label {
+  font-family: var(--font-mono-num);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.label-ja {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.num {
+  font-family: var(--font-mono-num);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   4. 布局
+   -------------------------------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-pad);
+}
+
+.section {
+  padding-block: var(--sp-7);
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding-block: var(--sp-8);
+  }
+}
+
+.grid {
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grid--2,
+  .grid--3,
+  .grid--4,
+  .grid--5 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .grid--5 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* 区块标题：英文大写主标题 + 日文小字副标（官方最常见的标题结构） */
+.sec-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-5);
+}
+
+.sec-head__en {
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-black);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.sec-head__ja {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.sec-head--rule {
+  padding-left: var(--sp-3);
+  border-left: 4px solid var(--accent);
+}
+
+.sec-head__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   5. 组件基元
+   -------------------------------------------------------------------------- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-family: var(--font-mono-num);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid currentColor;
+  border-radius: var(--r-sm);
+  color: var(--accent);
+  line-height: 1;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  min-width: 44px;
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--r-none);
+  font-weight: var(--fw-black);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.04em;
+  transition:
+    background-color var(--dur-base) var(--ease-out-cubic),
+    color var(--dur-base) var(--ease-out-cubic),
+    border-color var(--dur-base) var(--ease-out-cubic);
+}
+
+.btn--primary {
+  background: var(--gbc-red);
+  color: var(--ink-000);
+}
+.btn--primary:hover {
+  background: var(--gbc-red-deep);
+}
+
+.btn--ghost {
+  border: 1px solid var(--ink-600);
+  color: var(--ink-000);
+}
+.btn--ghost:hover {
+  border-color: var(--gbc-red);
+  color: var(--gbc-red-text);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 出处标注 —— 本项目强制组件（文案仅取自官方 + 萌娘百科） */
+.cite {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  color: var(--ink-300);
+  border-top: 1px solid var(--border);
+  padding-top: var(--sp-2);
+  margin-top: var(--sp-4);
+  line-height: 1.7;
+}
+
+.cite a {
+  color: var(--ink-300);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color var(--dur-base) var(--ease-out-cubic);
+}
+.cite a:hover {
+  color: var(--neon-cyan);
+}
+
+/* 斜切分区 —— 官方标志性手法，单页最多 2 次 */
+.slash {
+  clip-path: polygon(0 0, 100% 4%, 100% 100%, 0 96%);
+}
+
+/* 半调网点纹理 —— 官方 KV 核心纹理，零图片成本 */
+.halftone {
+  position: relative;
+  isolation: isolate;
+}
+.halftone::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(circle, var(--ink-000) 1px, transparent 1px);
+  background-size: 4px 4px;
+  opacity: 0.04;
+  pointer-events: none;
+}
+.halftone--on-red::before {
+  background-image: radial-gradient(circle, #000 1px, transparent 1px);
+  opacity: 0.1;
+}
+
+/* --------------------------------------------------------------------------
+   6. 无障碍
+   -------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: var(--sp-3);
+  z-index: 999;
+  background: var(--gbc-red);
+  color: var(--ink-000);
+  padding: var(--sp-2) var(--sp-4);
+  font-weight: var(--fw-bold);
+  transition: top var(--dur-base) var(--ease-out-cubic);
+}
+.skip-link:focus {
+  top: var(--sp-2);
+}
+
+/* --------------------------------------------------------------------------
+   7. 滚动揭示（IntersectionObserver 驱动）
+   -------------------------------------------------------------------------- */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity var(--dur-enter) var(--ease-out-expo),
+    transform var(--dur-enter) var(--ease-out-expo);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   8. prefers-reduced-motion —— 直接呈现终态，而非加速
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   9. View Transitions（Astro ClientRouter）
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: vt-fade-out var(--dur-fast) var(--ease-out-cubic) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-fade-in var(--dur-base) var(--ease-out-cubic) both;
+  }
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}

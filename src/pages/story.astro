@@ -1,0 +1,611 @@
+---
+/**
+ * 剧情页 `/story`（t5c）
+ * 版式取自 DESIGN.md §7.5：单列叙事长页，max-width 720px 居中，章节号 + 时间线。
+ * 文案 100% 来自 content/story.md（官网日文原文 + 萌娘百科中文译名/Staff/致敬典故），逐条带出处。
+ */
+import fs from "node:fs";
+import path from "node:path";
+import Layout from "../layouts/Layout.astro";
+import { assetUrl, category, type AssetEntry } from "../lib/assets";
+
+const SRC_FILE = "content/story.md";
+const raw = fs.readFileSync(path.resolve(process.cwd(), SRC_FILE), "utf-8");
+
+/* ---------- 通用：抽走 `（来源：URL）`，返回 { text, sources } ---------- */
+interface Sourced {
+  text: string;
+  sources: string[];
+}
+
+function takeSources(line: string, acc: string[]): string {
+  // 来源标注写法不统一，且 markdown 链接自身带括号（`[url](url)`），
+  // 用「括号内不含括号」的正则会在链接的 `)` 处提前收尾，导致
+  // 半截 URL 残留在正文里（曾实测出现 `；[https://…]）`）。
+  // 因此改为结构无关的逐步剥离：链接 → 裸 URL → 残标点。
+  const push = (u: string): void => {
+    if (!acc.includes(u)) acc.push(u);
+  };
+  const URL = /https?:\/\/[^\s\][)）]+/g;
+
+  let out = line;
+  // 1) markdown 链接：先收 URL 再整段删除（方括号内往往就是完整 URL）
+  out = out.replace(/\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, (_m, label: string, href: string) => {
+    push(href);
+    for (const u of String(label).match(URL) ?? []) push(u);
+    return "";
+  });
+  // 2) 剩余裸 URL
+  out = out.replace(URL, (u: string) => {
+    push(u);
+    return "";
+  });
+  // 3) 剥离后残留的「来源」字样与空括号、悬挂分隔符
+  out = out
+    .replace(/[（(]\s*来源[:：]?/g, "")
+    .replace(/[（(]\s*[）)]/g, "")
+    .replace(/^\s*[；;·、,，]\s*/, "")
+    .replace(/\s*[；;·、,，]\s*$/g, "")
+    .replace(/[（(]\s*$/g, "")
+    .replace(/[）)]\s*$/g, "")
+    .replace(/\s{2,}/g, " ");
+  return out.trim();
+}
+
+const clean = (s: string): string =>
+  s.replace(/[（(]\s*$/g, "").replace(/\s+([）)。，、])/g, "$1").trim();
+
+/* ---------- 解析 13 话 ---------- */
+interface Episode extends Sourced {
+  no: number;
+  ja: string;
+  zh: string;
+  staff: { role: string; name: string }[];
+  tribute: string;
+  jaSummary: string;
+  zhSummary: string;
+}
+
+const episodeLines = raw.split("\n");
+const epHeads: number[] = [];
+episodeLines.forEach((l, i) => {
+  if (/^##\s*第\s*\d+\s*话/.test(l)) epHeads.push(i);
+});
+
+const EPISODES: Episode[] = epHeads.map((start, idx) => {
+  const head = episodeLines[start];
+  const end = epHeads[idx + 1] ?? episodeLines.length;
+  const body = episodeLines.slice(start + 1, end);
+
+  const no = Number(head.match(/第\s*(\d+)\s*话/)?.[1] ?? idx + 1);
+
+  // 标题优先取正文的权威字段（`- **日文标题**：` / `- **中文译名**：`）。
+  // 标题行正则在遇到日文自带括号时会失配：第 4 话
+  // `## 第 4 话：感謝（驚）（感谢（惊））` 的嵌套括号会让末尾括号组匹配失败，
+  // 导致 ja 吞下整行、zh 变空。正文 13 话均带这两个字段，故以其为准。
+  const fieldOf = (key: string): string => {
+    const hit = body.find((l) => l.trim().startsWith(`- **${key}**`));
+    return hit ? hit.replace(/^-\s*\*\*[^*]+\*\*[：:]\s*/, "").trim() : "";
+  };
+  const jaField = fieldOf("日文标题");
+  const zhField = fieldOf("中文译名");
+
+  // 回退：无字段时仍按标题行解析
+  const rest = head.replace(/^##\s*第\s*\d+\s*话[：:]\s*/, "");
+  const paren = rest.match(/[（(]([^）)]*)[）)]\s*$/);
+  const ja = jaField || (paren ? rest.slice(0, rest.indexOf(paren[0])) : rest).trim();
+  const zh = zhField || (paren?.[1] ?? "").split("/")[0].trim();
+
+  const sources: string[] = [];
+  const staff: { role: string; name: string }[] = [];
+  let tribute = "";
+  let jaSummary = "";
+  let zhSummary = "";
+  let mode = "";
+
+  for (const rawLine of body) {
+    if (!rawLine.trim() || rawLine.trim() === "---") continue;
+    const line = rawLine.trim();
+
+    // Staff 子项 `- 剧本：花田十辉`（先于加粗标签判断，且排除 `- **`）
+    const sub = line.match(/^-\s*(?!\*)([^：:*]{2,12})[：:]\s*(.+)$/);
+    if (mode === "staff" && sub) {
+      staff.push({ role: sub[1].trim(), name: clean(sub[2]) });
+      continue;
+    }
+
+    const label = line.match(/^-\s*\*\*([^*]+)\*\*[：:]?\s*(.*)$/);
+    if (label) {
+      const key = label[1].trim();
+      const val = label[2].trim();
+      if (key.includes("日文标题")) {
+        mode = "none";
+        continue;
+      }
+      if (key.includes("中文译名")) {
+        mode = "none";
+        continue;
+      }
+      if (key.includes("制作") && key.includes("Staff")) {
+        mode = "staff";
+        continue;
+      }
+      if (key.includes("致敬")) {
+        mode = "tribute";
+        tribute = takeSources(val, sources);
+        continue;
+      }
+      if (key.includes("日文原文") || key.includes("日文梗概")) {
+        mode = "ja";
+        jaSummary = takeSources(val, sources);
+        continue;
+      }
+      if (key.includes("中文梗概")) {
+        mode = "zh";
+        zhSummary = takeSources(val, sources);
+        continue;
+      }
+      mode = "none";
+      continue;
+    }
+
+    // 续行：并入当前字段
+    const cleaned = takeSources(line, sources);
+    if (!cleaned) continue;
+    if (mode === "ja") jaSummary = `${jaSummary} ${cleaned}`.trim();
+    else if (mode === "zh") zhSummary = `${zhSummary} ${cleaned}`.trim();
+    else if (mode === "tribute") tribute = `${tribute} ${cleaned}`.trim();
+  }
+
+  return {
+    no,
+    ja,
+    zh,
+    staff,
+    tribute: clean(tribute),
+    jaSummary: clean(jaSummary),
+    zhSummary: clean(zhSummary),
+    text: "",
+    sources,
+  };
+});
+
+/* ---------- 解析企划总导言 ---------- */
+const introStart = raw.split("\n").findIndex((l) => l.includes("企划总导言"));
+const introEnd = raw.split("\n").findIndex((l) => /^##\s*第\s*1\s*话/.test(l));
+
+function grab(block: string, marker: string): Sourced {
+  const lines = block.split("\n");
+  const i = lines.findIndex((l) => l.includes(marker));
+  if (i < 0) return { text: "", sources: [] };
+  const acc: string[] = [];
+  const out: string[] = [];
+  for (let k = i + 1; k < lines.length; k++) {
+    const l = lines[k].trim();
+    if (!l) {
+      if (out.length) break;
+      continue;
+    }
+    if (l.startsWith("**") || l.startsWith("##") || l === "---") break;
+    const c = takeSources(l, acc);
+    if (c) out.push(c);
+  }
+  return { text: clean(out.join(" ")), sources: acc };
+}
+
+const introBlock =
+  introStart >= 0
+    ? raw.split("\n").slice(introStart + 1, introEnd).join("\n")
+    : "";
+const introJa = grab(introBlock, "官方故事背景梗概");
+const introZh = grab(introBlock, "官方中文译文");
+
+/* ---------- 点缀用官方贺图 ---------- */
+const artOf = (sub: string, n: number): AssetEntry[] =>
+  category("artworks")
+    .filter((e) => e.path.startsWith(`assets/artworks/${sub}/`))
+    .slice(0, n);
+
+const OPENING_ART = artOf("anime", 1)[0] ?? artOf("movie", 1)[0];
+const INLINE_ART = [...artOf("movie", 2), ...artOf("character-design", 1)];
+
+const sourceLabel = (u: string): string =>
+  u.includes("moegirl") ? "萌娘百科" : "官方网站";
+---
+
+<Layout
+  title="剧情"
+  description="GIRLS BAND CRY TV 动画全 13 话分话梗概、制作 Staff 与标题致敬典故。日文梗概取自官方网站，中文译名与 Staff 参考萌娘百科。"
+  player={false}
+>
+  <article class="story">
+    <header class="story__head container">
+      <p class="story__ja">ストーリー</p>
+      <h1 class="story__en">STORY</h1>
+      <p class="story__lead">
+        TV 动画全 13 话。以下日文梗概与标题取自
+        <a href="https://girls-band-cry.com/story/" target="_blank" rel="noopener noreferrer">官方网站 STORY 页</a>，
+        中文译名、制作 Staff 与致敬典故参考
+        <a href="https://zh.moegirl.org.cn/GIRLS_BAND_CRY" target="_blank" rel="noopener noreferrer">萌娘百科</a>。
+      </p>
+    </header>
+
+    {
+      introJa.text ? (
+        <section class="intro container" aria-label="企划总导言">
+          <blockquote class="intro__quote">
+            <p>怒りも喜びも哀しさも全部ぶちこめ。</p>
+          </blockquote>
+          <p class="intro__ja">{introJa.text}</p>
+          {introZh.text ? <p class="intro__zh">{introZh.text}</p> : null}
+          <p class="src num">
+            {[...introJa.sources, ...introZh.sources].map((u, i) => (
+              <>
+                {i > 0 ? " · " : ""}
+                <a href={u} target="_blank" rel="noopener noreferrer">
+                  出典：{sourceLabel(u)}
+                </a>
+              </>
+            ))}
+          </p>
+        </section>
+      ) : null
+    }
+
+    {
+      OPENING_ART ? (
+        <figure class="bleed">
+          <img
+            src={assetUrl(OPENING_ART.path)}
+            width={OPENING_ART.width}
+            height={OPENING_ART.height}
+            alt="官方动画视觉图"
+            loading="lazy"
+            decoding="async"
+          />
+        </figure>
+      ) : null
+    }
+
+    <ol class="eps container">
+      {EPISODES.map((ep, i) => (
+        <li class="ep" id={`ep-${ep.no}`}>
+          <div class="ep__rail" aria-hidden="true">
+            <span class="ep__no num">{String(ep.no).padStart(2, "0")}</span>
+          </div>
+
+          <div class="ep__main">
+            <h2 class="ep__title">
+              <span class="ep__ja">{ep.ja}</span>
+              {ep.zh ? <span class="ep__zh">{ep.zh}</span> : null}
+            </h2>
+
+            {ep.jaSummary ? <p class="ep__ja-body">{ep.jaSummary}</p> : null}
+            {ep.zhSummary ? <p class="ep__zh-body">{ep.zhSummary}</p> : null}
+
+            {ep.staff.length ? (
+              <dl class="ep__staff">
+                {ep.staff.map((s) => (
+                  <>
+                    <dt>{s.role}</dt>
+                    <dd>{s.name}</dd>
+                  </>
+                ))}
+              </dl>
+            ) : null}
+
+            {ep.tribute ? (
+              <p class="ep__tribute">
+                <span class="ep__tag label">致敬</span>
+                {ep.tribute}
+              </p>
+            ) : null}
+
+            {ep.sources.length ? (
+              <p class="src num">
+                {ep.sources.map((u, k) => (
+                  <>
+                    {k > 0 ? " · " : ""}
+                    <a href={u} target="_blank" rel="noopener noreferrer">
+                      出典：{sourceLabel(u)}
+                    </a>
+                  </>
+                ))}
+              </p>
+            ) : null}
+          </div>
+
+          {INLINE_ART[i] ? (
+            <figure class="ep__fig">
+              <img
+                src={assetUrl(INLINE_ART[i].path)}
+                width={INLINE_ART[i].width}
+                height={INLINE_ART[i].height}
+                alt="官方视觉资料"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+          ) : null}
+        </li>
+      ))}
+    </ol>
+  </article>
+</Layout>
+
+<style>
+  /* ---- 页头 ---- */
+  .story__head {
+    padding-block: var(--sp-6) var(--sp-5);
+  }
+
+  .story__ja {
+    font-size: var(--fs-sm);
+    letter-spacing: 0.24em;
+    color: var(--gbc-red-text);
+  }
+
+  .story__en {
+    font-size: var(--fs-display);
+    font-weight: var(--fw-black);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .story__lead {
+    max-width: 60ch;
+    margin-top: var(--sp-4);
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    line-height: 1.9;
+  }
+
+  .story__lead a {
+    color: var(--ink-100);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .story__lead a:hover {
+    color: var(--gbc-red-text);
+  }
+
+  /* ---- 企划总导言 ---- */
+  .intro {
+    padding-bottom: var(--sp-6);
+  }
+
+  .intro__quote {
+    margin-bottom: var(--sp-5);
+    border-left: 4px solid var(--gbc-red);
+    padding-left: var(--sp-4);
+  }
+
+  .intro__quote p {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-black);
+    line-height: 1.6;
+    color: var(--ink-000);
+  }
+
+  .intro__ja {
+    color: var(--ink-100);
+    font-size: var(--fs-body);
+    line-height: 2;
+  }
+
+  .intro__zh {
+    margin-top: var(--sp-4);
+    color: var(--ink-300);
+    font-size: var(--fs-body);
+    line-height: 2;
+  }
+
+  /* ---- 全宽出血图：KV 点缀 ---- */
+  .bleed {
+    margin-block: var(--sp-5);
+    border-block: 1px solid var(--border);
+  }
+
+  .bleed img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ---- 13 话时间线 ---- */
+  .eps {
+    display: grid;
+    gap: 0;
+    list-style: none;
+    padding-bottom: var(--sp-6);
+  }
+
+  .ep {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    gap: var(--sp-3);
+    padding-block: var(--sp-5);
+    border-top: 1px solid var(--border);
+  }
+
+  /* 左侧 2px 竖线 + 节点圆点（DESIGN.md §7.5 时间线） */
+  .ep::before {
+    content: "";
+    position: absolute;
+    left: calc(1.625rem - 1px);
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .ep:last-child::before {
+    bottom: 50%;
+  }
+
+  .ep__rail {
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    padding-left: 0;
+  }
+
+  .ep__no {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.06em;
+    transition:
+      border-color var(--dur-base) var(--ease-out-cubic),
+      color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .ep__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+
+  .ep__title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+
+  .ep__ja {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-black);
+    line-height: 1.35;
+  }
+
+  .ep__zh {
+    font-size: var(--fs-sm);
+    color: var(--ink-300);
+    letter-spacing: 0.04em;
+  }
+
+  .ep__ja-body {
+    color: var(--ink-100);
+    font-size: var(--fs-body);
+    line-height: 1.95;
+  }
+
+  .ep__zh-body {
+    color: var(--ink-300);
+    font-size: var(--fs-body);
+    line-height: 1.95;
+  }
+
+  /* ---- Staff：紧凑两列定义表 ---- */
+  .ep__staff {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--sp-1) var(--sp-4);
+    margin-top: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--ink-950);
+    border-left: 2px solid var(--border);
+    font-size: var(--fs-xs);
+  }
+
+  .ep__staff dt {
+    color: var(--ink-300);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  .ep__staff dd {
+    color: var(--ink-100);
+  }
+
+  /* ---- 致敬典故 ---- */
+  .ep__tribute {
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    line-height: 1.85;
+    padding-left: var(--sp-4);
+    border-left: 2px solid var(--gbc-red);
+  }
+
+  .ep__tag {
+    display: inline-block;
+    margin-right: var(--sp-2);
+    color: var(--gbc-red-text);
+  }
+
+  /* ---- 出处 ---- */
+  .src {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--ink-300);
+  }
+
+  .src a {
+    color: var(--ink-300);
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .src a:hover {
+    color: var(--gbc-red-text);
+  }
+
+  /* ---- 章节间点缀图 ---- */
+  .ep__fig {
+    grid-column: 2;
+    margin-top: var(--sp-3);
+    border: 1px solid var(--border);
+  }
+
+  .ep__fig img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ---- 桌面：加宽留白，时间线节点吸顶 ---- */
+  @media (min-width: 1024px) {
+    .intro,
+    .eps {
+      max-width: 720px;
+      margin-inline: auto;
+    }
+
+    .ep {
+      grid-template-columns: 5rem minmax(0, 1fr);
+      gap: var(--sp-5);
+      padding-block: var(--sp-6);
+    }
+
+    .ep::before {
+      left: calc(2.5rem - 1px);
+    }
+
+    .ep__no {
+      width: 5rem;
+      height: 5rem;
+      font-size: var(--fs-h4);
+    }
+
+    .ep__fig {
+      margin-top: var(--sp-4);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ep__no {
+      transition: none;
+    }
+  }
+</style>

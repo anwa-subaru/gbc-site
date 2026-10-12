@@ -1,0 +1,370 @@
+---
+/**
+ * 首页 `/`（t5a）
+ * 版式取自 DESIGN.md §7.1：① Hero KV 轮播 ② 数据条 ③ 成员速览 ④ 版块入口 ⑤ 出处声明。
+ * 素材统一经 src/lib/assets.ts 的 assetUrl()/url() 拼 BASE_URL（子路径部署）。
+ */
+import Layout from "../layouts/Layout.astro";
+import Hero from "../components/Hero.astro";
+import CharacterCard from "../components/CharacterCard.astro";
+import {
+  characterSlugs,
+  albums,
+  artworks,
+  charactersMeta,
+  posters,
+  assetUrl,
+  url,
+  totals,
+} from "../lib/assets";
+
+const slugs = characterSlugs;
+const stat = totals as unknown as Record<string, number>;
+
+/** 版块入口卡：图取自真实资产，标题/副标沿用各页既有命名，不新增文案。 */
+const entryCards = [
+  {
+    href: "/music",
+    kicker: "MUSIC",
+    ja: "ミュージック",
+    title: "音乐",
+    sub: "专辑封面、单曲与角色 PV",
+    count: albums().length,
+    unit: "RELEASES",
+    entry: albums()[0],
+  },
+  {
+    href: "/gallery",
+    kicker: "GALLERY",
+    ja: "ギャラリー",
+    title: "画廊",
+    sub: "官方贺图、KV 与宣发海报",
+    count: artworks().length,
+    unit: "ARTWORKS",
+    entry: posters()[0],
+  },
+  {
+    href: "/story",
+    kicker: "STORY",
+    ja: "ストーリー",
+    title: "剧情",
+    sub: "TV 动画与剧场版总集篇梗概",
+    count: posters().length,
+    unit: "POSTERS",
+    entry: posters()[3] ?? posters()[1],
+  },
+].filter((c) => c.entry);
+---
+
+<Layout title="首页">
+  <Hero />
+
+  <!-- 数据条：体现资产整理成果，同时作为区块分隔 -->
+  <section class="strip halftone--on-red" aria-label="站点数据">
+    <div class="container strip__inner">
+      <div class="strip__item">
+        <span class="strip__num num">{slugs.length}</span>
+        <span class="strip__label label">Members</span>
+      </div>
+      <div class="strip__item">
+        <span class="strip__num num">{albums().length}</span>
+        <span class="strip__label label">Releases</span>
+      </div>
+      <div class="strip__item">
+        <span class="strip__num num">{artworks().length}</span>
+        <span class="strip__label label">Artworks</span>
+      </div>
+      <div class="strip__item">
+        <span class="strip__num num">{stat.files ?? 0}</span>
+        <span class="strip__label label">Assets</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 角色 -->
+  <section class="section container" id="characters">
+    <header class="sec-head sec-head--rule">
+      <p class="sec-head__ja">キャラクター</p>
+      <h2 class="sec-head__en">CHARACTER</h2>
+    </header>
+
+    <div class="grid grid--5 cc-rail">
+      {
+        slugs.map((slug, i) => (
+          <CharacterCard slug={slug} index={i} eager={i < 2} />
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- 版块入口 -->
+  <section class="section band" id="explore">
+    <div class="container">
+      <header class="sec-head sec-head--rule">
+        <p class="sec-head__ja">コンテンツ</p>
+        <h2 class="sec-head__en">EXPLORE</h2>
+      </header>
+
+      <div class="grid grid--3">
+        {
+          entryCards.map((c) => (
+            <a class="ec" href={url(c.href)} data-reveal>
+              <span class="ec__media">
+                <img
+                  src={assetUrl(c.entry!.path)}
+                  width={c.entry!.width}
+                  height={c.entry!.height}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              </span>
+              <span class="ec__body">
+                <span class="ec__kicker label">{c.kicker}</span>
+                <span class="ec__title">{c.title}</span>
+                <span class="ec__sub">{c.sub}</span>
+                <span class="ec__foot num">
+                  {c.count} {c.unit}
+                  <span class="ec__arrow" aria-hidden="true">→</span>
+                </span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- 出处声明（合规要求：文案仅取自官方 + 萌娘百科） -->
+  <section class="section container">
+    <div class="notice">
+      <h2 class="notice__title label">ABOUT THIS SITE</h2>
+      <p>
+        本站为粉丝自制非营利站点。站内角色资料、曲目信息与剧情梗概均整理自
+        <a
+          href="https://girls-band-cry.com/"
+          target="_blank"
+          rel="noopener noreferrer">动画官方网站</a
+        >、<a
+          href="https://girlsbandcry.jp/"
+          target="_blank"
+          rel="noopener noreferrer">游戏官方网站</a
+        >与<a
+          href="https://zh.moegirl.org.cn/少女乐团哭泣"
+          target="_blank"
+          rel="noopener noreferrer">萌娘百科</a
+        >，不作二次创作与主观演绎。素材版权归原权利人所有。
+      </p>
+      <p class="notice__meta num">
+        {slugs.length} MEMBERS · 主唱 {charactersMeta.nina.ja} 等 5 名成员
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ---- 数据条 ---- */
+  .strip {
+    background: var(--gbc-red);
+    color: var(--ink-000);
+  }
+
+  .strip__inner {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-4);
+    padding-block: var(--sp-5);
+  }
+
+  @media (min-width: 768px) {
+    .strip__inner {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .strip__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+
+  .strip__num {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-black);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .strip__label {
+    opacity: 0.85;
+  }
+
+  /* ---- 成员速览：手机横向 scroll-snap 轨道 ---- */
+  .cc-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 68%);
+    gap: var(--sp-4);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--sp-4);
+    /* 让轨道可以贴到容器边缘外，视觉上更像「抽屉」 */
+    margin-inline: calc(var(--sp-4) * -1);
+    padding-inline: var(--sp-4);
+    padding-bottom: var(--sp-2);
+    scrollbar-width: none;
+  }
+
+  .cc-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cc-rail > :global(*) {
+    scroll-snap-align: start;
+  }
+
+  /* 桌面：回归 5 列静态栅格，取消横向滚动 */
+  @media (min-width: 1024px) {
+    .cc-rail {
+      grid-auto-flow: row;
+      grid-auto-columns: auto;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--grid-gap);
+      overflow-x: visible;
+      margin-inline: 0;
+      padding-inline: 0;
+      padding-bottom: 0;
+    }
+  }
+
+  /* ---- 版块入口 ---- */
+  .ec {
+    display: flex;
+    flex-direction: column;
+    background: var(--ink-950);
+    border: 1px solid var(--border);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      border-color var(--dur-base) var(--ease-out-cubic),
+      background-color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .ec__media {
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--ink-950);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ec__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-slow) var(--ease-out-cubic);
+  }
+
+  .ec__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+  }
+
+  .ec__kicker {
+    color: var(--gbc-red-text);
+  }
+
+  .ec__title {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-black);
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  .ec__sub {
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+  }
+
+  .ec__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    margin-top: var(--sp-2);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.1em;
+    color: var(--ink-300);
+  }
+
+  .ec__arrow {
+    color: var(--gbc-red-text); /* 深底上的红色正文色，5.86:1 达 AA */
+    transition: transform var(--dur-base) var(--ease-out-cubic);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ec:hover {
+      border-color: var(--gbc-red);
+      background: var(--ink-850);
+    }
+
+    .ec:hover .ec__media img {
+      transform: scale(1.04);
+    }
+
+    .ec:hover .ec__arrow {
+      transform: translateX(4px);
+    }
+  }
+
+  .ec:focus-visible {
+    outline: 2px solid var(--gbc-red);
+    outline-offset: 2px;
+  }
+
+  /* ---- 声明块 ---- */
+  .notice {
+    max-width: 76ch;
+    padding: var(--sp-5);
+    background: var(--ink-850);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--gbc-red);
+  }
+
+  .notice__title {
+    color: var(--ink-300);
+    margin-bottom: var(--sp-3);
+  }
+
+  .notice p {
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    line-height: 1.9;
+  }
+
+  .notice a {
+    color: var(--ink-100);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .notice a:hover {
+    color: var(--neon-cyan);
+  }
+
+  .notice__meta {
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.1em;
+    color: var(--ink-300);
+  }
+</style>

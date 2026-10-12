@@ -1,0 +1,300 @@
+---
+/**
+ * Hero 轮播
+ *  - 全幅主视觉，交叉淡入 400ms（--dur-enter，DESIGN.md 上限）
+ *  - 自动轮播 6s；悬停 / 聚焦 / 切到后台标签页时暂停
+ *  - prefers-reduced-motion：不自动轮播、不做位移动画
+ *  - 键盘可达：← → 切换，圆点为 button
+ */
+import { assetUrl, posters, url, type AssetEntry } from "../lib/assets";
+
+interface Slide {
+  entry: AssetEntry;
+  kicker: string;
+  title: string;
+  sub: string;
+  href: string;
+  cta: string;
+}
+
+interface Props {
+  slides?: Slide[];
+  interval?: number;
+}
+
+const fallback = posters().slice(0, 3);
+
+const defaultSlides: Slide[] = fallback.map((entry, i) => {
+  const presets = [
+    {
+      kicker: "TV ANIME / 2024",
+      title: "怒りも、悲しみも、\n全部ぶつけろ。",
+      sub: "少女乐队哭泣 · 官方主视觉",
+      href: "/story",
+      cta: "查看剧情",
+    },
+    {
+      kicker: "TOGENASHI TOGEARI",
+      title: "トゲナシトゲアリ",
+      sub: "5 人编制的少女乐队",
+      href: "/characters",
+      cta: "认识成员",
+    },
+    {
+      kicker: "GALLERY",
+      title: "キービジュアル",
+      sub: "官方宣传视觉资料",
+      href: "/gallery",
+      cta: "浏览画廊",
+    },
+  ];
+  return { entry, ...presets[i % presets.length] };
+});
+
+const { slides = defaultSlides, interval = 6000 } = Astro.props;
+---
+
+<section class="hero halftone" data-carousel data-interval={interval} aria-roledescription="carousel" aria-label="主视觉轮播">
+  <div class="hero__stage">
+    {
+      slides.map((s, i) => (
+        <div
+          class="hero__slide"
+          data-slide
+          data-active={i === 0 ? "" : undefined}
+          aria-hidden={i !== 0 ? "true" : "false"}
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`${i + 1} / ${slides.length}`}
+        >
+          <img
+            class="hero__img"
+            src={assetUrl(s.entry.path)}
+            alt={s.entry.source_name.replace(/\.[^.]+$/, "")}
+            width={s.entry.width}
+            height={s.entry.height}
+            loading={i === 0 ? "eager" : "lazy"}
+            fetchpriority={i === 0 ? "high" : "auto"}
+            decoding="async"
+          />
+        </div>
+      ))
+    }
+    <div class="hero__scrim" aria-hidden="true"></div>
+  </div>
+
+  <div class="hero__content container">
+    {
+      slides.map((s, i) => (
+        <div class="hero__copy" data-slide data-active={i === 0 ? "" : undefined} aria-hidden={i !== 0 ? "true" : "false"}>
+          <p class="hero__kicker label">{s.kicker}</p>
+          {i === 0 ? (
+            <h1 class="hero__title">{s.title}</h1>
+          ) : (
+            <p class="hero__title" role="heading" aria-level="2">{s.title}</p>
+          )}
+          <p class="hero__sub">{s.sub}</p>
+          <a class="btn btn--primary hero__cta" href={url(s.href)}>
+            {s.cta}
+          </a>
+        </div>
+      ))
+    }
+
+    <div class="hero__controls">
+      <button class="hero__arrow" type="button" data-carousel-prev aria-label="上一张">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 5l-7 7 7 7" />
+        </svg>
+      </button>
+      <div class="hero__dots" role="tablist" aria-label="选择主视觉">
+        {
+          slides.map((_, i) => (
+            <button
+              class="hero__dot"
+              type="button"
+              data-dot
+              role="tab"
+              aria-current={i === 0 ? "true" : "false"}
+              aria-label={`第 ${i + 1} 张`}
+            />
+          ))
+        }
+      </div>
+      <button class="hero__arrow" type="button" data-carousel-next aria-label="下一张">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: grid;
+    align-items: end;
+    min-height: 76svh;
+    background: var(--ink-950);
+    overflow: hidden;
+  }
+
+  @media (min-width: 1024px) {
+    .hero {
+      min-height: 88svh;
+    }
+  }
+
+  .hero__stage {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero__slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity var(--dur-enter) var(--ease-out-expo);
+  }
+
+  .hero__slide[data-active] {
+    opacity: 1;
+  }
+
+  .hero__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+    transform: scale(1.02);
+  }
+
+  /* 底部 + 左侧双重遮罩，保证白色文字在任意 KV 上都达 AA */
+  .hero__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, var(--ink-900) 2%, rgba(14, 15, 19, 0.86) 34%, rgba(14, 15, 19, 0.25) 72%, rgba(14, 15, 19, 0.5) 100%),
+      linear-gradient(to right, rgba(14, 15, 19, 0.82) 0%, rgba(14, 15, 19, 0.2) 62%, transparent 100%);
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    padding-block: var(--sp-7) var(--sp-5);
+    display: grid;
+    gap: var(--sp-5);
+  }
+
+  /* 文案层与图片层共用同一套 data-slide 索引，但独立交叉淡入 */
+  .hero__copy {
+    display: none;
+    /* 不能用 ch：ch 基于当前字体的「0」宽度，Barlow 的 0 很窄，
+       会让标题列塌成 230px 高 734px 的竖条。em 与字体无关。 */
+    max-width: 34em;
+    animation: hero-copy-in var(--dur-enter) var(--ease-out-expo) both;
+  }
+
+  .hero__copy[data-active] {
+    display: block;
+  }
+
+  @keyframes hero-copy-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  }
+
+  .hero__kicker {
+    color: var(--neon-cyan);
+    margin-bottom: var(--sp-3);
+  }
+
+  .hero__title {
+    font-size: var(--fs-display);
+    font-weight: var(--fw-black);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    white-space: pre-line;
+    text-shadow: 0 2px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .hero__sub {
+    margin-top: var(--sp-3);
+    color: var(--ink-300);
+    font-size: var(--fs-body-lg);
+  }
+
+  .hero__cta {
+    margin-top: var(--sp-5);
+    justify-self: start;
+  }
+
+  .hero__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+  }
+
+  .hero__arrow {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    color: var(--ink-000);
+    background: rgba(14, 15, 19, 0.4);
+    backdrop-filter: blur(8px);
+    transition:
+      background-color var(--dur-base) var(--ease-out-cubic),
+      border-color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .hero__arrow:hover {
+    background: var(--gbc-red);
+    border-color: var(--gbc-red);
+  }
+
+  .hero__dots {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+
+  .hero__dot {
+    /* 视觉上是 28×4 的指示条，但点击区必须 ≥44px（移动端触控目标），
+       故用 padding 撑开命中区 + background-clip 让底色只画内容盒。
+       横向再补 4px，命中框 36×44。 */
+    width: 28px;
+    height: 4px;
+    padding-block: 20px;
+    padding-inline: 4px;
+    box-sizing: content-box;
+    background: rgba(255, 255, 255, 0.28);
+    background-clip: content-box;
+    transition: background-color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .hero__dot[aria-current="true"] {
+    background: var(--gbc-red);
+  }
+
+  .hero__dot:hover {
+    background: var(--ink-300);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__slide {
+      transition: none;
+    }
+    .hero__copy {
+      animation: none;
+    }
+    .hero__img {
+      transform: none;
+    }
+  }
+</style>

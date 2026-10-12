@@ -1,0 +1,84 @@
+# GitHub Pages 部署工作流
+#
+# 触发：push 到 main / 手动 workflow_dispatch
+# 流程：pnpm install → pnpm build（注入 base / site 环境变量）→ 上传 dist/ → 部署到 Pages
+#
+# 关于 base 路径（关键）：
+#   GitHub Pages 项目站点地址为 https://<owner>.github.io/<repo>/，
+#   因此 astro.config.mjs 的 base 必须是 `/<repo>`。这里通过环境变量
+#   BASE_PATH / SITE_URL / GITHUB_REPOSITORY 注入，本地开发不传则回退 '/'。
+#   ⚠️ 不要改 astro.config.mjs 的推导逻辑——它同时服务本地与 CI 两种场景。
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 部署 Pages 所需的最小权限集
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时刻只允许一个 Pages 部署在跑；已排队的任务让位给最新提交，
+# 进行中的任务不取消，避免出现「部署到一半被掐断」的半成品。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        # 不指定 version：读取仓库根 pnpm-workspace.yaml / package.json 的约定，
+        # 或退回 action 自带的最新 v10。本仓库 lockfile 为 9.0（pnpm 9/10 通用）。
+        # 若日后要锁死版本，在这里写 `version: 10` 即可。
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # 本仓库用 pnpm-lock.yaml 做确定性安装；frozen-lockfile 保证 CI 与本地依赖一致
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # astro.config.mjs 读取这三个变量推导 site / base：
+      #   BASE_PATH       → base（子路径，如 /gbc-site）
+      #   SITE_URL        → site（绝对地址，用于 sitemap/canonical）
+      #   GITHUB_REPOSITORY → base/site 的兜底推导来源
+      - name: Build
+        run: pnpm build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}
+          SITE_URL: https://${{ github.repository_owner }}.github.io
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

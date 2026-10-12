@@ -1,0 +1,601 @@
+---
+/**
+ * 角色页 `/characters`（t5b）
+ * 版式取自 DESIGN.md §7.2：编辑排版长页，每人一个区块。
+ * 文案 100% 来自 content/characters.md（官网 + 萌娘百科，逐条带出处 URL），不新增任何描述性文字。
+ * 角色代表色取自 manifest.characters（DESIGN.md 双源验证值），与 content 文档里的旧估值不一致时以 manifest 为准。
+ */
+import fs from "node:fs";
+import path from "node:path";
+import Layout from "../layouts/Layout.astro";
+import {
+  assetUrl,
+  url,
+  category,
+  characterSlugs,
+  charactersMeta,
+  characterPrimary,
+  partMeta,
+  videos,
+  type AssetEntry,
+} from "../lib/assets";
+
+const SRC_FILE = "content/characters.md";
+const raw = fs.readFileSync(path.resolve(process.cwd(), SRC_FILE), "utf-8");
+const lines = raw.split("\n");
+
+/* ---------- 解析 content/characters.md ---------- */
+
+/** 取出 `## N. 标题` 到下一个 `## ` 之间的行（只取前 5 名正式成员）。 */
+function sectionOf(index: number): string[] {
+  const heads: number[] = [];
+  lines.forEach((l, i) => {
+    if (/^## \d+\./.test(l)) heads.push(i);
+  });
+  const start = heads[index];
+  const end = heads[index + 1] ?? lines.length;
+  return lines.slice(start + 1, end);
+}
+
+const field = (body: string[], key: string): string => {
+  const hit = body.find((l) => l.startsWith(`- **${key}**`));
+  return hit ? hit.replace(/^- \*\*[^*]+\*\*[：:]\s*/, "").trim() : "";
+};
+
+/** 段落 → { text, source }；`（来源：URL）` 抽成 source，正文里不留裸链接。 */
+function paragraphs(block: string[]): { text: string; source: string }[] {
+  const out: { text: string; source: string }[] = [];
+  // 逐行处理：`- **标签**：` 起一段，`（来源：URL）` 归到上一段，其余行并入当前段。
+  let cur: { text: string; source: string } | null = null;
+  const flush = (): void => {
+    if (cur && cur.text) out.push(cur);
+    cur = null;
+  };
+  for (const line of block) {
+    const l = line.trim();
+    if (!l || l === "---") continue;
+    // 来源行：`（来源：URL）`，或含 markdown 链接的整行 `[label](url)`
+    const src =
+      l.match(/[（(]\s*来源[:：]?\s*(https?:\/\/[^\s）)\]]+)/) ??
+      l.match(/^\s*[（(].*?(https?:\/\/[^\s）)\]]+)/);
+    if (src) {
+      if (cur) cur.source = src[1];
+      continue;
+    }
+    // 混在正文行里的 markdown 链接来源标注 → 抽走 source 并从正文剔除
+    const inline = l.match(
+      /[（(]\s*来源[:：]?\s*\[[^\]]*\]\((https?:\/\/[^)\s]+)\)\s*[）)]?/,
+    );
+    if (inline) {
+      if (cur) cur.source = inline[1];
+      cur = cur ?? { text: "", source: "" };
+      cur.text = `${cur.text} ${l.replace(inline[0], "")}`.trim();
+      continue;
+    }
+    // 正文里混入的裸 `（来源：URL）` → 同样抽走
+    const bare = l.match(/[（(]\s*来源[:：]?\s*(https?:\/\/[^\s）)\]]+)[）)]?/);
+    if (bare) {
+      if (cur) cur.source = bare[1];
+      cur = cur ?? { text: "", source: "" };
+      cur.text = `${cur.text} ${l.replace(bare[0], "")}`.trim();
+      continue;
+    }
+    const bullet = l.match(/^-\s*\*\*([^*]+)\*\*[：:]?\s*(.*)$/);
+    if (bullet) {
+      flush();
+      cur = { text: bullet[2].trim(), source: "" };
+      continue;
+    }
+    if (!cur) cur = { text: "", source: "" };
+    cur.text = `${cur.text} ${l}`.trim();
+  }
+  flush();
+  return out.map((p) => ({
+    ...p,
+    text: p.text.replace(/[（(]\s*$/g, "").trim(),
+  }));
+}
+
+/** 抓 `### 标题` 段落（到下一个 `###` 或结尾）。 */
+function subBlock(body: string[], title: string): string[] {
+  const i = body.findIndex((l) => l.startsWith("### ") && l.includes(title));
+  if (i < 0) return [];
+  const rest = body.slice(i + 1);
+  const stop = rest.findIndex((l) => l.startsWith("### "));
+  return stop < 0 ? rest : rest.slice(0, stop);
+}
+
+/* ---------- 素材解析 ---------- */
+
+const logoFiles = category("logo");
+const findLogo = (dir: string, key: string): AssetEntry | undefined =>
+  logoFiles.find(
+    (e) => e.path.startsWith(`assets/logo/${dir}/`) && e.path.includes(key),
+  );
+
+const NAME_KEY: Record<string, string> = {
+  nina: "nina",
+  momoka: "momoka",
+  subaru: "subaru",
+  tomo: "tomo",
+  rupa: "rupa",
+};
+
+const MEMBERS = characterSlugs.map((slug, i) => {
+  const body = sectionOf(i);
+  const meta = charactersMeta[slug];
+  const part = partMeta(meta.part);
+  const hero = characterPrimary(slug);
+  const art = category("characters").filter(
+    (e) =>
+      e.character === slug && e.path.startsWith(`assets/characters/${slug}/`),
+  );
+  const pv = videos().find((v) => v.character === slug);
+  const intro = paragraphs(subBlock(body, "官方性格描述"))[0];
+
+  // 该成员专属的萌娘百科词条（content 里每位成员都带）。
+  // 路径可能是百分号编码（/%E4%BA%95…）也可能是 ASCII（/RUPA），两者都要认；
+  // 但必须排除裸首页 / 与 markdown 链接残留的 `]`。
+  const moegirl =
+    body
+      .join("\n")
+      .match(/https:\/\/zh\.moegirl\.org\.cn\/(?:%[0-9A-Fa-f]{2}|[A-Za-z0-9_()])[^\s)\]]*/)?.[0]
+      ?.replace(/\]$/, "") ?? "";
+
+  return {
+    slug,
+    meta,
+    part,
+    nameImg: findLogo("names", NAME_KEY[slug]),
+    signature: findLogo("signatures", `${NAME_KEY[slug]}-sign`),
+    hero,
+    art,
+    pv,
+    position: field(body, "乐队定位"),
+    cv: field(body, "声优 (CV)"),
+    group: field(body, "所属团体"),
+    jaOriginal: intro?.text ?? "",
+    jaSource: intro?.source ?? "",
+    moegirl,
+  };
+});
+
+const missing = MEMBERS.filter((m) => !m.hero || !m.meta);
+if (missing.length) {
+  throw new Error(
+    `[characters] 缺少立绘或角色元数据：${missing.map((m) => m.slug).join(", ")}`,
+  );
+}
+---
+
+<Layout title="角色" description="GIRLS BAND CRY 五位成员档案：官方设定、声优、担当乐器与角色 PV。资料取自官方网站与萌娘百科。">
+  <header class="cp-head container">
+    <p class="cp-head__ja">キャラクター</p>
+    <h1 class="cp-head__en">CHARACTER</h1>
+    <p class="cp-head__lead">
+      トゲナシトゲアリ 五名成员。以下档案逐条整理自
+      <a href="https://girls-band-cry.com/character/" target="_blank" rel="noopener noreferrer">动画官方网站角色页</a>
+      与
+      <a href="https://zh.moegirl.org.cn/" target="_blank" rel="noopener noreferrer">萌娘百科</a>，不作二次创作。
+    </p>
+  </header>
+
+  {
+    MEMBERS.map((m) => (
+      <section
+        class="member container"
+        id={m.slug}
+        style={`--c:${m.meta.color}`}
+        aria-labelledby={`${m.slug}-name`}
+      >
+        <div class="member__art">
+          <img
+            src={assetUrl(m.hero!.path)}
+            width={m.hero!.width}
+            height={m.hero!.height}
+            alt={`${m.meta.ja}（${m.meta.en}）立绘`}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+
+        <div class="member__body">
+          <p class="member__no num" aria-hidden="true">
+            {String(MEMBERS.indexOf(m) + 1).padStart(2, "0")}
+          </p>
+
+          {m.nameImg ? (
+            <img
+              class="member__nameimg"
+              src={assetUrl(m.nameImg.path)}
+              width={m.nameImg.width}
+              height={m.nameImg.height}
+              alt={m.meta.ja}
+              decoding="async"
+            />
+          ) : null}
+
+          <h2 class="member__name" id={`${m.slug}-name`}>
+            <span class="member__ja">{m.meta.ja}</span>
+            <span class="member__en">{m.meta.en}</span>
+          </h2>
+
+          <ul class="member__facts">
+            <li>
+              <span class="member__k">担当</span>
+              <span class="member__v">{m.part.zh} / {m.part.en}</span>
+            </li>
+            <li>
+              <span class="member__k">声优</span>
+              <span class="member__v">{m.cv}</span>
+            </li>
+            {m.position ? (
+              <li>
+                <span class="member__k">定位</span>
+                <span class="member__v">{m.position}</span>
+              </li>
+            ) : null}
+            {m.group ? (
+              <li>
+                <span class="member__k">团体</span>
+                <span class="member__v">{m.group}</span>
+              </li>
+            ) : null}
+          </ul>
+
+          {m.jaOriginal ? (
+            <blockquote class="member__quote">
+              <p>{m.jaOriginal}</p>
+              <footer class="num">
+                出典：
+                <a href={m.jaSource} target="_blank" rel="noopener noreferrer">
+                  {m.jaSource.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                </a>
+                {m.moegirl ? (
+                  <>
+                    {" · "}
+                    <a href={m.moegirl} target="_blank" rel="noopener noreferrer">
+                      萌娘百科：{m.meta.ja}
+                    </a>
+                  </>
+                ) : null}
+              </footer>
+            </blockquote>
+          ) : null}
+
+          {m.art.length > 1 ? (
+            <div class="rail" aria-label={`${m.meta.ja} 立绘`}>
+              {m.art
+                .filter((e) => e.path !== m.hero!.path)
+                .map((e) => (
+                  <img
+                    src={assetUrl(e.path)}
+                    width={e.width}
+                    height={e.height}
+                    alt={`${m.meta.ja} ${e.label ?? "立绘"}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ))}
+            </div>
+          ) : null}
+
+          <div class="member__foot">
+            {m.signature ? (
+              <img
+                class="member__sign"
+                src={assetUrl(m.signature.path)}
+                width={Math.round((m.signature.width ?? 400) / 3)}
+                height={Math.round((m.signature.height ?? 560) / 3)}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : null}
+            {m.pv ? (
+              <a class="member__pv" href={url("/music")}>
+                角色 PV
+                <span class="num">{Math.round(m.pv.duration ?? 0)}s</span>
+              </a>
+            ) : null}
+          </div>
+        </div>
+      </section>
+    ))
+  }
+</Layout>
+
+<style>
+  /* ---- 页头 ---- */
+  .cp-head {
+    padding-block: var(--sp-6) var(--sp-5);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cp-head__ja {
+    font-size: var(--fs-sm);
+    letter-spacing: 0.24em;
+    color: var(--gbc-red-text);
+  }
+
+  .cp-head__en {
+    font-size: var(--fs-display);
+    font-weight: var(--fw-black);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .cp-head__lead {
+    max-width: 62ch;
+    margin-top: var(--sp-4);
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    line-height: 1.9;
+  }
+
+  .cp-head__lead a {
+    color: var(--ink-100);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .cp-head__lead a:hover {
+    color: var(--gbc-red-text);
+  }
+
+  /* ---- 成员区块：移动优先单列，桌面左右分栏 ---- */
+  .member {
+    display: grid;
+    gap: var(--sp-5);
+    padding-block: var(--sp-6);
+    border-bottom: 1px solid var(--border);
+    /* 首页角色卡以 #slug 锚点跳入本页，sticky 导航会盖住标题，留出导航高度 */
+    scroll-margin-top: calc(var(--nav-h) + var(--sp-3));
+  }
+
+  /* 角色色只做「一条竖线 + 色块 + 细节」，不做整块背景，避免大面积高饱和 */
+  .member__art {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    background:
+      radial-gradient(
+        circle at 50% 78%,
+        color-mix(in srgb, var(--c) 16%, transparent) 0%,
+        transparent 62%
+      ),
+      var(--ink-950);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--c);
+    overflow: hidden;
+  }
+
+  .member__art img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 62vh;
+    object-fit: contain;
+    object-position: bottom center;
+  }
+
+  .member__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    min-width: 0;
+  }
+
+  .member__no {
+    font-size: var(--fs-sm);
+    letter-spacing: 0.3em;
+    color: var(--c);
+  }
+
+  .member__nameimg {
+    display: block;
+    width: auto;
+    max-width: min(260px, 70%);
+    height: auto;
+    /* 官方手写姓名素材是纯黑墨迹透明底（实测 avgRGB 0,0,0），
+       直接放在 #0E0F13 深底上对比度不足 1.1:1，几乎不可见。
+       反相为白墨迹后对比度约 12:1（AAA）。 */
+    filter: brightness(0) invert(1);
+    opacity: 0.88;
+  }
+
+  .member__name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-3);
+  }
+
+  .member__ja {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-black);
+    letter-spacing: 0.02em;
+  }
+
+  .member__en {
+    font-size: var(--fs-sm);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-300);
+  }
+
+  /* ---- 事实表：编辑排版式定义列表 ---- */
+  .member__facts {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .member__facts li {
+    display: grid;
+    grid-template-columns: 4.5em 1fr;
+    gap: var(--sp-4);
+    padding-block: var(--sp-3);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-sm);
+  }
+
+  .member__k {
+    color: var(--ink-300);
+    letter-spacing: 0.08em;
+  }
+
+  .member__v {
+    color: var(--ink-100);
+    line-height: 1.7;
+  }
+
+  /* ---- 官方原文引用 ---- */
+  .member__quote {
+    border-left: 3px solid var(--c);
+    padding-left: var(--sp-4);
+  }
+
+  .member__quote p {
+    color: var(--ink-100);
+    font-size: var(--fs-body);
+    line-height: 1.9;
+  }
+
+  .member__quote footer {
+    margin-top: var(--sp-3);
+    font-size: var(--fs-xs);
+    color: var(--ink-300);
+    letter-spacing: 0.06em;
+    word-break: break-all;
+  }
+
+  .member__quote a {
+    color: var(--ink-300);
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .member__quote a:hover {
+    color: var(--gbc-red-text);
+  }
+
+  /* ---- 立绘横滑轨道 ---- */
+  .rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 132px;
+    gap: var(--sp-3);
+    overflow-x: auto;
+    padding-block: var(--sp-2);
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rail img {
+    display: block;
+    width: 100%;
+    height: 190px;
+    object-fit: contain;
+    object-position: bottom;
+    scroll-snap-align: start;
+    background: var(--ink-950);
+    border: 1px solid var(--border);
+    opacity: 0.72;
+    transition: opacity var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .rail img:hover {
+    opacity: 1;
+  }
+
+  /* ---- 签名 + PV ---- */
+  .member__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+  }
+
+  .member__sign {
+    display: block;
+    width: auto;
+    height: 56px;
+    /* 官方签名 SVG 为无 fill 的黑色描线（隐藏层已 display:none）：滤镜染成品牌红 */
+    filter: invert(70%) sepia(60%) saturate(3000%) hue-rotate(340deg);
+    opacity: 0.9;
+  }
+
+  .member__pv {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--border);
+    color: var(--ink-100);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    transition:
+      border-color var(--dur-base) var(--ease-out-cubic),
+      color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .member__pv .num {
+    color: var(--ink-300);
+    font-size: var(--fs-xs);
+  }
+
+  .member__pv:hover {
+    border-color: var(--c);
+    color: var(--c);
+  }
+
+  /* ---- 桌面：左右分栏，立绘吸顶 ---- */
+  @media (min-width: 1024px) {
+    .member {
+      grid-template-columns: 5fr 7fr;
+      gap: var(--sp-6);
+      align-items: start;
+    }
+
+    .member__art {
+      position: sticky;
+      top: var(--sp-5);
+    }
+
+    .member__art img {
+      max-height: 74vh;
+    }
+
+    .member__facts li {
+      grid-template-columns: 5em 1fr;
+    }
+
+    .rail {
+      grid-auto-columns: 150px;
+    }
+
+    .rail img {
+      height: 220px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .member__art img,
+    .rail img,
+    .member__pv {
+      transition: none;
+    }
+  }
+</style>

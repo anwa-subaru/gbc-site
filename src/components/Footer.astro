@@ -1,0 +1,202 @@
+---
+/**
+ * 页脚：品牌区 + 导航 + 素材/文案出处声明
+ * 本项目文案仅取自官方与萌娘百科，出处必须可见（合规要求）。
+ */
+import { assetUrl, url } from "../lib/assets";
+
+const year = new Date().getFullYear();
+
+const LINKS = [
+  { href: "/characters", label: "角色" },
+  { href: "/music", label: "音乐" },
+  { href: "/gallery", label: "画廊" },
+  { href: "/story", label: "剧情" },
+];
+
+const SOURCES = [
+  {
+    label: "アニメ公式サイト",
+    href: "https://girls-band-cry.com/",
+    note: "动画官方网站",
+  },
+  {
+    label: "ゲーム公式サイト",
+    href: "https://girlsbandcry.jp/",
+    note: "游戏官方网站",
+  },
+  {
+    label: "萌娘百科 · 少女乐队哭泣",
+    href: "https://zh.moegirl.org.cn/少女乐团哭泣",
+    note: "中文条目",
+  },
+];
+---
+
+<footer class="footer halftone">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <img
+        src={assetUrl("assets/logo/brand/01-brand.webp")}
+        alt="GIRLS BAND CRY"
+        width="1024"
+        height="768"
+        loading="lazy"
+        decoding="async"
+      />
+      <p class="footer__tag">
+        <span class="label">TOGENASHI TOGEARI</span>
+      </p>
+    </div>
+
+    <nav class="footer__nav" aria-label="页脚导航">
+      <h2 class="footer__head label">SITEMAP</h2>
+      <ul>
+        {
+          LINKS.map((l) => (
+            <li>
+              <a href={url(l.href)}>{l.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="footer__sources">
+      <h2 class="footer__head label">SOURCES</h2>
+      <ul>
+        {
+          SOURCES.map((s) => (
+            <li>
+              <a href={s.href} target="_blank" rel="noopener noreferrer">
+                {s.label}
+                <span class="footer__note">{s.note}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="container footer__bottom">
+    <p class="footer__legal">
+      本站为粉丝自制非营利站点，与官方无关联。文案整理自官方公开资料与萌娘百科，素材版权归
+      ©東映アニメーション・agehasprings 等原权利人所有。
+    </p>
+    <p class="footer__copy num">© {year} GBC FAN SITE</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: var(--sp-8);
+    padding-block: var(--sp-7) var(--sp-5);
+    background: var(--ink-950);
+    border-top: 1px solid var(--border);
+  }
+
+  .footer__inner {
+    display: grid;
+    gap: var(--sp-6);
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .footer__inner {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .footer__inner {
+      grid-template-columns: 1.4fr 1fr 1.4fr;
+      gap: var(--sp-7);
+    }
+  }
+
+  .footer__brand img {
+    width: auto;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  .footer__tag {
+    margin-top: var(--sp-3);
+  }
+
+  .footer__tag .label {
+    color: var(--ink-300);
+  }
+
+  .footer__head {
+    color: var(--ink-300);
+    margin-bottom: var(--sp-3);
+  }
+
+  .footer__nav li + li,
+  .footer__sources li + li {
+    margin-top: var(--sp-2);
+  }
+
+  .footer__nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px; /* 触控目标下限 */
+    color: var(--ink-100);
+    font-size: var(--fs-sm);
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .footer__sources a {
+    display: flex;
+    align-items: center;
+    min-height: 44px; /* 触控目标下限 */
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    transition: color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .footer__nav a:hover,
+  .footer__sources a:hover {
+    color: var(--neon-cyan);
+  }
+
+  .footer__note {
+    display: block;
+    font-size: var(--fs-xs);
+    color: var(--ink-300);
+  }
+
+  .footer__bottom {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+  }
+
+  @media (min-width: 1024px) {
+    .footer__bottom {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+  }
+
+  .footer__legal {
+    max-width: 62ch;
+    font-size: var(--fs-xs);
+    line-height: 1.8;
+    color: var(--ink-300);
+  }
+
+  .footer__copy {
+    flex: 0 0 auto;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    color: var(--ink-300);
+  }
+</style>

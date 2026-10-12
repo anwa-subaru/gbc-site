@@ -1,0 +1,195 @@
+---
+/**
+ * 角色卡
+ *  - 透明底立绘（alpha WebP）浮在角色代表色底板上
+ *  - 角色代表色取自 manifest.characters（官方双源验证值）
+ *  - 悬停：立绘上浮 8px + 色板展开（240ms）；降级模式不做位移
+ */
+import {
+  assetUrl,
+  url,
+  characterBySlug,
+  characterPrimary,
+  characterArt,
+  partMeta,
+  type AssetEntry,
+} from "../lib/assets";
+
+interface Props {
+  slug: string;
+  entry?: AssetEntry;
+  href?: string;
+  eager?: boolean;
+  index?: number;
+}
+
+const { slug, href, eager = false, index = 0 } = Astro.props;
+
+const meta = characterBySlug(slug);
+const entry = Astro.props.entry ?? characterPrimary(slug);
+const part = partMeta(meta?.part ?? "vo");
+const artCount = characterArt(slug).length;
+
+if (!meta || !entry) {
+  throw new Error(`[CharacterCard] 缺少角色数据：slug=${slug}`);
+}
+
+const alt = `${meta.ja}（${meta.en}）立绘`;
+---
+
+<a
+  class="cc"
+  href={url(href ?? `/characters#${slug}`)}
+  style={`--c:${meta.color}; --i:${index}`}
+  data-reveal
+>
+  <div class="cc__frame">
+    <span class="cc__plate" aria-hidden="true"></span>
+    <img
+      class="cc__art"
+      src={assetUrl(entry.path)}
+      alt={alt}
+      width={entry.width}
+      height={entry.height}
+      loading={eager ? "eager" : "lazy"}
+      decoding="async"
+    />
+    <span class="cc__count num">{String(artCount).padStart(2, "0")}</span>
+  </div>
+
+  <div class="cc__body">
+    <div class="cc__name">
+      <h3 class="cc__ja">{meta.ja}</h3>
+      <p class="cc__en">{meta.en}</p>
+    </div>
+    <img
+      class="cc__part"
+      src={assetUrl(part.label)}
+      alt={`担当：${part.zh}`}
+      width="240"
+      height="64"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+</a>
+
+<style>
+  .cc {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition:
+      border-color var(--dur-base) var(--ease-out-cubic),
+      background-color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .cc:hover {
+    border-color: var(--c);
+    background: var(--ink-850);
+  }
+
+  .cc__frame {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* 角色色板：默认窄条，悬停展开铺满 */
+  .cc__plate {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--c);
+    opacity: 0.14;
+    transform: scaleY(0.32);
+    transform-origin: bottom;
+    transition:
+      transform var(--dur-base) var(--ease-out-expo),
+      opacity var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .cc:hover .cc__plate {
+    transform: scaleY(1);
+    opacity: 0.26;
+  }
+
+  .cc__art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+    padding: var(--sp-3) var(--sp-2) 0;
+    transition: transform var(--dur-slow) var(--ease-out-expo);
+  }
+
+  .cc:hover .cc__art {
+    transform: translateY(-8px);
+  }
+
+  .cc__count {
+    position: absolute;
+    top: var(--sp-2);
+    right: var(--sp-2);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    color: var(--ink-300);
+    background: rgba(14, 15, 19, 0.72);
+    padding: 2px var(--sp-2);
+    backdrop-filter: blur(4px);
+  }
+
+  .cc__body {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+    border-top: 1px solid var(--border);
+  }
+
+  .cc__ja {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-black);
+    letter-spacing: 0.01em;
+    line-height: 1.15;
+  }
+
+  .cc__en {
+    margin-top: 2px;
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-300);
+  }
+
+  /* 官方 txt_part-* 标签图为白字透明底，用 filter 染成角色色 */
+  .cc__part {
+    flex: 0 0 auto;
+    width: auto;
+    height: 14px;
+    object-fit: contain;
+    opacity: 0.85;
+  }
+
+  .cc:hover .cc__part {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cc__plate,
+    .cc__art {
+      transition: none;
+    }
+    .cc:hover .cc__art {
+      transform: none;
+    }
+  }
+</style>

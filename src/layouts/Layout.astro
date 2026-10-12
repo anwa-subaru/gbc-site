@@ -1,0 +1,82 @@
+---
+/**
+ * 基础布局
+ *  - 全局样式（色板 / 字体 / 8px 网格 / 断点）
+ *  - 响应式导航 + 页脚
+ *  - 页面转场（Astro ClientRouter）与共享客户端行为
+ *  - SEO / OG 元信息
+ */
+import { ClientRouter } from "astro:transitions";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import Lightbox from "../components/Lightbox.astro";
+import MusicPlayer from "../components/MusicPlayer.astro";
+import { assetUrl } from "../lib/assets";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  noindex?: boolean;
+  /** 是否渲染底部播放器（默认开；剧情等纯阅读页可关） */
+  player?: boolean;
+}
+
+const {
+  title,
+  description = "GIRLS BAND CRY（少女乐队哭泣）粉丝站 —— 角色、音乐、画廊与剧情资料整理，文案取自官方与萌娘百科。",
+  ogImage = "assets/posters/01.webp",
+  noindex = false,
+  player = true,
+} = Astro.props;
+
+const SITE = "GIRLS BAND CRY";
+const fullTitle = title ? `${title} | ${SITE}` : `${SITE} | 少女乐队哭泣 粉丝站`;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? "http://localhost:4321");
+const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:4321");
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonical.href} />
+
+    <link rel="icon" type="image/webp" href={assetUrl("assets/logo/brand/01-brand.webp")} />
+    <meta name="theme-color" content="#0E0F13" />
+    <meta name="color-scheme" content="dark" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:image" content={ogImageUrl.href} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <ClientRouter />
+  </head>
+
+  <body class:list={[player && "has-player"]}>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <Nav />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    {player && <MusicPlayer />}
+    <Lightbox />
+
+    <script>
+      import "../scripts/site.ts";
+    </script>
+  </body>
+</html>
