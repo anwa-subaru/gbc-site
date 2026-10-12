@@ -14,6 +14,16 @@ import MusicPlayer from "../components/MusicPlayer.astro";
 import { assetUrl } from "../lib/assets";
 import "../styles/global.css";
 
+/*
+  首屏字体预载：Barlow 900（全站大标题）与 Tektur（编号/标签）在五页首屏都会用到，
+  提前发起请求可消除 font-display:swap 造成的 FOUT。
+  只预载这两个 —— Barlow 400/600 是正文用字，并非每页首屏都需要，预载会浪费带宽。
+  走 `?url` 导入让 Vite 解析出与 global.css 中 url() 完全相同的指纹文件名，
+  因此预载地址与 CSS 实际请求的地址一致，浏览器会复用而非重复下载。
+*/
+import barlow900Url from "../assets/fonts/barlow-900.woff2?url";
+import tekturUrl from "../assets/fonts/tektur-var.woff2?url";
+
 interface Props {
   title?: string;
   description?: string;
@@ -51,6 +61,22 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
     <link rel="icon" type="image/webp" href={assetUrl("assets/logo/brand/01-brand.webp")} />
     <meta name="theme-color" content="#0E0F13" />
     <meta name="color-scheme" content="dark" />
+
+    <!-- 首屏字体预载（crossorigin 是字体预载的硬性要求：字体以 CORS 模式获取） -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href={barlow900Url}
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href={tekturUrl}
+      crossorigin
+    />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
