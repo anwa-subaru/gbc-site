@@ -128,6 +128,10 @@ const labelOf = (e: AssetEntry): string =>
   .gal__item {
     position: relative;
     display: block;
+    /* 恢复 [hidden] 隐藏语义：display:block 会压过 UA 默认(画廊 tab 筛选 bug) */
+    &[hidden] {
+      display: none !important;
+    }
     padding: 0;
     overflow: hidden;
     background: var(--ink-850);

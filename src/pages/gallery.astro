@@ -344,6 +344,12 @@ const EAGER = 6;
 
   .gal--masonry .gal__item {
     display: block;
+    /* [hidden] 的 UA 默认 display:none 会被上面 .gal--masonry .gal__item
+       (0,1,1) 压过 → tab 筛选时 171 张隐藏图仍然显示(用户反馈"点了没切换")。
+       用 !important 恢复隐藏语义。 */
+    &[hidden] {
+      display: none !important;
+    }
     width: 100%;
     margin-bottom: var(--sp-4);
     break-inside: avoid;
@@ -381,7 +387,7 @@ const EAGER = 6;
   }
 
   .gal__item[hidden] {
-    display: none;
+    display: none !important;
   }
 
   /* ---- 卡片与悬停浮层（与 components/Gallery.astro 同一套视觉） ---- */
