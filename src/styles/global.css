@@ -183,6 +183,9 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* Edge / Android 点按可点元素时默认盖一层半透明蓝色高亮，
+     菜单开合按钮上就是一个很显眼的蓝方块，关掉它。 */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -504,6 +507,15 @@ p {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* 触摸设备上点按也会命中 :focus-visible（Edge 与部分 Android 浏览器不按
+   规范只在键盘交互时匹配），点完会在按钮外留一个青色方框。手机没有键盘，
+   可见焦点环没有意义，直接关掉；桌面端保持键盘可见焦点。 */
+@media (hover: none) and (pointer: coarse) {
+  :focus-visible {
+    outline: none;
+  }
 }
 
 .sr-only {

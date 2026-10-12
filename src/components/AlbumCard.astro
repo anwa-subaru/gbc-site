@@ -46,7 +46,7 @@ const typeBadge = badge ?? autoBadge;
 const playable = typeof playTrack === "number" && playTrack > 0;
 const Tag = playable ? "button" : href ? "a" : "div";
 const label = playable
-  ? `播放 ${playLabel ?? cleanTitle}`
+  ? `双击播放 ${playLabel ?? cleanTitle}`
   : href
     ? cleanTitle
     : undefined;
@@ -59,7 +59,7 @@ const label = playable
     type={playable ? "button" : undefined}
     data-play={playable ? playTrack : undefined}
     aria-label={label}
-    title={playable ? `播放：${playLabel ?? cleanTitle}` : undefined}
+    title={playable ? `双击播放：${playLabel ?? cleanTitle}` : undefined}
   >
     <div class="ac__frame">
       <img
@@ -72,18 +72,6 @@ const label = playable
         decoding="async"
       />
       <span class="ac__badge label">{typeBadge}</span>
-      {
-        playable && (
-          <span class="ac__play" aria-hidden="true">
-            <svg class="ac__i-play" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M8 5.2v13.6L19 12z" />
-            </svg>
-            <svg class="ac__i-pause" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M7 4.5h3.4v15H7zM13.6 4.5H17v15h-3.4z" />
-            </svg>
-          </span>
-        )
-      }
       <span class="ac__scan" aria-hidden="true"></span>
     </div>
     <div class="ac__body">
@@ -115,78 +103,46 @@ const label = playable
     cursor: pointer;
   }
 
-  .ac__play {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    display: grid;
-    place-items: center;
-    width: 46px;
-    height: 46px;
-    margin: -23px 0 0 -23px;
-    border-radius: 50%;
-    background: var(--gbc-red);
-    color: #fff;
-    box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
-    opacity: 0;
-    transform: scale(0.86);
-    transition:
-      opacity var(--dur-base) var(--ease-out-cubic),
-      transform var(--dur-base) var(--ease-out-cubic);
-    pointer-events: none;
+  /* 可播放的卡片：双击封面播放。触摸设备上要禁掉双击缩放，
+     否则第二次点按会被浏览器当成缩放手势。 */
+  button.ac__link {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
-  .ac__link:hover .ac__play,
-  .ac__link:focus-visible .ac__play {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  /* 触屏没有 hover：常驻显示，否则用户不知道封面能点 */
-  @media (hover: none) {
-    .ac__play {
-      opacity: 1;
-      transform: scale(1);
-      width: 38px;
-      height: 38px;
-      margin: -19px 0 0 -19px;
-      background: color-mix(in srgb, var(--gbc-red) 88%, transparent);
-    }
-  }
-
-  /* 正在播放的那张：描边高亮 + 播放键常驻，且切换成暂停图标 */
+  /* 正在播放的那张：描边亮起 */
   .ac.is-playing .ac__frame {
     border-color: var(--gbc-red);
   }
 
-  .ac.is-playing .ac__play {
-    opacity: 1;
-    transform: scale(1);
+  /* 双击播放时外框"震"一下 —— 不用播放按钮做反馈 */
+  .ac.is-hit .ac__frame {
+    animation: ac-shake 0.42s var(--ease-out-cubic);
   }
 
-  .ac.is-playing:not(.is-paused) .ac__play {
-    animation: ac-pulse 1.8s var(--ease-out-cubic) infinite;
-  }
-
-  .ac__i-pause {
-    display: none;
-  }
-
-  .ac.is-playing:not(.is-paused) .ac__i-play {
-    display: none;
-  }
-
-  .ac.is-playing:not(.is-paused) .ac__i-pause {
-    display: block;
-  }
-
-  @keyframes ac-pulse {
-    0%,
-    100% {
-      box-shadow: 0 6px 20px rgb(0 0 0 / 0.45), 0 0 0 0 rgb(244 0 0 / 0.5);
+  @keyframes ac-shake {
+    0% {
+      transform: translate(0, 0);
+      border-color: var(--gbc-red);
+      box-shadow: 0 0 0 0 rgb(244 0 0 / 0.55);
+    }
+    20% {
+      transform: translate(-3px, 0);
+    }
+    40% {
+      transform: translate(3px, 0);
+      box-shadow: 0 0 0 6px rgb(244 0 0 / 0.18);
     }
     60% {
-      box-shadow: 0 6px 20px rgb(0 0 0 / 0.45), 0 0 0 14px rgb(244 0 0 / 0);
+      transform: translate(-2px, 0);
+    }
+    80% {
+      transform: translate(2px, 0);
+    }
+    100% {
+      transform: translate(0, 0);
+      box-shadow: 0 0 0 0 rgb(244 0 0 / 0);
     }
   }
 
@@ -267,14 +223,15 @@ const label = playable
 
   @media (prefers-reduced-motion: reduce) {
     .ac__img,
-    .ac__scan,
-    .ac__play {
+    .ac__scan {
       transition: none;
     }
     /* 选择器要和上面的脉冲规则同权重，否则压不住 */
-    .ac.is-playing:not(.is-paused) .ac__play {
+    .ac.is-hit .ac__frame {
       animation: none;
-    }    .ac__link:hover .ac__img {
+    }
+
+    .ac__link:hover .ac__img {
       transform: none;
     }
     .ac__link:hover .ac__scan {

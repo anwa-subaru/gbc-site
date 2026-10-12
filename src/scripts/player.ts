@@ -183,16 +183,32 @@ export function initPlayer(): void {
 
   nextBtn?.addEventListener("click", () => step(1));
 
-  /* ---------- 发行物封面 → 直接播放（音乐页 SINGLES / ALBUMS / EP） ---------- */
-  document.addEventListener("click", (e) => {
-    const hit = (e.target as HTMLElement | null)?.closest?.(
-      "[data-play]",
-    ) as HTMLElement | null;
-    if (!hit) return;
+  /* ---------- 发行物封面 → 双击播放（音乐页 SINGLES / ALBUMS / EP） ----------
+     用双击而不是单击：封面上不放播放按钮（用户嫌丑），单击留给滚动/误触，
+     播放反馈靠外框"震"一下 + 手机短振动。 */
+  const punch = (hit: HTMLElement): void => {
+    const ac = hit.closest<HTMLElement>(".ac");
+    if (!ac) return;
+    // 先移除再强制回流，连点同一张也能重新播放动画
+    ac.classList.remove("is-hit");
+    void ac.offsetWidth;
+    ac.classList.add("is-hit");
+    ac.addEventListener(
+      "animationend",
+      () => ac.classList.remove("is-hit"),
+      { once: true },
+    );
+    // Android 上给一次极短振动（iOS 不支持 vibrate，静默忽略）
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      navigator.vibrate?.(12);
+    }
+  };
+
+  const playCard = (hit: HTMLElement): void => {
     const idx = rows.findIndex((r) => r.dataset.track === hit.dataset.play);
     if (idx < 0) return;
-    e.preventDefault();
-    // 点的就是当前这首：切换播放/暂停，而不是从头重放
+    punch(hit);
+    // 双击的就是当前这首：切换播放/暂停，而不是从头重放
     if (idx === index) {
       if (audio.paused) void audio.play();
       else audio.pause();
@@ -209,6 +225,43 @@ export function initPlayer(): void {
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       root.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
     }
+  };
+
+  /* 自己判定双击：手机浏览器不一定派发 dblclick（双击缩放被 touch-action
+     关掉后行为也不一致），统一用 pointerup 计时，鼠标和触摸同一条路径。 */
+  let lastTapAt = 0;
+  let lastTapEl: HTMLElement | null = null;
+  let downX = 0;
+  let downY = 0;
+
+  document.addEventListener("pointerdown", (e) => {
+    downX = e.clientX;
+    downY = e.clientY;
+  });
+
+  document.addEventListener("pointerup", (e) => {
+    const hit = (e.target as HTMLElement | null)?.closest?.(
+      "[data-play]",
+    ) as HTMLElement | null;
+    if (!hit) {
+      lastTapEl = null;
+      return;
+    }
+    // 拖动 / 滚动后抬手不算点击
+    if (Math.hypot(e.clientX - downX, e.clientY - downY) > 12) {
+      lastTapEl = null;
+      return;
+    }
+    const now = performance.now();
+    if (lastTapEl === hit && now - lastTapAt < 420) {
+      lastTapEl = null;
+      lastTapAt = 0;
+      e.preventDefault();
+      playCard(hit);
+      return;
+    }
+    lastTapEl = hit;
+    lastTapAt = now;
   });
 
   playAllBtn?.addEventListener("click", () => {
