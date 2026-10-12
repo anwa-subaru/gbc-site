@@ -7,6 +7,7 @@
  */
 import Layout from "../layouts/Layout.astro";
 import { assetUrl, category, type AssetEntry } from "../lib/assets";
+import customLabels from "../data/gallery-labels.json";
 
 /* ---------- 分类：按来源分区（DESIGN.md §7.4「分组」） ---------- */
 interface GroupDef {
@@ -16,8 +17,10 @@ interface GroupDef {
   note: string;
   /** 参与该组的子目录（空数组 = 该分类根目录） */
   subs: string[];
-  /** 每个子目录最多取几张（控制首屏体积） */
+  /** 每个子目录最多取几张（0 = 不限） */
   cap: number;
+  /** 素材来源分类，默认 artworks（海报组取 posters） */
+  from?: "artworks" | "posters" | "emoji";
 }
 
 const GROUPS: GroupDef[] = [
@@ -28,6 +31,7 @@ const GROUPS: GroupDef[] = [
     note: "宣发海报 / KV",
     subs: [],
     cap: 0,
+    from: "posters",
   },
   {
     id: "art",
@@ -69,19 +73,34 @@ const GROUPS: GroupDef[] = [
       "work-cat-2",
       "misc",
     ],
-    cap: 10,
+    /* 0 = 不限。原先每子目录只取 10 张，导致三丽鸥 130 张、卡池 30 张、
+       水母周边 46 张等 400 多张素材根本进不了页面（用户提供的素材应当可见）。 */
+    cap: 0,
+  },
+  {
+    id: "sticker",
+    label: "表情",
+    ja: "スタンプ",
+    note: "官方表情包（静图 / 动图）",
+    subs: [],
+    cap: 0,
+    from: "emoji",
   },
 ];
 
 const artworks = category("artworks");
 const posters = category("posters");
+/* 表情包：animated-1（静态 WebP 版）与 animated（GIF 版）是同一套 20 张贴纸，
+   两套都放会在画廊里出现一模一样的重复项，只保留动图那一套。 */
+const emojis = category("emoji").filter((e) => !e.path.includes("/emoji/animated-1/"));
 
 const inRoot = (e: AssetEntry): boolean => e.path.split("/").length === 3;
 const inSub = (e: AssetEntry, sub: string): boolean =>
   e.path.startsWith(`assets/artworks/${sub}/`);
 
 function collect(g: GroupDef): AssetEntry[] {
-  if (g.subs.length === 0) return posters;
+  if (g.from === "emoji") return emojis;
+  if (g.from === "posters" || g.subs.length === 0) return posters;
   if (g.cap === 0) {
     return g.subs.flatMap((s) => artworks.filter((e) => inSub(e, s)));
   }
@@ -99,8 +118,12 @@ const ITEMS: Item[] = GROUPS.flatMap((g) =>
 const countOf = (id: string): number => ITEMS.filter((i) => i.group === id).length;
 
 /** 文件名去扩展名作为可读标签。 */
+/* 显示名：优先用 src/data/gallery-labels.json 里人工核定的名称。
+   原始素材名大量是 UUID、纯编号（101.webp）或时间戳，直接展示等于没有名字。
+   兜底仍保留原文件名去扩展名、连字符转空格。 */
+const LABELS = customLabels as Record<string, string>;
 const labelOf = (e: AssetEntry): string =>
-  e.source_name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+  LABELS[e.path] ?? e.source_name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
 
 const GROUPS_WITH_COUNT = GROUPS.map((g) => ({ ...g, count: countOf(g.id) }));
 const TOTAL = ITEMS.length;
