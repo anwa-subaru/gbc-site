@@ -7027,6 +7027,23 @@
         "alpha": false
       },
       {
+        "path": "assets/covers/album/29.webp",
+        "category": "covers",
+        "index": 29,
+        "source": "#U5c01#U9762/#U4e13#U8f91ep/#U8996#U754c#U306e#U9685 #U673d#U3061#U308b#U97f3.jpg",
+        "source_name": "視界の隅 朽ちる音.jpg",
+        "source_bytes": 803075,
+        "bytes": 155482,
+        "kind": "image",
+        "ok": true,
+        "width": 900,
+        "height": 900,
+        "source_width": 900,
+        "source_height": 900,
+        "source_mode": "RGB",
+        "alpha": false
+      },
+      {
         "path": "assets/covers/bd/01.webp",
         "category": "covers",
         "index": 1,

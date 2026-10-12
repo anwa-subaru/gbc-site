@@ -135,7 +135,7 @@
 - **唱片规格与编号**：CD 单曲盘: UMCK-5754
 - **作品提携**：TV动画《GIRLS BAND CRY》第 5、6 话插入曲
 - **官方详情来源**：[https://girls-band-cry.com/goods/post-41.html](https://girls-band-cry.com/goods/post-41.html)
-- **对照素材文件**：`心象的フラクタル (beni-shouga).jpg`
+- **对照素材文件**：`視界の隅 朽ちる音.jpg`、`心象的フラクタル (beni-shouga).jpg`
 - **收录曲目**：
   1. **視界の隅 朽ちる音** (新川崎（仮）)（作词・作曲：大滨健悟 / 编曲：玉井健二、大滨健悟）※ 第5话插入歌
   2. **心象的フラクタル** (beni-shouga)（作词・作曲：okoge / 编曲：玉井健二、高桥亮人）※ 第6话插入歌
