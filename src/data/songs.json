@@ -1,0 +1,344 @@
+[
+ {
+  "n": 1,
+  "file": "assets/audio/01.mp3",
+  "title": "雑踏、僕らの街",
+  "artist": "トゲナシトゲアリ",
+  "dur": 184,
+  "cover": "assets/covers/album/25.webp",
+  "album": "雑踏、僕らの街"
+ },
+ {
+  "n": 2,
+  "file": "assets/audio/02.mp3",
+  "title": "誰にもなれない私だから",
+  "artist": "トゲナシトゲアリ",
+  "dur": 190,
+  "cover": "assets/covers/album/22.webp",
+  "album": "誰にもなれない私だから"
+ },
+ {
+  "n": 3,
+  "file": "assets/audio/03.mp3",
+  "title": "空の箱",
+  "artist": "井芹仁菜&河原木桃香",
+  "dur": 184,
+  "cover": "assets/covers/album/25.webp",
+  "album": "雑踏、僕らの街"
+ },
+ {
+  "n": 4,
+  "file": "assets/audio/04.mp3",
+  "title": "声なき魚",
+  "artist": "新川崎(仮)",
+  "dur": 202,
+  "cover": "assets/covers/album/22.webp",
+  "album": "誰にもなれない私だから"
+ },
+ {
+  "n": 5,
+  "file": "assets/audio/05.mp3",
+  "title": "視界の隅 朽ちる音",
+  "artist": "新川崎(仮)",
+  "dur": 189,
+  "cover": "assets/covers/album/29.webp",
+  "album": "視界の隅 朽ちる音"
+ },
+ {
+  "n": 6,
+  "file": "assets/audio/06.mp3",
+  "title": "ETERNAL FLAME 〜空の箱〜",
+  "artist": "ダイヤモンドダスト",
+  "dur": 205,
+  "cover": "assets/covers/album/12.webp",
+  "album": "棘ナシ"
+ },
+ {
+  "n": 7,
+  "file": "assets/audio/07.mp3",
+  "title": "心象的フラクタル",
+  "artist": "beni-shouga",
+  "dur": 178,
+  "cover": "assets/covers/album/29.webp",
+  "album": "視界の隅 朽ちる音"
+ },
+ {
+  "n": 8,
+  "file": "assets/audio/08.mp3",
+  "title": "さよならあの日のメロディ",
+  "artist": "ミネ(沢城みゆき)",
+  "dur": 267,
+  "cover": "assets/covers/album/28.webp",
+  "album": "TVアニメ「ガールズバンドクライ」オリジナルサウンドトラック"
+ },
+ {
+  "n": 9,
+  "file": "assets/audio/09.mp3",
+  "title": "名もなき何もかも",
+  "artist": "トゲナシトゲアリ",
+  "dur": 189,
+  "cover": "assets/covers/album/07.webp",
+  "album": "名もなき何もかも"
+ },
+ {
+  "n": 10,
+  "file": "assets/audio/10.mp3",
+  "title": "偽りの理",
+  "artist": "トゲナシトゲアリ",
+  "dur": 190,
+  "cover": "assets/covers/album/07.webp",
+  "album": "名もなき何もかも"
+ },
+ {
+  "n": 11,
+  "file": "assets/audio/11.mp3",
+  "title": "気鬱、白濁す",
+  "artist": "トゲナシトゲアリ",
+  "dur": 185,
+  "cover": "assets/covers/album/14.webp",
+  "album": "気鬱、白濁す"
+ },
+ {
+  "n": 12,
+  "file": "assets/audio/12.mp3",
+  "title": "理想的パラドクスとは",
+  "artist": "トゲナシトゲアリ",
+  "dur": 229,
+  "cover": "assets/covers/album/14.webp",
+  "album": "気鬱、白濁す"
+ },
+ {
+  "n": 13,
+  "file": "assets/audio/13.mp3",
+  "title": "爆ぜて咲く",
+  "artist": "トゲナシトゲアリ",
+  "dur": 221,
+  "cover": "assets/covers/album/15.webp",
+  "album": "爆ぜて咲く"
+ },
+ {
+  "n": 14,
+  "file": "assets/audio/14.mp3",
+  "title": "黎明を穿つ",
+  "artist": "トゲナシトゲアリ",
+  "dur": 189,
+  "cover": "assets/covers/album/15.webp",
+  "album": "爆ぜて咲く"
+ },
+ {
+  "n": 15,
+  "file": "assets/audio/15.mp3",
+  "title": "極私的極彩色アンサー",
+  "artist": "トゲナシトゲアリ",
+  "dur": 153,
+  "cover": "assets/covers/album/13.webp",
+  "album": "極私的極彩色アンサー"
+ },
+ {
+  "n": 16,
+  "file": "assets/audio/16.mp3",
+  "title": "傷つき傷つけ痛くて辛い",
+  "artist": "トゲナシトゲアリ",
+  "dur": 196,
+  "cover": "assets/covers/album/13.webp",
+  "album": "極私的極彩色アンサー"
+ },
+ {
+  "n": 17,
+  "file": "assets/audio/17.mp3",
+  "title": "運命に賭けたい論理",
+  "artist": "トゲナシトゲアリ",
+  "dur": 196,
+  "cover": "assets/covers/album/23.webp",
+  "album": "運命に賭けたい論理"
+ },
+ {
+  "n": 18,
+  "file": "assets/audio/18.mp3",
+  "title": "サヨナラサヨナラサヨナラ",
+  "artist": "トゲナシトゲアリ",
+  "dur": 155,
+  "cover": "assets/covers/album/23.webp",
+  "album": "運命に賭けたい論理"
+ },
+ {
+  "n": 19,
+  "file": "assets/audio/19.mp3",
+  "title": "空白とカタルシス",
+  "artist": "トゲナシトゲアリ",
+  "dur": 190,
+  "cover": "assets/covers/album/18.webp",
+  "album": "空白とカタルシス"
+ },
+ {
+  "n": 20,
+  "file": "assets/audio/20.mp3",
+  "title": "運命の華",
+  "artist": "トゲナシトゲアリ",
+  "dur": 196,
+  "cover": "assets/covers/album/18.webp",
+  "album": "空白とカタルシス"
+ },
+ {
+  "n": 21,
+  "file": "assets/audio/21.mp3",
+  "title": "闇に溶けてく",
+  "artist": "トゲナシトゲアリ",
+  "dur": 162,
+  "cover": "assets/covers/album/12.webp",
+  "album": "棘ナシ"
+ },
+ {
+  "n": 22,
+  "file": "assets/audio/22.mp3",
+  "title": "蝶に結いた赤い糸",
+  "artist": "トゲナシトゲアリ",
+  "dur": 210,
+  "cover": "assets/covers/album/12.webp",
+  "album": "棘ナシ"
+ },
+ {
+  "n": 23,
+  "file": "assets/audio/23.mp3",
+  "title": "Cycle Of Sorrow",
+  "artist": "ダイヤモンドダスト",
+  "dur": 198,
+  "cover": "assets/covers/album/12.webp",
+  "album": "棘ナシ"
+ },
+ {
+  "n": 24,
+  "file": "assets/audio/24.mp3",
+  "title": "ダレモ",
+  "artist": "トゲナシトゲアリ",
+  "dur": 187,
+  "cover": "assets/covers/album/03.webp",
+  "album": "ダレモ"
+ },
+ {
+  "n": 25,
+  "file": "assets/audio/25.mp3",
+  "title": "飛べない蝶は夢を見る",
+  "artist": "トゲナシトゲアリ",
+  "dur": 158,
+  "cover": "assets/covers/album/03.webp",
+  "album": "ダレモ"
+ },
+ {
+  "n": 26,
+  "file": "assets/audio/26.mp3",
+  "title": "薄采ディスプレイ",
+  "artist": "トゲナシトゲアリ",
+  "dur": 187,
+  "cover": "assets/covers/album/20.webp",
+  "album": "薄采ディスプレイ"
+ },
+ {
+  "n": 27,
+  "file": "assets/audio/27.mp3",
+  "title": "蜃気楼ニ問フ",
+  "artist": "トゲナシトゲアリ",
+  "dur": 159,
+  "cover": "assets/covers/album/20.webp",
+  "album": "薄采ディスプレイ"
+ },
+ {
+  "n": 28,
+  "file": "assets/audio/28.mp3",
+  "title": "もう何もいらない未来",
+  "artist": "トゲナシトゲアリ",
+  "dur": 219,
+  "cover": "assets/covers/album/06.webp",
+  "album": "全部をさらして生きてやる"
+ },
+ {
+  "n": 29,
+  "file": "assets/audio/29.mp3",
+  "title": "命をくれよ",
+  "artist": "トゲナシトゲアリ",
+  "dur": 201,
+  "cover": "assets/covers/album/06.webp",
+  "album": "全部をさらして生きてやる"
+ },
+ {
+  "n": 30,
+  "file": "assets/audio/30.mp3",
+  "title": "arrow",
+  "artist": "トゲナシトゲアリ",
+  "dur": 189,
+  "cover": "assets/covers/album/12.webp",
+  "album": "棘ナシ"
+ },
+ {
+  "n": 31,
+  "file": "assets/audio/31.mp3",
+  "title": "荊の薔薇",
+  "artist": "トゲナシトゲアリ",
+  "dur": 217,
+  "cover": "assets/covers/album/06.webp",
+  "album": "全部をさらして生きてやる"
+ },
+ {
+  "n": 32,
+  "file": "assets/audio/32.mp3",
+  "title": "碧いif",
+  "artist": "トゲナシトゲアリ",
+  "dur": 159,
+  "cover": "assets/covers/album/09.webp",
+  "album": "小指立てませんか"
+ },
+ {
+  "n": 33,
+  "file": "assets/audio/33.mp3",
+  "title": "無知のち私",
+  "artist": "トゲナシトゲアリ",
+  "dur": 181,
+  "cover": "assets/covers/album/09.webp",
+  "album": "小指立てませんか"
+ },
+ {
+  "n": 34,
+  "file": "assets/audio/34.mp3",
+  "title": "渇く、憂う",
+  "artist": "トゲナシトゲアリ",
+  "dur": 160,
+  "cover": "assets/covers/album/09.webp",
+  "album": "小指立てませんか"
+ },
+ {
+  "n": 35,
+  "file": "assets/audio/35.mp3",
+  "title": "吹き消した灯火",
+  "artist": "トゲナシトゲアリ",
+  "dur": 233,
+  "cover": "assets/covers/album/09.webp",
+  "album": "小指立てませんか"
+ },
+ {
+  "n": 36,
+  "file": "assets/audio/36.mp3",
+  "title": "生きて生きてゆく",
+  "artist": "トゲナシトゲアリ",
+  "dur": 203,
+  "cover": "assets/covers/album/09.webp",
+  "album": "小指立てませんか"
+ },
+ {
+  "n": 37,
+  "file": "assets/audio/37.mp3",
+  "title": "臆病な白夜",
+  "artist": "トゲナシトゲアリ",
+  "dur": 215,
+  "cover": "assets/covers/album/09.webp",
+  "album": "小指立てませんか"
+ },
+ {
+  "n": 38,
+  "file": "assets/audio/38.mp3",
+  "title": "最期の禱り",
+  "artist": "トゲナシトゲアリ",
+  "dur": 187,
+  "cover": "assets/covers/album/09.webp",
+  "album": "小指立てませんか"
+ }
+]
