@@ -63,12 +63,26 @@ export function initPlayer(): void {
   paint(seek, 0);
 
   /* ---------- UI 同步 ---------- */
+  /** 发行物封面卡（SINGLES / ALBUMS …）与当前曲目、播放状态联动 */
+  const paintCards = (): void => {
+    const track = index >= 0 ? (rows[index]?.dataset.track ?? null) : null;
+    const playing = !audio.paused;
+    document.querySelectorAll<HTMLElement>("[data-play]").forEach((el) => {
+      const ac = el.closest(".ac");
+      if (!ac) return;
+      const on = el.dataset.play === track;
+      ac.classList.toggle("is-playing", on);
+      ac.classList.toggle("is-paused", on && !playing);
+    });
+  };
+
   const setPlayingUI = (playing: boolean): void => {
     // SVGElement 没有 hidden 属性（那是 HTMLElement 的），必须用 class 切换
     iconPlay?.classList.toggle("is-off", playing);
     iconPause?.classList.toggle("is-off", !playing);
     toggleBtn?.setAttribute("aria-label", playing ? "暂停" : "播放");
     items.forEach((it) => it.classList.toggle("is-paused", !playing));
+    paintCards();
   };
 
   const highlight = (i: number): void => {
@@ -76,6 +90,7 @@ export function initPlayer(): void {
       it.classList.toggle("is-playing", k === i);
       it.classList.toggle("is-paused", k === i ? audio.paused : false);
     });
+    paintCards();
   };
 
   const setNow = (i: number): void => {
@@ -115,6 +130,8 @@ export function initPlayer(): void {
     audio.currentTime = 0;
     setNow(i);
     highlight(i);
+    // 手机端固定底栏"播放后才出现"
+    root.dataset.live = "1";
     if (play) void audio.play().catch(() => setPlayingUI(false));
   };
 
@@ -165,6 +182,34 @@ export function initPlayer(): void {
   });
 
   nextBtn?.addEventListener("click", () => step(1));
+
+  /* ---------- 发行物封面 → 直接播放（音乐页 SINGLES / ALBUMS / EP） ---------- */
+  document.addEventListener("click", (e) => {
+    const hit = (e.target as HTMLElement | null)?.closest?.(
+      "[data-play]",
+    ) as HTMLElement | null;
+    if (!hit) return;
+    const idx = rows.findIndex((r) => r.dataset.track === hit.dataset.play);
+    if (idx < 0) return;
+    e.preventDefault();
+    // 点的就是当前这首：切换播放/暂停，而不是从头重放
+    if (idx === index) {
+      if (audio.paused) void audio.play();
+      else audio.pause();
+      return;
+    }
+    load(idx, true);
+    // 移动端面板是 fixed 底栏，播放后必定可见，不用滚；桌面端面板在页面上方，
+    // 滚远了就看不到控制，此时把它带回视野。
+    // 注意：不能直接量 rect —— 底栏此刻正在做滑入动画，量到的是屏幕外的中间态。
+    const panel = root.querySelector<HTMLElement>("[data-now]") ?? root;
+    if (getComputedStyle(panel).position === "fixed") return;
+    const box = panel.getBoundingClientRect();
+    if (box.bottom < 8 || box.top > window.innerHeight - 8) {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      root.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }
+  });
 
   playAllBtn?.addEventListener("click", () => {
     order = [];

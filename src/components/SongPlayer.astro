@@ -181,6 +181,8 @@ const mmss = (sec: number): string =>
   .pl {
     /* 触控目标下限兜底：曲目行整行可点，高度 ≥56px */
     --pl-row: 56px;
+    /* 点发行物封面会 scrollIntoView，需让开吸顶页头 */
+    scroll-margin-top: calc(var(--nav-h) + var(--sp-3));
   }
 
   .pl__head {
@@ -420,10 +422,15 @@ const mmss = (sec: number): string =>
   }
 
   /* ---------- 正在播放 ---------- */
+  /* 手机：固定底栏。原先用 sticky，但它被父容器（.pl__grid）约束，
+     往下翻到 SINGLES/ALBUMS 时整条会随播放器区滚走，等于没有控制。
+     固定后配合 body 底部留白；未开始播放前不显示，避免空条占屏。 */
   .pl__now {
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
-    z-index: 5;
+    z-index: 40;
     display: grid;
     grid-template-columns: 40px minmax(0, 1fr) auto;
     grid-template-areas:
@@ -431,13 +438,33 @@ const mmss = (sec: number): string =>
       "seek seek seek";
     align-items: center;
     gap: var(--sp-1) var(--sp-3);
-    margin-top: var(--sp-4);
-    padding: var(--sp-1) var(--sp-2) var(--sp-2);
-    background: color-mix(in srgb, var(--ink-850) 96%, transparent);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    backdrop-filter: blur(12px);
+    margin-top: 0;
+    padding: var(--sp-1) var(--sp-2)
+      calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--ink-850) 97%, transparent);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(14px);
     box-shadow: 0 -12px 32px rgb(0 0 0 / 0.5);
+    /* 未开始播放前藏到屏幕外（用 transform 而非 display，避免和桌面端
+       的 display:block 打架，也方便做滑入动画） */
+    visibility: hidden;
+    transform: translateY(115%);
+    transition:
+      transform var(--dur-base) var(--ease-out-cubic),
+      visibility 0s linear var(--dur-base);
+  }
+
+  .pl[data-live] .pl__now {
+    visibility: visible;
+    transform: none;
+    transition: transform var(--dur-base) var(--ease-out-cubic);
+  }
+
+  /* 固定底栏会盖住页面末尾，给 body 留出等高的空白 */
+  @media (max-width: 1023px) {
+    :global(body) {
+      padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+    }
   }
 
   .pl__seekline {
@@ -667,6 +694,9 @@ const mmss = (sec: number): string =>
       top: calc(var(--nav-h) + var(--sp-3));
       bottom: auto;
       display: block;
+      /* 桌面端是页面内的常驻面板，不需要"播放后才出现" */
+      visibility: visible;
+      transform: none;
       margin-top: 0;
       padding: var(--sp-4);
       background: var(--bg-raised);

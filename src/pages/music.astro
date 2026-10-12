@@ -12,6 +12,7 @@ import Layout from "../layouts/Layout.astro";
 import AlbumCard from "../components/AlbumCard.astro";
 import SongPlayer from "../components/SongPlayer.astro";
 import { assetUrl, category, videos, type AssetEntry } from "../lib/assets";
+import songsData from "../data/songs.json";
 
 /* ---------- 解析 content/music.md ---------- */
 const raw = fs.readFileSync(
@@ -160,6 +161,37 @@ const ALBUMS = RELEASES.filter((r) => r.group === "album");
 const EPS = RELEASES.filter((r) => r.group === "ep");
 const OST = RELEASES.find((r) => r.group === "ost");
 
+/* ---------- 发行物 → 播放曲目 ----------
+   点封面直接播放：单曲优先取同名主打曲，取不到（或专辑/EP）就退而取该
+   发行物收录曲里第一首库内有的。全部对不上（如 OST）则不给播放键，
+   避免点了没反应。实际播放的曲名会写进 title/aria-label，不做暗箱操作。 */
+const norm = (s: string): string =>
+  s
+    .normalize("NFKC")
+    .replace(/[\s　]/g, "")
+    .replace(/[〜～~]/g, "")
+    .replace(/[「」『』【】《》]/g, "")
+    .toLowerCase();
+
+const songByTitle = new Map(songsData.map((s) => [norm(s.title), s]));
+
+interface Playable {
+  n: number;
+  title: string;
+}
+
+const playableOf = (r: Release): Playable | null => {
+  const direct = songByTitle.get(norm(r.ja));
+  if (direct) return { n: direct.n, title: direct.title };
+  for (const t of r.tracks) {
+    const hit = songByTitle.get(norm(t.title));
+    if (hit) return { n: hit.n, title: hit.title };
+  }
+  return null;
+};
+
+const PLAYABLE = new Map(RELEASES.map((r) => [r.ja, playableOf(r)]));
+
 const MISSING_ART = RELEASES.filter((r) => r.art.length === 0).map((r) => r.ja);
 
 const PVS = videos();
@@ -211,6 +243,8 @@ const SOURCE_LABEL = "官方网站";
                 badge={r.kind.replace(/^\d+\w+\s*/, "").toUpperCase()}
                 index={i}
                 eager={id === "single" && i < 4}
+                playTrack={PLAYABLE.get(r.ja)?.n}
+                playLabel={PLAYABLE.get(r.ja)?.title}
               />
             ) : (
               <div class="mu-miss" data-reveal>
