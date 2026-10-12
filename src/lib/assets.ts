@@ -144,21 +144,6 @@ export function findByLabel(
   return category(cat).find((e) => e.label === label);
 }
 
-/** 从 videos 生成 MusicPlayer 可用的曲目（角色 PV 带 Opus 音轨）。 */
-export function pvTracks() {
-  return category("videos").map((v) => {
-    const meta = v.character ? manifest.characters[v.character] : undefined;
-    return {
-      src: assetUrl(v.path),
-      title: meta ? `${meta.ja} 角色 PV` : "角色 PV",
-      subtitle: meta ? `${meta.en} · ${meta.part.toUpperCase()}` : "",
-      color: meta?.color ?? "var(--gbc-red)",
-      slug: v.character ?? "pv",
-      duration: v.duration ?? 0,
-    };
-  });
-}
-
 export const totals = manifest.totals;
 
 /**

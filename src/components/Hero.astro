@@ -305,8 +305,7 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
       grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
       align-items: center;
       gap: var(--sp-7);
-      /* 底部多留 64px 给固定播放条，立绘不被它切到 */
-      padding-block: var(--sp-6) calc(var(--sp-6) + 64px);
+      padding-block: var(--sp-7);
     }
 
     /* 桌面回到两列独立排布：文案左列、立绘右列 */
@@ -328,8 +327,8 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     }
 
     .hero__art img {
-      /* 62svh 保证立绘底缘停在播放条之上，不被切 */
-      max-height: 62svh;
+      /* 播放条已移除，立绘可用满高度 */
+      max-height: 74svh;
       /* 素材本身是半身立绘(到大腿截断)，底缘渐隐化解硬边 */
       -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
       mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
@@ -351,12 +350,6 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     display: flex;
     align-items: center;
     gap: var(--sp-3);
-  }
-
-  @media (min-width: 1024px) {
-    .hero__controls {
-      bottom: calc(var(--sp-4) + 64px);
-    }
   }
 
   .hero__arrow {

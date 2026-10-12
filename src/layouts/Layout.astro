@@ -10,7 +10,6 @@ import { ClientRouter } from "astro:transitions";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import Lightbox from "../components/Lightbox.astro";
-import MusicPlayer from "../components/MusicPlayer.astro";
 import { assetUrl } from "../lib/assets";
 import "../styles/global.css";
 
@@ -29,8 +28,6 @@ interface Props {
   description?: string;
   ogImage?: string;
   noindex?: boolean;
-  /** 是否渲染底部播放器（默认开；剧情等纯阅读页可关） */
-  player?: boolean;
 }
 
 const {
@@ -38,7 +35,6 @@ const {
   description = "GIRLS BAND CRY（少女乐队哭泣）粉丝站 —— 角色、音乐、画廊与剧情资料整理，文案取自官方与萌娘百科。",
   ogImage = "assets/posters/01.webp",
   noindex = false,
-  player = true,
 } = Astro.props;
 
 const SITE = "GIRLS BAND CRY";
@@ -104,7 +100,7 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
     </noscript>
   </head>
 
-  <body class:list={[player && "has-player"]}>
+  <body>
     <a class="skip-link" href="#main">跳到主要内容</a>
     <Nav />
     <main id="main">
@@ -112,7 +108,6 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
     </main>
     <Footer />
 
-    {player && <MusicPlayer />}
     <Lightbox />
 
     <script>

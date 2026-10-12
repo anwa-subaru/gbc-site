@@ -8,7 +8,6 @@
  * 每个 init 函数自身幂等（用 dataset 打标），避免重复绑定监听。
  */
 
-import { initPlayer } from "./player";
 
 export const prefersReducedMotion = (): boolean =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -307,7 +306,6 @@ function initAll(): void {
   initReveal();
   initCarousel();
   initLightbox();
-  initPlayer();
 }
 
 document.addEventListener("astro:page-load", initAll);

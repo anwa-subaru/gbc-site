@@ -3,7 +3,7 @@
  * 音乐页 `/music`（t5d）
  * 版式取自 DESIGN.md §7.3：发行物封面网格 + 曲目表。
  * 文案 100% 来自 content/music.md（官网 goods 页 + 萌娘百科），构建期解析，零硬编码。
- * 播放器复用既有 MusicPlayer 组件：其音源来自 assets/videos 的角色 PV（真实资产），
+ * 角色 PV 直接用 <video controls> 内嵌（assets/videos 真实资产），
  * 站内没有独立音源，因此不虚构任何音频 URL。
  */
 import fs from "node:fs";
@@ -301,8 +301,7 @@ const sourceLabel = (u: string): string =>
     </header>
 
     <p class="mu-note">
-      站内唯一可播放的音源为官方角色 PV（约 30 秒）。底部播放器的曲目即取自这五支 PV，
-      完整曲目请通过上方各发行物的官方渠道收听。
+      官方角色 PV（约 30 秒），点击即可站内播放。完整曲目请通过上方各发行物的官方渠道收听。
     </p>
 
     <div class="mu-pvs">
