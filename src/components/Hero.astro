@@ -25,6 +25,8 @@ interface Slide {
   tagline: string;
   href: string;
   cta: string;
+  /** 素材左缘有切边时置 true：水平镜像，让切边落到被钉住的右缘。 */
+  mirror?: boolean;
 }
 
 interface Props {
@@ -42,12 +44,21 @@ const TAGLINES: Record<string, string> = {
 };
 const ORDER = ["nina", "momoka", "subaru", "tomo", "rupa"];
 
+/**
+ * 需要水平镜像的成员。
+ * 昴的立绘素材(19-koyubi)左缘把她的手臂切断了，而 hero 把立绘钉在右侧、
+ * 切边会正对文字一侧暴露出来；镜像后切边移到右侧，与露帕(rupa)立绘原本
+ * 就在右缘的切边一样被画面边缘吃掉。
+ */
+const MIRRORED = new Set(["subaru"]);
+
 const defaultSlides: Slide[] = ORDER.map((slug) => {
   const meta = (charactersMeta as any)[slug];
   const entry = characterPrimary(slug);
   return {
     entry: entry!,
     slug,
+    mirror: MIRRORED.has(slug),
     color: meta?.color ?? "#D90E2C",
     kicker: meta?.part ? `${meta.part.toUpperCase?.() ?? meta.part}` : "TOGENASHI TOGEARI",
     nameJa: meta?.ja ?? slug,
@@ -99,8 +110,8 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
             </a>
           </div>
 
-          {/* 右：立绘（完整展示，不裁切） */}
-          <figure class="hero__art">
+          {/* 右：立绘（完整展示，不裁切；mirror 时水平翻转并钉到右缘） */}
+          <figure class="hero__art" data-mirror={s.mirror ? "" : undefined}>
             <img
               src={assetUrl(s.entry.path)}
               alt={`${s.nameJa} 立绘`}
@@ -293,6 +304,11 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     animation: hero-art-in var(--dur-enter) var(--ease-out-expo) both;
   }
 
+  /* 素材左缘把手臂切断的成员：水平镜像，让切边落到被钉住的右缘 */
+  .hero__art[data-mirror] {
+    transform: scaleX(-1);
+  }
+
   @keyframes hero-art-in {
     from {
       opacity: 0;
@@ -332,6 +348,12 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
       /* 素材本身是半身立绘(到大腿截断)，底缘渐隐化解硬边 */
       -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
       mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+    }
+
+    /* 镜像立绘贴到版面右缘：素材切边与版面边缘重合，不再露在画面中间 */
+    .hero__art[data-mirror] {
+      justify-self: end;
+      margin-right: calc(-1 * var(--container-pad));
     }
 
     .hero__name-ja {
