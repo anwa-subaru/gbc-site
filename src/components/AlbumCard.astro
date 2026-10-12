@@ -44,6 +44,8 @@ const autoBadge = entry.path.includes("/album/")
 const typeBadge = badge ?? autoBadge;
 
 const playable = typeof playTrack === "number" && playTrack > 0;
+/* 渐变 id 要全页唯一（同页 15 张可播放封面），否则多卡 SVG 引用串线 */
+const gid = `spk-${playable ? playTrack : "x"}`;
 const Tag = playable ? "button" : href ? "a" : "div";
 const label = playable
   ? `双击播放 ${playLabel ?? cleanTitle}`
@@ -74,6 +76,21 @@ const label = playable
       <span class="ac__badge label">{typeBadge}</span>
       <span class="ac__scan" aria-hidden="true"></span>
     </div>
+    {
+      playable && (
+        <svg class="ac__spikes" viewBox="-60 -60 120 120" aria-hidden="true" data-spikes>
+          <defs>
+            <radialGradient id={gid} gradientUnits="userSpaceOnUse" cx="0" cy="0" r="58">
+              {/* 刺基座(≈39)正红 → 刺尖(58)黑红，"红里带黑" */}
+              <stop offset="0.67" stop-color="#f40000" />
+              <stop offset="0.85" stop-color="#9c0000" />
+              <stop offset="1" stop-color="#2b0000" />
+            </radialGradient>
+          </defs>
+          <g class="ac__spikes-g" data-spikes-g fill={`url(#${gid})`} />
+        </svg>
+      )
+    }
     <div class="ac__body">
       <h3 class="ac__title">{cleanTitle}</h3>
       {subtitle && <p class="ac__sub">{subtitle}</p>}
@@ -87,6 +104,7 @@ const label = playable
   }
 
   .ac__link {
+    position: relative; /* 刺环 SVG 的定位基准 */
     display: block;
     color: inherit;
   }
@@ -111,38 +129,38 @@ const label = playable
     user-select: none;
   }
 
-  /* 正在播放的那张：描边亮起 */
+  /* 正在播放的那张：描边亮起（reduced-motion 下这是唯一反馈） */
   .ac.is-playing .ac__frame {
     border-color: var(--gbc-red);
   }
 
-  /* 双击播放时外框"震"一下 —— 不用播放按钮做反馈 */
-  .ac.is-hit .ac__frame {
-    animation: ac-shake 0.42s var(--ease-out-cubic);
+  /* ---- 音频驱动的红刺环 ----
+     player.ts 用 AnalyserNode 每帧改 <g> 里每个 <polygon> 的 points。
+     关键布局：SVG 铺到封面的 150%（viewBox -60..60 ⇒ 封面对应 ±40），
+     并垫在封面(z-index:1)之下 —— 静止时刺(半径≤40)整个藏在封面后面
+     不可见，声音越强刺尖越过封面边缘伸得越长，像从盘沿炸出来 */
+  .ac__spikes {
+    position: absolute;
+    left: -25%;
+    top: -25%;
+    width: 150%;
+    height: 150%;
+    /* 全局有 svg{max-width:100%}，不覆盖的话会被压回容器宽，
+       刺永远藏在封面后面伸不出来 */
+    max-width: none;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.5s var(--ease-out-cubic);
   }
 
-  @keyframes ac-shake {
-    0% {
-      transform: translate(0, 0);
-      border-color: var(--gbc-red);
-      box-shadow: 0 0 0 0 rgb(244 0 0 / 0.55);
-    }
-    20% {
-      transform: translate(-3px, 0);
-    }
-    40% {
-      transform: translate(3px, 0);
-      box-shadow: 0 0 0 6px rgb(244 0 0 / 0.18);
-    }
-    60% {
-      transform: translate(-2px, 0);
-    }
-    80% {
-      transform: translate(2px, 0);
-    }
-    100% {
-      transform: translate(0, 0);
-      box-shadow: 0 0 0 0 rgb(244 0 0 / 0);
+  .ac.is-playing .ac__spikes {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ac__spikes {
+      display: none;
     }
   }
 
@@ -153,6 +171,9 @@ const label = playable
     background: var(--ink-850);
     border: 1px solid var(--border);
     transition: border-color var(--dur-base) var(--ease-out-cubic);
+    /* 压在刺环 SVG 之上：静止时把刺全部挡住，动态时只露出
+       越过盘沿的刺尖 */
+    z-index: 1;
   }
 
   .ac__link:hover .ac__frame {
@@ -225,10 +246,6 @@ const label = playable
     .ac__img,
     .ac__scan {
       transition: none;
-    }
-    /* 选择器要和上面的脉冲规则同权重，否则压不住 */
-    .ac.is-hit .ac__frame {
-      animation: none;
     }
 
     .ac__link:hover .ac__img {

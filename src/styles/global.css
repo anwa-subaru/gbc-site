@@ -96,6 +96,9 @@
   --border: var(--ink-700);
   --accent: var(--gbc-red);
   --focus: var(--neon-cyan);
+  /* 红底上要放白字时用这档：#F40000 上白字只有 4.33:1，压到 #E40000 达
+     4.89:1（AA）。品牌红本身（描边/hover/装饰）不受影响 */
+  --gbc-red-ink: #e40000;
 
   /* ---- 字体 ---- */
   --font-sans: "Noto Sans SC", "Noto Sans JP", "Hiragino Sans",
@@ -431,7 +434,7 @@ p {
 }
 
 .btn--primary {
-  background: var(--gbc-red);
+  background: var(--gbc-red-ink);
   color: var(--ink-000);
 }
 .btn--primary:hover {
@@ -547,7 +550,7 @@ p {
   top: -100px;
   left: var(--sp-3);
   z-index: 999;
-  background: var(--gbc-red);
+  background: var(--gbc-red-ink);
   color: var(--ink-000);
   padding: var(--sp-2) var(--sp-4);
   font-weight: var(--fw-bold);

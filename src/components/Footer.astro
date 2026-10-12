@@ -138,6 +138,10 @@ const SOURCES = [
     display: inline-flex;
     align-items: center;
     min-height: 44px; /* 触控目标下限 */
+    /* 「角色/剧情」这类双字链接宽度只有 29px，左右再撑 8px，
+       手机上不用瞄着字点 */
+    padding-inline: 8px;
+    margin-inline: -8px;
     color: var(--ink-100);
     font-size: var(--fs-sm);
     transition: color var(--dur-base) var(--ease-out-cubic);

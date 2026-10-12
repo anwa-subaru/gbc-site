@@ -183,31 +183,136 @@ export function initPlayer(): void {
 
   nextBtn?.addEventListener("click", () => step(1));
 
-  /* ---------- 发行物封面 → 双击播放（音乐页 SINGLES / ALBUMS / EP） ----------
-     用双击而不是单击：封面上不放播放按钮（用户嫌丑），单击留给滚动/误触，
-     播放反馈靠外框"震"一下 + 手机短振动。 */
-  const punch = (hit: HTMLElement): void => {
-    const ac = hit.closest<HTMLElement>(".ac");
-    if (!ac) return;
-    // 先移除再强制回流，连点同一张也能重新播放动画
-    ac.classList.remove("is-hit");
-    void ac.offsetWidth;
-    ac.classList.add("is-hit");
-    ac.addEventListener(
-      "animationend",
-      () => ac.classList.remove("is-hit"),
-      { once: true },
-    );
-    // Android 上给一次极短振动（iOS 不支持 vibrate，静默忽略）
-    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      navigator.vibrate?.(12);
+  /* ---------- 音频驱动的封面红刺环 ----------
+     AnalyserNode 取实时频谱：低频（鼓/贝斯）决定整圈基础长度，
+     中高频（人声/吉他）叠加各刺自己的波动 —— 人声越高刺越长。
+     只在「正在播放的那张封面」上跑 rAF，暂停时把刺收回再停。 */
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const SPIKE_N = 36; // 刺的数量
+  /* SVG 铺到封面 150%（viewBox ±60），封面在 SVG 里是 ±40 的圆
+     ——刺垫在封面下层，静止(≤40)时全部藏在封面后不可见，
+     声音越强尖越过盘沿伸出，像从盘沿炸出来 */
+  const SPIKE_BASE = 39; // 刺基座半径：贴着封面内沿
+  const SPIKE_MAX = 58; // 刺尖最远半径（≈封面的 145%）
+
+  let analyser: AnalyserNode | null = null;
+  let audioCtx: AudioContext | null = null;
+  let freqData: Uint8Array | null = null;
+  let rafId = 0;
+
+  const ensureAnalyser = (): void => {
+    if (analyser || !audio.src) return;
+    try {
+      const AC = window.AudioContext ?? (window as any).webkitAudioContext;
+      if (!AC) return;
+      audioCtx = new AC();
+      const src = audioCtx.createMediaElementSource(audio);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.75;
+      src.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+    } catch {
+      analyser = null; // 极老浏览器：没有刺，只剩红描边
     }
   };
 
+  /* 接了 MediaElementSource 后声音只走 Web Audio 图，
+     iOS/Chrome 的 autoplay policy 要求手势里 resume，否则无声 */
+  const wakeCtx = (): void => {
+    if (audioCtx && audioCtx.state === "suspended") void audioCtx.resume();
+  };
+
+  // 每张可播放卡片的刺环 SVG 一次性建好 <polygon>，之后只改 points
+  const spikeEls = new Map<HTMLElement, SVGPolygonElement[]>();
+  const buildSpikes = (card: HTMLElement): SVGPolygonElement[] => {
+    let polys = spikeEls.get(card);
+    if (polys) return polys;
+    const g = card.querySelector<SVGGElement>("[data-spikes-g]");
+    const svg = card.ownerDocument;
+    polys = [];
+    if (g && svg) {
+      for (let i = 0; i < SPIKE_N; i++) {
+        const p = svg.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        g.appendChild(p);
+        polys.push(p);
+      }
+      spikeEls.set(card, polys);
+    }
+    return polys;
+  };
+
+  // 频谱 → 每根刺的长度
+  const level = (lo: number, hi: number): number => {
+    if (!analyser || !freqData) return 0;
+    let sum = 0;
+    const a = Math.floor(lo * freqData.length);
+    const b = Math.max(a + 1, Math.floor(hi * freqData.length));
+    for (let i = a; i < b; i++) sum += freqData[i];
+    return sum / ((b - a) * 255);
+  };
+
+  const tick = (): void => {
+    rafId = 0;
+    const card = document.querySelector<HTMLElement>(".ac.is-playing");
+    if (!card) return;
+    if (analyser && !audio.paused) analyser.getByteFrequencyData(freqData!);
+
+    // 暂停/结束时把刺收回（每帧衰减），收完停帧
+    const decaying = audio.paused;
+    if (decaying && !spikeEls.get(card)?.length) return;
+
+    // 低频 = 底座；0.1~0.55 频段集中了人声基频与吉他泛音
+    const bass = decaying ? 0 : level(0, 0.08);
+    const voice = decaying ? 0 : level(0.1, 0.55);
+    const polys = buildSpikes(card);
+    let alive = false;
+    for (let i = 0; i < polys.length; i++) {
+      const ang = (i / polys.length) * Math.PI * 2;
+      const j = (i * 7) % polys.length; // 打乱相位，避免整圈同起同落
+      const wobble = Math.sin(performance.now() / 90 + j * 1.7) * 0.5 + 0.5;
+      const grow = bass * 0.45 + voice * 0.75;
+      const len = SPIKE_BASE + grow * (SPIKE_MAX - SPIKE_BASE) * (0.35 + 0.65 * wobble);
+      if (decaying) {
+        // 衰减模式：读当前刺尖半径往回缩
+        const pts = (polys[i].getAttribute("points") || "").split(" ");
+        const tip = pts[1] ? Number(pts[1].split(",")[0]) : SPIKE_BASE;
+        if (Math.abs(tip) > SPIKE_BASE + 0.4) alive = true;
+      }
+      const ca = Math.cos(ang);
+      const sa = Math.sin(ang);
+      const wid = 0.055 + 0.03 * voice; // 声越大刺越宽
+      const r1 = SPIKE_BASE - 4;
+      const x1 = ca * Math.cos(wid) * r1 - sa * Math.sin(wid) * r1;
+      const y1 = sa * Math.cos(wid) * r1 + ca * Math.sin(wid) * r1;
+      const x2 = ca * len;
+      const y2 = sa * len;
+      const x3 = ca * Math.cos(-wid) * r1 - sa * Math.sin(-wid) * r1;
+      const y3 = sa * Math.cos(-wid) * r1 + ca * Math.sin(-wid) * r1;
+      polys[i].setAttribute("points", `${x1.toFixed(1)},${y1.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} ${x3.toFixed(1)},${y3.toFixed(1)}`);
+    }
+    if (!decaying || alive) rafId = requestAnimationFrame(tick);
+  };
+
+  const startSpikes = (): void => {
+    wakeCtx();
+    if (reduceMotion.matches) return;
+    ensureAnalyser();
+    if (!rafId) rafId = requestAnimationFrame(tick);
+  };
+
+  audio.addEventListener("play", startSpikes);
+  audio.addEventListener("pause", startSpikes); // 进衰减模式把刺收回
+
+  /* ---------- 发行物封面 → 双击播放（音乐页 SINGLES / ALBUMS / EP） ----------
+     用双击而不是单击：封面上不放播放按钮，单击留给滚动/误触，
+     播放反馈就是上面的红刺环。 */
   const playCard = (hit: HTMLElement): void => {
     const idx = rows.findIndex((r) => r.dataset.track === hit.dataset.play);
     if (idx < 0) return;
-    punch(hit);
+    // Android 上给一次极短振动（iOS 不支持 vibrate，静默忽略）
+    if (!reduceMotion.matches) navigator.vibrate?.(12);
     // 双击的就是当前这首：切换播放/暂停，而不是从头重放
     if (idx === index) {
       if (audio.paused) void audio.play();
@@ -222,8 +327,7 @@ export function initPlayer(): void {
     if (getComputedStyle(panel).position === "fixed") return;
     const box = panel.getBoundingClientRect();
     if (box.bottom < 8 || box.top > window.innerHeight - 8) {
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      root.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      root.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
     }
   };
 
