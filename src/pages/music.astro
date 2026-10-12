@@ -496,6 +496,15 @@ const sourceLabel = (u: string): string =>
     border-top: 1px solid var(--border);
   }
 
+  /* 单列时一行只用掉约 22% 行宽，右侧 78% 全空；≥1024 改双列，
+     每列仍 >500px 且页高减半。 */
+  @media (min-width: 1024px) {
+    .mu-tracks {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--sp-6);
+    }
+  }
+
   .mu-track {
     display: grid;
     grid-template-columns: 4.5rem minmax(0, 1fr);

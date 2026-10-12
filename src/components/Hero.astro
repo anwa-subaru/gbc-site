@@ -201,6 +201,15 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     display: block;
   }
 
+  @media (min-width: 1024px) {
+    /* 80px 的日文标题一行 7 字需 ≈560px，34em(544px) 会把标题挤成
+       「怒りも、悲／しみも、」这种词中断字；放宽到 48em 让
+       「怒りも、悲しみも、／全部ぶつけろ。」两行成立。桌面专属。 */
+    .hero__copy {
+      max-width: 48em;
+    }
+  }
+
   @keyframes hero-copy-in {
     from {
       opacity: 0;

@@ -208,6 +208,16 @@ body.has-player {
   padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 
+/* 固定播放条会盖住视口底部 60px+：锚点跳转/scrollIntoView 必须留出这段，
+   否则目标标题会落在播放条下面（首屏内容同理，属固定栏固有行为）。 */
+html {
+  scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+[data-player-safe] {
+  scroll-margin-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
 @media (min-width: 1024px) {
   body.has-player {
     padding-bottom: 80px;
@@ -373,7 +383,8 @@ p {
 .sec-head__ja {
   font-size: var(--fs-xs);
   letter-spacing: 0.08em;
-  color: var(--accent);
+  /* #f40000 on #0e0f13 只有 4.44:1，未过 AA；--gbc-red-text 为 5.86:1 */
+  color: var(--gbc-red-text);
 }
 
 .sec-head--rule {

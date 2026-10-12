@@ -16,7 +16,9 @@ const NAV = [
 ];
 
 const current = Astro.url.pathname;
-const logo = "assets/logo/brand/01-brand.webp"; // 白字 logo，透明底
+// 专用横向字标：从 01-brand.webp(1024×768) 裁出字标外接框(986×158)，
+// 否则按整图等比缩到 28px 高时字标只剩约 6px，完全不可读。
+const logo = "assets/logo/brand/01-brand-wordmark.webp";
 ---
 
 <header class="nav" data-nav>
@@ -25,8 +27,8 @@ const logo = "assets/logo/brand/01-brand.webp"; // 白字 logo，透明底
       <img
         src={assetUrl(logo)}
         alt="GIRLS BAND CRY"
-        width="1024"
-        height="768"
+        width="986"
+        height="158"
         loading="eager"
         decoding="async"
       />
@@ -167,9 +169,10 @@ const logo = "assets/logo/brand/01-brand.webp"; // 白字 logo，透明底
 
   .nav__link-ja {
     display: block;
-    font-size: 10px;
+    /* 10px + opacity .7 → 4.20:1 未过 AA；12px + .8 提到 5.17:1 */
+    font-size: 12px;
     letter-spacing: 0.06em;
-    opacity: 0.7;
+    opacity: 0.8;
     line-height: 1.2;
   }
 

@@ -258,19 +258,31 @@ const EAGER = 6;
     overflow-x: auto;
     border-bottom: 1px solid var(--border);
     scrollbar-width: none;
-    /* 隐藏滚动条后给"还有 tab 在右侧"的提示：右缘渐隐 */
-    -webkit-mask-image: linear-gradient(
-      to right,
-      #000 0,
-      #000 calc(100% - 28px),
-      transparent 100%
-    );
-    mask-image: linear-gradient(
-      to right,
-      #000 0,
-      #000 calc(100% - 28px),
-      transparent 100%
-    );
+    /* 201 张图 ≈ 35 屏，筛选条必须吸顶，否则下滚后够不到。
+       吸顶元素不能用 mask（会随滚动一起渐隐），故只在手机横滚时保留渐隐。 */
+    position: sticky;
+    top: 72px; /* 页头实测高度（sticky 72px） */
+    z-index: 5;
+    background: var(--ink-950);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  @media (max-width: 767px) {
+    .gp-tabs {
+      -webkit-mask-image: linear-gradient(
+        to right,
+        #000 0,
+        #000 calc(100% - 28px),
+        transparent 100%
+      );
+      mask-image: linear-gradient(
+        to right,
+        #000 0,
+        #000 calc(100% - 28px),
+        transparent 100%
+      );
+    }
   }
 
   .gp-tabs::-webkit-scrollbar {
@@ -351,6 +363,20 @@ const EAGER = 6;
   @media (min-width: 1024px) {
     .gal--masonry {
       columns: 3;
+    }
+  }
+
+  /* 1440 等大屏仍 3 列会把 201 张图拉到 3 万 px；≥1280 加第 4 列。 */
+  @media (min-width: 1280px) {
+    .gal--masonry {
+      columns: 4;
+    }
+  }
+
+  /* 超宽屏再加第 5 列，避免单图被拉得过大。 */
+  @media (min-width: 1600px) {
+    .gal--masonry {
+      columns: 5;
     }
   }
 

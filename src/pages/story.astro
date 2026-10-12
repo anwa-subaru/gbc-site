@@ -254,7 +254,7 @@ const sourceLabel = (u: string): string =>
 
     {
       OPENING_ART ? (
-        <figure class="bleed">
+        <figure class="bleed" style={`--bleed-w:${OPENING_ART.width}px`}>
           <img
             src={assetUrl(OPENING_ART.path)}
             width={OPENING_ART.width}
@@ -413,6 +413,10 @@ const sourceLabel = (u: string): string =>
     display: block;
     width: 100%;
     height: auto;
+    /* 原图宽度上限（由 OPENING_ART.width 注入）：1440 视口下按 100% 拉到
+       1440×1715 属 1.26× 上采样会发虚；锁到原始宽度并居中，保留出血构图。 */
+    max-width: var(--bleed-w, 100%);
+    margin-inline: auto;
   }
 
   /* ---- 13 话时间线 ---- */
