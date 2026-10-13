@@ -63,8 +63,19 @@ const first = payload[0];
       aria-label="查看歌词"
       title="查看歌词"
     >
-      <p class="pl__nowtitle" data-title>未选择曲目</p>
-      <p class="pl__nowartist" data-artist>点击任意曲目开始播放</p>
+      <div class="pl__text">
+        <p class="pl__nowtitle" data-title>未选择曲目</p>
+        <p class="pl__nowartist" data-artist>点击任意曲目开始播放</p>
+      </div>
+      <svg class="pl__hint" viewBox="0 0 16 16" aria-hidden="true" width="14" height="14">
+        <path
+          d="M3.6 10.2L8 5.8l4.4 4.4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
     </div>
 
     <div class="pl__seek">
@@ -284,7 +295,36 @@ const first = payload[0];
 
   .pl__info {
     grid-area: info;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
     min-width: 0;
+  }
+
+  /* 收缩到文字宽度，让提示箭头紧贴曲名（而不是被 flex 拉到格子右缘） */
+  .pl__text {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  /* 提示箭头：有曲目时淡显，手机端一眼能看出这里能点 */
+  .pl__hint {
+    flex: 0 0 auto;
+    color: var(--ink-300);
+    opacity: 0;
+    transition:
+      opacity var(--dur-fast) var(--ease-out-cubic),
+      color var(--dur-fast) var(--ease-out-cubic);
+  }
+
+  .plbar[data-live="1"] .pl__hint {
+    opacity: 0.75;
+  }
+
+  .pl__info[data-lyrics-open]:hover .pl__hint,
+  .pl__info[data-lyrics-open]:focus-visible .pl__hint {
+    color: var(--accent);
+    opacity: 1;
   }
 
   .pl__nowtitle {
@@ -449,6 +489,16 @@ const first = payload[0];
   .pl__info[data-lyrics-open]:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
+  }
+
+  /* 按下时给一点反馈，避免"点了没反应"的错觉 */
+  .pl__info[data-lyrics-open]:active,
+  .pl__art[data-lyrics-open]:active {
+    background: rgb(255 255 255 / 0.07);
+  }
+
+  .pl__art[data-lyrics-open] {
+    border-radius: 6px;
   }
 
   /* ---------- 折叠 ---------- */

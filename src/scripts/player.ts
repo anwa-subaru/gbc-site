@@ -992,7 +992,7 @@ function createCore(bar: HTMLElement): Core {
   };
 
   const openLyrics = (): void => {
-    if (!lyrDoc || current == null) return;
+    if (!lyrDoc || lyrDoc.open) return;
     lyrOpen = true;
     renderLyrics();
     syncLyricBar(true);
@@ -1026,6 +1026,14 @@ function createCore(bar: HTMLElement): Core {
       e.preventDefault();
       openLyrics();
     });
+  });
+  /* 播放条上除控件以外的任何位置都能点开歌词：
+     手机上不需要精确点中 40px 的封面或某一行小字 */
+  bar.addEventListener("click", (e) => {
+    const t = e.target as HTMLElement | null;
+    if (!t || t.closest("button, input, a, label, [data-lyrics-open]")) return;
+    if (!t.closest(".pl__now")) return;
+    openLyrics();
   });
   lyrClose?.addEventListener("click", closeLyrics);
   lyrDoc?.addEventListener("cancel", (e) => { e.preventDefault(); closeLyrics(); });
