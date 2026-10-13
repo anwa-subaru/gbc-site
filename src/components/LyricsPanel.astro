@@ -176,6 +176,20 @@
     }
   }
 
+  /* 关闭：反向播一遍再真的 close()。原生 dialog 是"啪"地消失，
+     跟上面 320ms 的打开动画完全不对称，关一次就露馅。
+     必须排在 .lyr[open] 之后——两者特指度相同，靠源码顺序决胜。 */
+  .lyr.is-closing {
+    animation: lyr-out 200ms var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)) forwards;
+  }
+
+  @keyframes lyr-out {
+    to {
+      opacity: 0;
+      transform: translateY(3%);
+    }
+  }
+
   .lyr::backdrop {
     background: var(--ink-950, #07080c);
   }

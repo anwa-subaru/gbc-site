@@ -261,6 +261,19 @@ const first = payload[0];
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  /* 换歌：封面与曲名先淡出、换完再淡入。直接改 src/textContent 是硬切，
+     一首接一首连播时整条播放条像在闪。 */
+  .pl__art,
+  .pl__text {
+    transition: opacity 220ms var(--ease-out-cubic);
+  }
+
+  .plbar.is-swapping .pl__art,
+  .plbar.is-swapping .pl__text {
+    opacity: 0;
+    transition-duration: 130ms;
+  }
+
   .pl__seekline {
     position: absolute;
     top: -1px;

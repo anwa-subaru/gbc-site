@@ -117,6 +117,16 @@
       color var(--dur-base) var(--ease-out-cubic);
   }
 
+  /* 翻页：上一张/下一张先淡出再换 src，否则是"啪"地跳一张 */
+  .lb__img {
+    transition: opacity 200ms var(--ease-out-cubic);
+  }
+
+  .lb__img.is-swap {
+    opacity: 0;
+    transition-duration: 130ms;
+  }
+
   .lb__btn:hover,
   .lb__nav:hover {
     background: var(--gbc-red);

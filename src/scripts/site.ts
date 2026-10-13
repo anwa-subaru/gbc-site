@@ -231,16 +231,31 @@ function initLightbox(): void {
   let index = 0;
   let lastFocused: HTMLElement | null = null;
 
-  const render = (): void => {
+  const render = (animate = false): void => {
     const item = items[index];
     if (!item) return;
-    imgEl.src = item.src;
-    imgEl.alt = item.alt;
-    imgEl.width = item.w;
-    imgEl.height = item.h;
-    if (captionEl) captionEl.textContent = item.alt;
-    if (counterEl)
-      counterEl.textContent = t("lightbox.counter", { current: index + 1, total: items.length });
+    const apply = (): void => {
+      imgEl.src = item.src;
+      imgEl.alt = item.alt;
+      imgEl.width = item.w;
+      imgEl.height = item.h;
+      if (captionEl) captionEl.textContent = item.alt;
+      if (counterEl)
+        counterEl.textContent = t("lightbox.counter", { current: index + 1, total: items.length });
+    };
+    /* 翻页先淡出再换图：直接换 src 是"啪"地跳一张。等图片真的解码完再淡入，
+       大图才不会有半截白；600ms 兜底，别因为一张图卡住整个灯箱。 */
+    if (!animate || prefersReducedMotion()) { apply(); return; }
+    imgEl.classList.add("is-swap");
+    window.setTimeout(() => {
+      apply();
+      const show = (): void => imgEl.classList.remove("is-swap");
+      if (imgEl.complete) requestAnimationFrame(show);
+      else {
+        imgEl.addEventListener("load", show, { once: true });
+        window.setTimeout(show, 600);
+      }
+    }, 135);
   };
 
   const open = (i: number): void => {
@@ -261,7 +276,7 @@ function initLightbox(): void {
   const step = (d: number): void => {
     if (!items.length) return;
     index = (index + d + items.length) % items.length;
-    render();
+    render(true);
   };
 
   root.querySelector("[data-lightbox-close]")?.addEventListener("click", close);

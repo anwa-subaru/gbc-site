@@ -205,27 +205,37 @@ function createCore(bar: HTMLElement): Core {
     paintList();
   };
 
-  const setNow = (s: Song): void => {
-    if (titleEl) titleEl.textContent = s.t;
-    if (artistEl) artistEl.textContent = s.a;
-    if (artEl && s.cover) {
-      if (artEl.getAttribute("src") !== s.cover) artEl.setAttribute("src", s.cover);
-      artEl.hidden = false;
-      if (artNone) artNone.hidden = true;
-    } else {
-      if (artEl) artEl.hidden = true;
-      if (artNone) artNone.hidden = false;
-    }
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: s.t,
-        artist: s.a,
-        album: s.album,
-        artwork: s.cover
-          ? [{ src: new URL(s.cover, location.href).href, sizes: "1000x1000", type: "image/webp" }]
-          : [],
-      });
-    }
+  const setNow = (s: Song, animate = false): void => {
+    const apply = (): void => {
+      if (titleEl) titleEl.textContent = s.t;
+      if (artistEl) artistEl.textContent = s.a;
+      if (artEl && s.cover) {
+        if (artEl.getAttribute("src") !== s.cover) artEl.setAttribute("src", s.cover);
+        artEl.hidden = false;
+        if (artNone) artNone.hidden = true;
+      } else {
+        if (artEl) artEl.hidden = true;
+        if (artNone) artNone.hidden = false;
+      }
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: s.t,
+          artist: s.a,
+          album: s.album,
+          artwork: s.cover
+            ? [{ src: new URL(s.cover, location.href).href, sizes: "1000x1000", type: "image/webp" }]
+            : [],
+        });
+      }
+    };
+    /* 换歌时先淡出再换：直接改 src/textContent 是硬切，
+       连播时整条播放条一直在闪。音频本身不受影响，照常立刻播。 */
+    if (!animate || reduceMotion.matches) { apply(); return; }
+    bar.classList.add("is-swapping");
+    window.setTimeout(() => {
+      apply();
+      bar.classList.remove("is-swapping");
+    }, 135);
   };
 
   /* ---------- 播放控制 ---------- */
@@ -237,10 +247,11 @@ function createCore(bar: HTMLElement): Core {
   let load = (n: number, play = true): void => {
     const s = byN.get(n);
     if (!s) return;
+    const was = current;
     current = n;
     audio.src = s.src;
     audio.currentTime = 0;
-    setNow(s);
+    setNow(s, was !== null && was !== n);
     markLive();
     paintCards();
     paintList();
@@ -1165,13 +1176,8 @@ function createCore(bar: HTMLElement): Core {
     });
   });
 
-  const openLyrics = (): void => {
-    if (!lyrDoc || lyrDoc.open) return;
-    lyrOpen = true;
-    renderLyrics();
-    applyLyrLang();
-    syncLyricBar(true);
-    lyrDoc.showModal();
+  /** 面板显示之后的收尾（重新打开时也要走一遍，所以单独拎出来） */
+  const afterOpen = (): void => {
     /* 必须等 dialog 显示后再定位：隐藏时 clientHeight 为 0，
        算出来的滚动量是错的，而且之后"当前行没变"会一直提前返回 */
     requestAnimationFrame(() => paintLyric(true));
@@ -1185,12 +1191,44 @@ function createCore(bar: HTMLElement): Core {
     if (!lyrTimer) lyrTimer = requestAnimationFrame(loop);
   };
 
-  const closeLyrics = (): void => {
+  /* 关闭动画的代次：关闭途中又点开时 +1，让挂着的那次 close() 作废 */
+  let closeToken = 0;
+
+  const openLyrics = (): void => {
     if (!lyrDoc) return;
+    closeToken += 1;
+    lyrDoc.classList.remove("is-closing");
+    if (lyrDoc.open) {
+      // 关闭动画播到一半又被点开：救回来，别让用户点了没反应
+      lyrOpen = true;
+      afterOpen();
+      return;
+    }
+    lyrOpen = true;
+    renderLyrics();
+    applyLyrLang();
+    syncLyricBar(true);
+    lyrDoc.showModal();
+    afterOpen();
+  };
+
+  const closeLyrics = (): void => {
+    if (!lyrDoc || !lyrDoc.open) return;
     lyrOpen = false;
     if (lyrTimer) { cancelAnimationFrame(lyrTimer); lyrTimer = 0; }
-    lyrDoc.close();
     lyrEntries.forEach((el) => el.setAttribute("aria-expanded", "false"));
+    /* 反向播一遍再 close()：原生 dialog 是瞬间消失，跟 320ms 的打开动画
+       完全不对称。400ms 兜底——系统把动画掐掉时也得收干净。 */
+    if (reduceMotion.matches) { lyrDoc.close(); return; }
+    const token = ++closeToken;
+    const finish = (): void => {
+      if (token !== closeToken) return;
+      lyrDoc.classList.remove("is-closing");
+      lyrDoc.close();
+    };
+    lyrDoc.classList.add("is-closing");
+    lyrDoc.addEventListener("animationend", finish, { once: true });
+    window.setTimeout(finish, 400);
   };
 
   /* 入口：点播放条上的封面或曲名区进全屏歌词（键盘 Enter/Space 同样可用） */

@@ -236,6 +236,9 @@ const EAGER = 6;
   const items = document.querySelectorAll<HTMLElement>("[data-gal-item]");
   const empty = document.querySelector<HTMLElement>("[data-gal-empty]");
 
+  const grid = document.querySelector<HTMLElement>("[data-gallery]");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
   function apply(group: string): void {
     let shown = 0;
     items.forEach((el) => {
@@ -251,8 +254,23 @@ const EAGER = 6;
     if (empty) empty.hidden = shown > 0;
   }
 
+  let swapTimer = 0;
   tabs.forEach((tab) => {
-    tab.addEventListener("click", () => apply(tab.dataset.galTab ?? "all"));
+    tab.addEventListener("click", () => {
+      const group = tab.dataset.galTab ?? "all";
+      if (!grid || reduce.matches) {
+        apply(group);
+        return;
+      }
+      /* 淡出 120ms → 在透明期换分类 → 下一帧淡入。
+         换分类本身会重排 500 多个格子，藏在全透明的那一帧里最干净。 */
+      window.clearTimeout(swapTimer);
+      grid.classList.add("is-switching");
+      swapTimer = window.setTimeout(() => {
+        apply(group);
+        requestAnimationFrame(() => grid.classList.remove("is-switching"));
+      }, 125);
+    });
   });
 </script>
 
@@ -370,6 +388,17 @@ const EAGER = 6;
   /* ---- 瀑布流：DESIGN.md §7.4 —— 移动 2 列，桌面 3 列，24px 间距 ---- */
   .gal {
     column-gap: var(--sp-4);
+  }
+
+  /* 切分类：整格先淡出、换完再淡入。原来 [hidden] 一挂就直接消失，
+     530 张 → 30 张是一次硬切，看着像页面闪了一下。 */
+  .gal {
+    transition: opacity 170ms var(--ease-out-cubic);
+  }
+
+  .gal.is-switching {
+    opacity: 0;
+    transition-duration: 120ms;
   }
 
   .gal--masonry {
