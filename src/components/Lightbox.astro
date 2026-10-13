@@ -13,18 +13,31 @@
   data-lightbox
   role="dialog"
   aria-modal="true"
+  data-i18n-attr="aria-label:lightbox.aria"
   aria-label="图片查看器"
 >
   <div class="lb__bar">
     <p class="lb__counter num" data-lightbox-counter aria-live="polite"></p>
-    <button class="lb__btn lb__btn--close" type="button" data-lightbox-close aria-label="关闭（Esc）">
+    <button
+      class="lb__btn lb__btn--close"
+      type="button"
+      data-lightbox-close
+      data-i18n-attr="aria-label:lightbox.close"
+      aria-label="关闭（Esc）"
+    >
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M6 6l12 12M18 6L6 18" />
       </svg>
     </button>
   </div>
 
-  <button class="lb__nav lb__nav--prev" type="button" data-lightbox-prev aria-label="上一张（←）">
+  <button
+    class="lb__nav lb__nav--prev"
+    type="button"
+    data-lightbox-prev
+    data-i18n-attr="aria-label:lightbox.prev"
+    aria-label="上一张（←）"
+  >
     <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M15 5l-7 7 7 7" />
     </svg>
@@ -35,7 +48,13 @@
     <figcaption class="lb__caption" data-lightbox-caption></figcaption>
   </figure>
 
-  <button class="lb__nav lb__nav--next" type="button" data-lightbox-next aria-label="下一张（→）">
+  <button
+    class="lb__nav lb__nav--next"
+    type="button"
+    data-lightbox-next
+    data-i18n-attr="aria-label:lightbox.next"
+    aria-label="下一张（→）"
+  >
     <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M9 5l7 7-7 7" />
     </svg>

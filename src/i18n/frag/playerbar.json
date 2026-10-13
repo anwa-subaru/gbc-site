@@ -1,0 +1,12 @@
+{
+  "playerbar.aria.viewLyrics": "查看歌词",
+  "playerbar.empty.title": "未选择曲目",
+  "playerbar.empty.hint": "点击任意曲目开始播放",
+  "playerbar.aria.seek": "播放进度",
+  "playerbar.aria.volume": "音量",
+  "playerbar.prev": "上一首",
+  "playerbar.play": "播放",
+  "playerbar.next": "下一首",
+  "playerbar.fold.collapse": "收起播放器",
+  "playerbar.fold.expand": "展开播放器"
+}

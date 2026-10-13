@@ -1,0 +1,7 @@
+{
+  "lightbox.aria": "图片查看器",
+  "lightbox.close": "关闭（Esc）",
+  "lightbox.prev": "上一张（←）",
+  "lightbox.next": "下一张（→）",
+  "lightbox.counter": "{current} / {total}"
+}

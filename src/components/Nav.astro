@@ -6,13 +6,16 @@
  * 激活态：链接下方 2px 红条 scaleX(0→1)
  */
 import { assetUrl, url, isActive } from "../lib/assets";
+import LangSwitch from "./LangSwitch.astro";
 
+/* 大写字标固定（视觉识别），下面那行小字跟随界面语言：
+   中文→中文名，日文→片假名，英文→隐藏（大字标本来就是英文） */
 const NAV = [
-  { href: "/", en: "HOME", ja: "ホーム", zh: "首页" },
-  { href: "/characters", en: "CHARACTER", ja: "キャラクター", zh: "角色" },
-  { href: "/music", en: "MUSIC", ja: "ミュージック", zh: "音乐" },
-  { href: "/gallery", en: "GALLERY", ja: "ギャラリー", zh: "画廊" },
-  { href: "/story", en: "STORY", ja: "ストーリー", zh: "剧情" },
+  { href: "/", en: "HOME", key: "nav.home.sub", zh: "首页" },
+  { href: "/characters", en: "CHARACTER", key: "nav.characters.sub", zh: "角色" },
+  { href: "/music", en: "MUSIC", key: "nav.music.sub", zh: "音乐" },
+  { href: "/gallery", en: "GALLERY", key: "nav.gallery.sub", zh: "画廊" },
+  { href: "/story", en: "STORY", key: "nav.story.sub", zh: "剧情" },
 ];
 
 const current = Astro.url.pathname;
@@ -23,7 +26,12 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
 
 <header class="nav" data-nav>
   <div class="nav__inner container">
-    <a class="nav__brand" href={url("/")} aria-label="GIRLS BAND CRY 首页">
+    <a
+      class="nav__brand"
+      href={url("/")}
+      data-i18n-attr="aria-label:nav.aria.brand"
+      aria-label="GIRLS BAND CRY 首页"
+    >
       <img
         src={assetUrl(logo)}
         alt="GIRLS BAND CRY"
@@ -34,7 +42,7 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
       />
     </a>
 
-    <nav class="nav__desktop" aria-label="主导航">
+    <nav class="nav__desktop" data-i18n-attr="aria-label:nav.aria.main" aria-label="主导航">
       <ul>
         {
           NAV.map((item) => (
@@ -45,13 +53,15 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
                 aria-current={isActive(current, item.href) ? "page" : undefined}
               >
                 <span class="nav__link-en">{item.en}</span>
-                <span class="nav__link-ja">{item.ja}</span>
+                <span class="nav__link-ja" data-i18n={item.key}>{item.zh}</span>
               </a>
             </li>
           ))
         }
       </ul>
     </nav>
+
+    <LangSwitch class="nav__lang" />
 
     <button
       class="nav__toggle"
@@ -60,7 +70,7 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
       aria-expanded="false"
       aria-controls="nav-drawer"
     >
-      <span class="sr-only">打开菜单</span>
+      <span class="sr-only" data-i18n="nav.open">打开菜单</span>
       <span class="nav__bars" aria-hidden="true"><i></i><i></i><i></i></span>
     </button>
   </div>
@@ -73,7 +83,11 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
   高度塌成 0（菜单点开却看不见）。移出后 fixed 重新以 viewport 为基准。
 -->
 <div class="nav__drawer" id="nav-drawer" data-nav-drawer>
-  <nav class="nav__drawer-inner" aria-label="移动端导航">
+  <nav
+    class="nav__drawer-inner"
+    data-i18n-attr="aria-label:nav.aria.drawer"
+    aria-label="移动端导航"
+  >
     <ul>
       {
         NAV.map((item, i) => (
@@ -83,13 +97,15 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
               aria-current={isActive(current, item.href) ? "page" : undefined}
             >
               <span class="nav__drawer-en">{item.en}</span>
-              <span class="nav__drawer-ja">{item.ja}</span>
-              <span class="nav__drawer-zh">{item.zh}</span>
+              <span class="nav__drawer-ja" data-i18n={item.key}>{item.zh}</span>
             </a>
           </li>
         ))
       }
     </ul>
+    <div class="nav__drawer-lang">
+      <LangSwitch variant="drawer" />
+    </div>
   </nav>
 </div>
 
@@ -317,11 +333,25 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
     color: var(--gbc-red-text);
   }
 
-  .nav__drawer-zh {
-    grid-column: 1 / -1;
-    font-size: var(--fs-sm);
-    color: var(--ink-300);
-    letter-spacing: 0.06em;
+  /* 抽屉底部：语言切换（手机端没有别处能切） */
+  .nav__drawer-lang {
+    margin-top: var(--sp-5);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+  }
+
+  /* 顶部条里的切换器只在桌面出现：手机上品牌标 + 汉堡已经占满，
+     再塞三个按钮在 320px 宽上会挤爆 */
+  .nav__lang {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .nav__lang {
+      display: inline-flex;
+    }
   }
 
   .nav__drawer-inner a[aria-current="page"] .nav__drawer-en {

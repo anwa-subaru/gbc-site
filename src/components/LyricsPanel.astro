@@ -10,7 +10,7 @@
  */
 ---
 
-<dialog class="lyr" data-lyrics aria-label="歌词">
+<dialog class="lyr" data-lyrics data-i18n-attr="aria-label:lyrics.aria.dialog" aria-label="歌词">
   <div class="lyr__bg" aria-hidden="true">
     <img class="lyr__cover" alt="" data-lyr-cover />
     <span class="lyr__scrim"></span>
@@ -18,7 +18,14 @@
 
   <div class="lyr__panel">
     <header class="lyr__head">
-      <button class="lyr__down" type="button" data-lyr-close aria-label="收起歌词" title="收起歌词">
+      <button
+        class="lyr__down"
+        type="button"
+        data-lyr-close
+        data-i18n-attr="aria-label:lyrics.close,title:lyrics.close"
+        aria-label="收起歌词"
+        title="收起歌词"
+      >
         <svg viewBox="0 0 20 20" aria-hidden="true" width="20" height="20">
           <path
             d="M4.6 7.4L10 12.6l5.4-5.2"
@@ -37,16 +44,41 @@
           <span class="num" data-lyr-dur>0:00</span>
         </p>
       </div>
-      <div class="lyr__lang" role="group" aria-label="翻译语言">
-        <button class="lyr__langbtn" type="button" data-lyr-lang="off" title="只显示日文原文">日</button>
-        <button class="lyr__langbtn is-on" type="button" data-lyr-lang="zh" title="日文原文 + 中文翻译">中</button>
-        <button class="lyr__langbtn" type="button" data-lyr-lang="en" title="日文原文 + English">英</button>
+      <div
+        class="lyr__lang"
+        role="group"
+        data-i18n-attr="aria-label:lyrics.lang.aria"
+        aria-label="翻译语言"
+      >
+        <button
+          class="lyr__langbtn"
+          type="button"
+          data-lyr-lang="off"
+          data-i18n-attr="title:lyrics.lang.off"
+          title="只显示日文原文">日</button>
+        <button
+          class="lyr__langbtn is-on"
+          type="button"
+          data-lyr-lang="zh"
+          data-i18n-attr="title:lyrics.lang.zh"
+          title="日文原文 + 中文翻译">中</button>
+        <button
+          class="lyr__langbtn"
+          type="button"
+          data-lyr-lang="en"
+          data-i18n-attr="title:lyrics.lang.en"
+          title="日文原文 + English">英</button>
       </div>
     </header>
 
+    <p class="lyr__cred" data-lyr-cred></p>
+
     <div class="lyr__body" data-lyr-body>
       <ol class="lyr__lines" data-lyr-lines></ol>
-      <p class="lyr__empty" data-lyr-empty hidden>この曲の歌詞は未収録です</p>
+      <!-- 原文是日文；SSR 兜底统一用中文（见 spec：无 JS 时显示中文默认语言）。
+           data-i18n 放在内层 span 上：外层 <p> 的 hidden 由 player.ts 控制，
+           若直接挂在外层，i18n 运行时会把 hidden 改回 false 而误显空状态 -->
+      <p class="lyr__empty" data-lyr-empty hidden><span data-i18n="lyrics.empty">这首歌还没有收录歌词</span></p>
     </div>
 
     <footer class="lyr__foot">
@@ -60,18 +92,31 @@
           value="0"
           step="1"
           data-lyr-seek
+          data-i18n-attr="aria-label:lyrics.aria.seek"
           aria-label="播放进度"
         />
         <span class="num lyr__time" data-lyr-total>0:00</span>
       </div>
 
       <div class="lyr__ctrl">
-        <button class="lyr__ic" type="button" data-lyr-prev aria-label="上一首">
+        <button
+          class="lyr__ic"
+          type="button"
+          data-lyr-prev
+          data-i18n-attr="aria-label:lyrics.prev"
+          aria-label="上一首"
+        >
           <svg viewBox="0 0 20 20" aria-hidden="true" width="20" height="20">
             <path d="M15 4v12L7 10zM5 4h1.6v12H5z" fill="currentColor"></path>
           </svg>
         </button>
-        <button class="lyr__ic lyr__ic--main" type="button" data-lyr-toggle aria-label="播放">
+        <button
+          class="lyr__ic lyr__ic--main"
+          type="button"
+          data-lyr-toggle
+          data-i18n-attr="aria-label:lyrics.play"
+          aria-label="播放"
+        >
           <svg viewBox="0 0 24 24" aria-hidden="true" width="26" height="26" data-lyr-icon-play>
             <path d="M7 4.5v15l13-7.5z" fill="currentColor"></path>
           </svg>
@@ -86,14 +131,19 @@
             <path d="M7 4.5h3.4v15H7zM13.6 4.5H17v15h-3.4z" fill="currentColor"></path>
           </svg>
         </button>
-        <button class="lyr__ic" type="button" data-lyr-next aria-label="下一首">
+        <button
+          class="lyr__ic"
+          type="button"
+          data-lyr-next
+          data-i18n-attr="aria-label:lyrics.next"
+          aria-label="下一首"
+        >
           <svg viewBox="0 0 20 20" aria-hidden="true" width="20" height="20">
             <path d="M5 4v12l8-6zM13.4 4H15v12h-1.6z" fill="currentColor"></path>
           </svg>
         </button>
       </div>
 
-      <p class="lyr__cred" data-lyr-cred></p>
     </footer>
   </div>
 </dialog>
@@ -142,20 +192,25 @@
     position: absolute;
     inset: -18%;
     width: 136%;
-    height: 136%;
+    height: 132%;
     object-fit: cover;
-    opacity: 0.72;
-    filter: blur(56px) saturate(1.35);
-    object-position: center 40%;
+    /* 背景就是这张专辑的封面，要"一眼认出是哪张"：
+       18px 模糊 + 0.9 遮罩会糊成一片灰，等于没有封面。
+       现在 7px 保留构图与配色，靠下面那层遮罩保证歌词可读。 */
+    opacity: 1;
+    filter: blur(7px) saturate(1.18);
+    object-position: center 38%;
     transform: scale(1.05);
   }
 
   .lyr__scrim {
     position: absolute;
     inset: 0;
+    /* 歌词所在的中段压暗保证可读，四周留亮让封面透出来；
+       再配合歌词自身的 text-shadow，就不用把封面压成黑底 */
     background:
-      radial-gradient(120% 85% at 50% 38%, rgb(7 8 12 / 0.12), rgb(7 8 12 / 0.74) 72%),
-      linear-gradient(to bottom, rgb(7 8 12 / 0.3), rgb(7 8 12 / 0.72));
+      radial-gradient(122% 56% at 50% 47%, rgb(7 8 12 / 0.62) 0%, rgb(7 8 12 / 0.38) 58%, rgb(7 8 12 / 0.14) 100%),
+      linear-gradient(to bottom, rgb(7 8 12 / 0.42), rgb(7 8 12 / 0.2) 26%, rgb(7 8 12 / 0.24) 74%, rgb(7 8 12 / 0.48));
   }
 
   .lyr__panel {
@@ -322,6 +377,8 @@
      非当前句统一一种中灰，不做按距离的亮度渐变：
      渐变会让上下几行糊成一片，参考 QQ 音乐歌词页的读法更清爽。 */
   .lyr__line {
+    /* 背景是专辑封面（不再是纯黑），给字加一层柔和阴影保证可读 */
+    text-shadow: 0 1px 10px rgb(0 0 0 / 0.55), 0 0 2px rgb(0 0 0 / 0.4);
     display: block;
     padding: 9px 0;
     font-size: 19px;
@@ -350,6 +407,18 @@
 
   .lyr__orig {
     display: block;
+  }
+
+  /* 切语言的过场：整列淡出→换语言→淡入（行高变化发生在透明期，看不见跳动） */
+  .lyr__lines {
+    transition:
+      opacity 170ms var(--ease-out-cubic),
+      transform 170ms var(--ease-out-cubic);
+  }
+
+  .lyr__lines.is-swap {
+    opacity: 0;
+    transform: translateY(6px);
   }
 
   .lyr__ch {
@@ -515,15 +584,26 @@
     display: none;
   }
 
+  /* 作詞・作曲：放在歌词**上方**（用户要求），小字居中 */
   .lyr__cred {
-    margin: 0;
-    padding-top: var(--sp-2);
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding-bottom: var(--sp-2);
     font-size: var(--fs-xs);
-    color: var(--ink-300, #9aa1ae);
+    /* 背景换成专辑封面后，署名压在亮色画面上也要读得清 */
+    color: rgb(255 255 255 / 0.82);
+    text-shadow: 0 1px 8px rgb(0 0 0 / 0.6), 0 0 2px rgb(0 0 0 / 0.45);
     text-align: center;
+    letter-spacing: 0.04em;
     /* 长署名换行而不是静默截断 */
     white-space: normal;
     text-wrap: balance;
+  }
+
+  .lyr__cred:empty {
+    display: none;
   }
 
   /* 电脑：内容收窄居中、字号再大一点 */

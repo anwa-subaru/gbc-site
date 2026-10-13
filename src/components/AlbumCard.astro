@@ -67,6 +67,8 @@ const label = playable
     data-album={playable ? album : undefined}
     data-album-title={playable ? cleanTitle : undefined}
     aria-label={label}
+    data-i18n-attr={playable ? "aria-label:albumcard.play.aria,title:albumcard.play.title" : undefined}
+    data-i18n-vars={playable ? `name:${playLabel ?? cleanTitle}` : undefined}
     title={playable ? `双击播放：${playLabel ?? cleanTitle}` : undefined}
   >
     <div class="ac__media">

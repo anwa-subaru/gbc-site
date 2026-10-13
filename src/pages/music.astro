@@ -26,6 +26,33 @@ lines.forEach((l, i) => {
   if (/^###\s+/.test(l)) heads.push(i);
 });
 
+/* 曲目署名（"作词：XXX" / "作词・作曲：XXX"）来自 content/music.md 的正文，
+   名字是专有名词不动，但"作词/作曲/编曲"这几个标签要跟着界面语言走。
+   这里按标签切成若干段，标签单独包一层挂 data-i18n，其余原样输出。 */
+const CREDIT_KEY: Record<string, string> = {
+  "作词": "music.credit.lyrics",
+  "作詞": "music.credit.lyrics",
+  "作曲": "music.credit.music",
+  "编曲": "music.credit.arrange",
+  "編曲": "music.credit.arrange",
+};
+const CREDIT_RE = "(?:作词|作詞|作曲|编曲|編曲)";
+/* 整段标签要贪婪匹配（"作词・作曲："是一个整体，不能拆成"作词・"+"作曲："） */
+const CREDIT_RUN = new RegExp(`(${CREDIT_RE}(?:・${CREDIT_RE})*)([：:])`, "g");
+const creditParts = (raw: string): { key: string; label: string; body: string }[] => {
+  const out: { key: string; label: string; body: string }[] = [];
+  let last = 0;
+  for (const m of raw.matchAll(CREDIT_RUN)) {
+    const at = m.index ?? 0;
+    if (at > last) out.push({ key: "", label: "", body: raw.slice(last, at) });
+    const key = m[1].includes("・") ? "music.credit.both" : CREDIT_KEY[m[1]];
+    out.push({ key, label: m[1] + m[2], body: "" });
+    last = at + m[0].length;
+  }
+  if (last < raw.length) out.push({ key: "", label: "", body: raw.slice(last) });
+  return out;
+};
+
 interface Track {
   disc: string;
   title: string;
@@ -201,16 +228,14 @@ const officialOnly = (urls: string[]): string[] =>
 const SOURCE_LABEL = "官方网站";
 ---
 
-<Layout
-  title="音乐"
-  description="トゲナシトゲアリ 历代单曲、专辑与 EP 全曲目资料，封面取自官方发行物"
->
+<Layout titleKey="meta.title.music" descKey="meta.desc.music">
   <header class="mu-head container">
     <p class="mu-head__ja">ミュージック</p>
     <h1 class="mu-head__en">MUSIC</h1>
     <p class="mu-head__lead">
-      トゲナシトゲアリ 历代单曲、录音室专辑与 EP，共
-      <span class="num">{RELEASES.length}</span> 张发行物
+      <span data-i18n="music.lead.intro">トゲナシトゲアリ 历代单曲、录音室专辑与 EP，共</span>
+      <span class="num">{RELEASES.length}</span>
+      <span data-i18n="music.lead.unit">张发行物</span>
     </p>
   </header>
 
@@ -264,7 +289,7 @@ const SOURCE_LABEL = "官方网站";
                   <circle cx="32" cy="32" r="2.5" fill="currentColor" stroke="none" />
                 </svg>
                 <p class="mu-miss__t">{r.ja}</p>
-                <p class="mu-miss__n">素材库无对应封面</p>
+                <p class="mu-miss__n" data-i18n="music.missing.art">素材库无对应封面</p>
               </div>
             ),
           )}
@@ -304,7 +329,18 @@ const SOURCE_LABEL = "官方网站";
                     <span class="mu-track__main">
                       <span class="mu-track__name">{t.title}</span>
                       {t.credits ? (
-                        <span class="mu-track__credit">{t.credits}</span>
+                        <span class="mu-track__credit">
+                          {creditParts(t.credits).map((cp) =>
+                            cp.key ? (
+                              <>
+                                <span data-i18n={cp.key}>{cp.label}</span>
+                                {cp.body}
+                              </>
+                            ) : (
+                              cp.body
+                            ),
+                          )}
+                        </span>
                       ) : null}
                     </span>
                   </li>
@@ -317,7 +353,12 @@ const SOURCE_LABEL = "官方网站";
                 {officialOnly(r.urls).map((u, i) => (
                   <>
                     {i > 0 ? " · " : ""}
-                    <a href={u} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={u}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-i18n="music.source.link"
+                    >
                       出典：{SOURCE_LABEL}
                     </a>
                   </>
@@ -337,7 +378,7 @@ const SOURCE_LABEL = "官方网站";
       <p class="mu-sec__count num">{PVS.length} VIDEOS</p>
     </header>
 
-    <p class="mu-note">
+    <p class="mu-note" data-i18n="music.pv.note">
       官方角色 PV（约 30 秒），点击即可站内播放，完整曲目请通过上方各发行物的官方渠道收听
     </p>
 

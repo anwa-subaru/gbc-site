@@ -29,7 +29,7 @@ const mmss = (sec: number): string =>
 <section class="pl section container" id="player" data-pl-list aria-labelledby="pl-heading">
   <header class="pl__head">
     <h2 class="pl__en" id="pl-heading">PLAYER</h2>
-    <p class="pl__ja">全曲再生</p>
+    <p class="pl__ja" data-i18n="songplayer.subtitle">全曲再生</p>
     <p class="pl__count num">{songs.length} TRACKS · {totalMin} MIN</p>
   </header>
 
@@ -41,7 +41,7 @@ const mmss = (sec: number): string =>
           <svg viewBox="0 0 16 16" aria-hidden="true" width="12" height="12">
             <path d="M4 2.5v11l9-5.5z" fill="currentColor" />
           </svg>
-          播放全部
+          <span data-i18n="songplayer.playall">播放全部</span>
         </button>
         <button
           class="pl__mode"
@@ -134,6 +134,8 @@ const mmss = (sec: number): string =>
                 data-src={assetUrl(s.file)}
                 data-cover={s.cover ? assetUrl(s.cover) : ""}
                 aria-label={`播放 ${s.title} / ${s.artist}`}
+                data-i18n-attr="aria-label:songplayer.row.aria"
+                data-i18n-vars={`title:${s.title},artist:${s.artist}`}
               >
                 <span class="pl__no num">{String(s.n).padStart(2, "0")}</span>
                 <span class="pl__thumb">

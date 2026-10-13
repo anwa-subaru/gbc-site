@@ -21,14 +21,17 @@ import {
 const slugs = characterSlugs;
 const stat = totals as unknown as Record<string, number>;
 
-/** 版块入口卡：图取自真实资产，标题/副标沿用各页既有命名，不新增文案。 */
+/** 版块入口卡：图取自真实资产，标题/副标沿用各页既有命名，不新增文案。
+    titleKey/subKey 是给客户端三语用的词典 key（SSR 仍输出中文原文）。 */
 const entryCards = [
   {
     href: "/music",
     kicker: "MUSIC",
     ja: "ミュージック",
     title: "音乐",
+    titleKey: "index.explore.music.title",
     sub: "专辑封面、单曲与角色 PV",
+    subKey: "index.explore.music.sub",
     count: albums().length,
     unit: "RELEASES",
     entry: albums()[0],
@@ -38,7 +41,9 @@ const entryCards = [
     kicker: "GALLERY",
     ja: "ギャラリー",
     title: "画廊",
+    titleKey: "index.explore.gallery.title",
     sub: "官方贺图、KV 与宣发海报",
+    subKey: "index.explore.gallery.sub",
     count: artworks().length,
     unit: "ARTWORKS",
     entry: posters()[0],
@@ -48,7 +53,9 @@ const entryCards = [
     kicker: "STORY",
     ja: "ストーリー",
     title: "剧情",
+    titleKey: "index.explore.story.title",
     sub: "TV 动画与剧场版总集篇梗概",
+    subKey: "index.explore.story.sub",
     count: posters().length,
     unit: "POSTERS",
     entry: posters()[3] ?? posters()[1],
@@ -56,11 +63,15 @@ const entryCards = [
 ].filter((c) => c.entry);
 ---
 
-<Layout title="首页">
+<Layout titleKey="meta.title.home" descKey="meta.desc.home">
   <Hero />
 
   <!-- 数据条：体现资产整理成果，同时作为区块分隔 -->
-  <section class="strip halftone--on-red" aria-label="站点数据">
+  <section
+    class="strip halftone--on-red"
+    data-i18n-attr="aria-label:index.stats.aria"
+    aria-label="站点数据"
+  >
     <div class="container strip__inner">
       <div class="strip__item">
         <span class="strip__num num">{slugs.length}</span>
@@ -121,8 +132,8 @@ const entryCards = [
               </span>
               <span class="ec__body">
                 <span class="ec__kicker label">{c.kicker}</span>
-                <span class="ec__title">{c.title}</span>
-                <span class="ec__sub">{c.sub}</span>
+                <span class="ec__title" data-i18n={c.titleKey}>{c.title}</span>
+                <span class="ec__sub" data-i18n={c.subKey}>{c.sub}</span>
                 <span class="ec__foot num">
                   {c.count} {c.unit}
                   <span class="ec__arrow" aria-hidden="true">→</span>
@@ -140,19 +151,27 @@ const entryCards = [
     <div class="notice">
       <h2 class="notice__title label">ABOUT THIS SITE</h2>
       <p>
-        本站为粉丝自制非营利站点，与官方无关联，站内角色资料、曲目信息、剧情梗概与视觉素材均整理自
+        <span data-i18n="index.notice.body.lead"
+          >本站为粉丝自制非营利站点，与官方无关联，站内角色资料、曲目信息、剧情梗概与视觉素材均整理自</span
+        >
         <a
           href="https://girls-band-cry.com/"
           target="_blank"
-          rel="noopener noreferrer">动画官方网站</a
-        >、<a
+          rel="noopener noreferrer"
+          data-i18n="index.notice.link.anime">动画官方网站</a
+        ><span data-i18n="index.notice.body.sep">、</span><a
           href="https://girlsbandcry.jp/"
           target="_blank"
-          rel="noopener noreferrer">游戏官方网站</a
-        >及官方社交账号公开物料，不作二次创作与主观演绎，版权归原权利人所有
+          rel="noopener noreferrer"
+          data-i18n="index.notice.link.game">游戏官方网站</a
+        ><span data-i18n="index.notice.body.tail"
+          >及官方社交账号公开物料，不作二次创作与主观演绎，版权归原权利人所有</span
+        >
       </p>
       <p class="notice__meta num">
-        {slugs.length} MEMBERS · 主唱 {charactersMeta.nina.ja} 等 5 名成员
+        {slugs.length} MEMBERS · <span data-i18n="index.notice.meta.role">主唱</span>
+        {charactersMeta.nina.ja}
+        <span data-i18n="index.notice.meta.tail">等 5 名成员</span>
       </p>
     </div>
   </section>

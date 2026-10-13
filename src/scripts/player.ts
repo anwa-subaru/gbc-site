@@ -33,15 +33,24 @@ const fmt = (sec: number): string => {
   return `${m}:${String(s).padStart(2, "0")}`;
 };
 
+import { DICTS, DEFAULT_LANG, isLang, type Lang } from "../i18n";
+/* getLang 在运行时模块里（src/scripts/i18n.ts），词典在 src/i18n/index.ts */
+import { getLang } from "./i18n";
+
 /* 播放模式：随机已并进这一个按钮里，四种模式轮换，各有各的图标 */
 type PlayMode = "list" | "one" | "shuffle" | "off";
 const MODE_ORDER: PlayMode[] = ["list", "one", "shuffle", "off"];
-const MODE_LABEL: Record<PlayMode, string> = {
-  list: "列表循环",
-  one: "单曲循环",
-  shuffle: "随机播放",
-  off: "顺序播放",
+const MODE_KEY: Record<PlayMode, string> = {
+  list: "player.mode.list",
+  one: "player.mode.one",
+  shuffle: "player.mode.shuffle",
+  off: "player.mode.off",
 };
+
+/* 界面语言（由 src/scripts/i18n.ts 派发的 gbc:lang 事件同步）。
+   播放条里的文案是 JS 动态写的，所以取词也要走同一本词典。 */
+let uiLang: Lang = DEFAULT_LANG;
+const T = (key: string): string => DICTS[uiLang]?.[key] ?? DICTS.zh[key] ?? key;
 
 /* 视图过渡时模块可能被重新执行，把实例挂在 window 上保证只有一份，
    否则 audio 上会叠上第二套事件监听（表现为暂停/播放各触发两次） */
@@ -127,7 +136,7 @@ function createCore(bar: HTMLElement): Core {
   const paintFold = (): void => {
     if (folded) bar.dataset.folded = "1";
     else delete bar.dataset.folded;
-    const label = folded ? "展开播放器" : "收起播放器";
+    const label = T(folded ? "player.fold.expand" : "player.fold.collapse");
     foldBtns.forEach((btn) => {
       btn.setAttribute("aria-expanded", String(!folded));
       btn.setAttribute("aria-label", label);
@@ -189,7 +198,7 @@ function createCore(bar: HTMLElement): Core {
     // SVGElement 没有 hidden 属性（那是 HTMLElement 的），必须用 class 切换
     iconPlay?.classList.toggle("is-off", playing);
     iconPause?.classList.toggle("is-off", !playing);
-    toggleBtn?.setAttribute("aria-label", playing ? "暂停" : "播放");
+    toggleBtn?.setAttribute("aria-label", T(playing ? "player.pause" : "player.play"));
     // 完全收起时条子看不见，靠浮动按钮的描边颜色提示"还在放"
     miniBtn?.classList.toggle("is-playing", playing);
     paintCards();
@@ -675,8 +684,8 @@ function createCore(bar: HTMLElement): Core {
       ic.classList.toggle("is-off", ic.dataset.modeIcon !== mode);
     });
     const label = btn.querySelector<HTMLElement>("[data-playmode-label]");
-    if (label) label.textContent = MODE_LABEL[mode];
-    const tip = `播放模式：${MODE_LABEL[mode]}（点击切换）`;
+    if (label) label.textContent = T(MODE_KEY[mode]);
+    const tip = T("player.mode.tip").replace("{mode}", T(MODE_KEY[mode]));
     btn.setAttribute("title", tip);
     btn.setAttribute("aria-label", tip);
   };
@@ -890,6 +899,9 @@ function createCore(bar: HTMLElement): Core {
     /** 这一句的时长（等距估算），用于逐字扫红 */
     dur: number;
     chars: HTMLSpanElement[];
+    /** 逐字起始偏移（秒，相对本行起始，升序）。有它就用真实逐字时间轴，
+        没有才退回"按行时长线性推算" */
+    offs?: number[];
   }
   let lyrOpen = false;
   let lyrLines: LyricLine[] = [];
@@ -916,21 +928,11 @@ function createCore(bar: HTMLElement): Core {
       b.classList.toggle("is-on", on);
       b.setAttribute("aria-pressed", String(on));
     });
-    /* 署名要跟着语言走：切到英文时不能还挂着"中文译词" */
-    if (lyrCred) {
-      const from =
-        lyrLang === "zh" && lyrCredZh
-          ? "中文译词：网易云音乐"
-          : lyrLang === "en" && lyrCredEn
-            ? "英文译词：本站翻译"
-            : "";
-      lyrCred.textContent = from ? `${lyrCredBase}　·　${from}` : lyrCredBase;
-    }
+    /* 只显示作詞・作曲。译词来源不再标注（用户：太多余了） */
+    if (lyrCred) lyrCred.textContent = lyrCredBase;
   };
-  /** 署名行：作詞・作曲 基串 + 是否有中日/英文译文（renderLyrics 里算） */
+  /** 署名行：作詞・作曲（renderLyrics 里算） */
   let lyrCredBase = "";
-  let lyrCredZh = false;
-  let lyrCredEn = false;
 
   /** 打开面板时按当前曲目渲染歌词（等距时间轴：纯文本歌词没有时间标签，
       按行数均分曲目时长；以后拿到带时间的 LRC 直接换数据源即可） */
@@ -940,8 +942,8 @@ function createCore(bar: HTMLElement): Core {
     lyrLines = [];
     lyrCur = -1;
     if (!song) {
-      if (lyrTitle) lyrTitle.textContent = "未选择曲目";
-      if (lyrArtist) lyrArtist.textContent = "点击任意曲目开始播放";
+      if (lyrTitle) lyrTitle.textContent = T("lyrics.empty.title");
+      if (lyrArtist) lyrArtist.textContent = T("lyrics.empty.hint");
       if (lyrDur) lyrDur.textContent = "0:00";
       if (lyrCred) lyrCred.textContent = "";
       lyrList.innerHTML = "";
@@ -960,6 +962,8 @@ function createCore(bar: HTMLElement): Core {
           times?: number[];
           zh?: string[];
           en?: string[];
+          /** 逐字起始偏移（厘秒，相对本行起始），来自酷狗 KRC */
+          kch?: string[];
         }
       | undefined;
     lyrTitle!.textContent = song.t;
@@ -987,13 +991,11 @@ function createCore(bar: HTMLElement): Core {
       const base =
         li && co
           ? li === co
-            ? `作詞・作曲 ${li}`
-            : `作詞 ${li}　作曲 ${co}`
-          : `作詞・作曲 ${li || co || ""}`.trim();
-      /* 译文来源分开标注：中文是网易云译者投稿，英文是本站翻译 */
+            ? `${T("lyrics.credit.both")} ${li}`
+            : `${T("lyrics.credit.lyrics")} ${li}　${T("lyrics.credit.music")} ${co}`
+          : `${T("lyrics.credit.both")} ${li || co || ""}`.trim();
       lyrCredBase = base;
-      lyrCredZh = zhArr.some(Boolean);
-      lyrCredEn = enArr.some(Boolean);
+      if (lyrCred) lyrCred.textContent = lyrCredBase;
     }
     const frag = document.createDocumentFragment();
     doc.lines.forEach((text, i) => {
@@ -1037,14 +1039,30 @@ function createCore(bar: HTMLElement): Core {
     const ts = Array.isArray((doc as { times?: number[] }).times)
       ? (doc as { times?: number[] }).times!
       : null;
+    /* 逐字时间轴：kch[i] 是"第几个字在第几厘秒开始变红"（相对本行起始）。
+       来自酷狗 KRC（scripts/lyrics-krc-chars.py 生成），比线性推算准得多：
+       拖长音、抢拍、行内停顿都能跟上。没有 kch 的行才退回推算。 */
+    const kch = Array.isArray((doc as { kch?: string[] }).kch)
+      ? (doc as { kch?: string[] }).kch!
+      : null;
     lyrLines = [...lyrList.children].map((el, i) => {
       const top = ts && Number.isFinite(ts[i]) ? ts[i] : i * per;
       const next = ts ? (Number.isFinite(ts[i + 1]) ? ts[i + 1] : dur) : (i + 1) * per;
+      let offs: number[] | undefined;
+      const raw = kch?.[i];
+      if (raw) {
+        const arr = raw
+          .split(",")
+          .map((v) => Number(v) / 100)
+          .filter((v) => Number.isFinite(v));
+        if (arr.length) offs = arr;
+      }
       return {
         el: el as HTMLLIElement,
         top,
         dur: Math.max(0.5, next - top),
         chars: (el as HTMLLIElement & { __chars?: HTMLSpanElement[] }).__chars ?? [],
+        offs,
       };
     });
     // 点击行 → seek 到那一句（双向交互）
@@ -1095,12 +1113,22 @@ function createCore(bar: HTMLElement): Core {
     /* 逐字扫红：唱到哪，哪个字变红（只在字数变化时写 DOM，不逐帧重排） */
     if (at >= 0) {
       const ln = lyrLines[at];
-      const sweep = ln.chars.length
-        ? Math.min(ln.dur * 0.85, Math.max(0.9, ln.chars.length * 0.17))
-        : 1;
-      const n = ln.chars.length
-        ? Math.round(Math.max(0, Math.min(1, (pos - ln.top) / sweep)) * ln.chars.length)
-        : 0;
+      const elapsed = pos - ln.top;
+      let n: number;
+      if (ln.offs && ln.offs.length) {
+        /* 真实逐字时间轴：数一数已经到点的字。offs 升序，线性数即可
+           （一行最多几十个字，比二分更省事也更快） */
+        n = 0;
+        while (n < ln.offs.length && ln.offs[n] <= elapsed) n++;
+        n = Math.min(n, ln.chars.length);
+      } else {
+        const sweep = ln.chars.length
+          ? Math.min(ln.dur * 0.85, Math.max(0.9, ln.chars.length * 0.17))
+          : 1;
+        n = ln.chars.length
+          ? Math.round(Math.max(0, Math.min(1, elapsed / sweep)) * ln.chars.length)
+          : 0;
+      }
       if (n !== lyrOn || force) {
         lyrOn = n;
         for (let i = 0; i < ln.chars.length; i++) {
@@ -1110,19 +1138,30 @@ function createCore(bar: HTMLElement): Core {
     }
   };
 
+  /* 切语言的过场：先把歌词列淡出（行高变化藏在透明期里），换完再淡入。
+     不加过场的话译文行会"啪"地跳出来，观感很硬。 */
+  let lyrSwapTimer = 0;
   lyrLangBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const v = btn.dataset.lyrLang;
       if (v !== "off" && v !== "zh" && v !== "en") return;
+      if (v === lyrLang) return;
       lyrLang = v;
       try {
         localStorage.setItem("gbc.lyrlang", v);
       } catch {
         /* 存不了就算了，不影响本次切换 */
       }
-      applyLyrLang();
-      /* 译文行出现/消失会改变行高，重新定位一次当前句 */
-      requestAnimationFrame(() => paintLyric(true));
+      applyLyrLang(); // 按钮高亮立刻跟上，不等过场
+      if (!lyrList) return;
+      if (lyrSwapTimer) window.clearTimeout(lyrSwapTimer);
+      lyrList.classList.add("is-swap");
+      lyrSwapTimer = window.setTimeout(() => {
+        lyrSwapTimer = 0;
+        /* 译文行出现/消失会改变行高，重新定位一次当前句 */
+        paintLyric(true);
+        requestAnimationFrame(() => lyrList?.classList.remove("is-swap"));
+      }, 170);
     });
   });
 
@@ -1191,7 +1230,7 @@ function createCore(bar: HTMLElement): Core {
     const playing = !audio.paused;
     lyrIconPlay?.classList.toggle("is-off", playing);
     lyrIconPause?.classList.toggle("is-off", !playing);
-    lyrToggle?.setAttribute("aria-label", playing ? "暂停" : "播放");
+    lyrToggle?.setAttribute("aria-label", T(playing ? "player.pause" : "player.play"));
   };
 
   lyrSeek?.addEventListener("input", () => {
@@ -1216,6 +1255,33 @@ function createCore(bar: HTMLElement): Core {
     if (lyrOpen) renderLyrics();
   };
 
-  setPlayingUI(false);
+  /* 界面语言变了 → 把 JS 动态写出来的文案全部重刷一遍
+     （markup 上的静态文案由 src/scripts/i18n.ts 自己处理） */
+  const applyUiLang = (): void => {
+    /* 曲名区由脚本写，切语言要重刷（有曲目写曲名，没曲目写空状态文案） */
+    const cur = current != null ? songOf(current) : null;
+    if (cur) {
+      if (titleEl) titleEl.textContent = cur.t;
+      if (artistEl) artistEl.textContent = cur.a;
+    } else {
+      if (titleEl) titleEl.textContent = T("playerbar.empty.title");
+      if (artistEl) artistEl.textContent = T("playerbar.empty.hint");
+    }
+    paintFold();
+    paintMode();
+    setPlayingUI(!audio.paused);
+    if (lyrOpen) renderLyrics();
+  };
+
+  document.addEventListener("gbc:lang", (e) => {
+    const v = (e as CustomEvent<{ lang?: string }>).detail?.lang;
+    if (isLang(v)) uiLang = v;
+    applyUiLang();
+  });
+
+  /* 首次不能只等 gbc:lang：i18n 模块是 player.ts 的依赖，它求值时就派发过一次，
+     那时这个监听还没绑上（模块求值顺序），所以这里自己按当前语言初始化一遍。 */
+  uiLang = getLang();
+  applyUiLang();
   return { refresh };
 }

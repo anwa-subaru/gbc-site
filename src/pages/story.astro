@@ -58,6 +58,8 @@ const clean = (s: string): string =>
 /* ---------- 解析 13 话 ---------- */
 interface Episode extends Sourced {
   no: number;
+  /** i18n key 前缀（`story.ep01` … `story.ep13`），标题/梗概/致敬各接一个后缀 */
+  key: string;
   ja: string;
   zh: string;
   staff: { role: string; name: string }[];
@@ -159,6 +161,7 @@ const EPISODES: Episode[] = epHeads.map((start, idx) => {
 
   return {
     no,
+    key: `story.ep${String(no).padStart(2, "0")}`,
     ja,
     zh,
     staff,
@@ -213,32 +216,49 @@ const INLINE_ART = [...artOf("movie", 2), ...artOf("character-design", 1)];
 const officialOnly = (urls: string[]): string[] =>
   urls.filter((u) => !u.includes("moegirl"));
 const SOURCE_LABEL = "官方网站";
+
+/* Staff 职位标签的 i18n key：13 话里同一职位复用同一个 key。
+   人名（花田十辉 / 酒井和男…）是官方专有名词，不进词典。 */
+const STAFF_KEYS: Record<string, string> = {
+  剧本: "story.staff.script",
+  分镜: "story.staff.storyboard",
+  演出: "story.staff.director",
+  "LIVE 部分分镜": "story.staff.liveStoryboard",
+  "LIVE 部分演出": "story.staff.liveDirector",
+  作画监督: "story.staff.animationDirector",
+};
 ---
 
-<Layout
-  title="剧情"
-  description="GIRLS BAND CRY TV 动画全 13 话分话梗概、制作 Staff 与标题致敬典故"
->
+<Layout titleKey="meta.title.story" descKey="meta.desc.story">
   <article class="story">
     <header class="story__head container">
       <p class="story__ja">ストーリー</p>
       <h1 class="story__en">STORY</h1>
-      <p class="story__lead">TV 动画全 13 话</p>
+      <p class="story__lead" data-i18n="story.lead">TV 动画全 13 话</p>
     </header>
 
     {
       introJa.text ? (
-        <section class="intro container" aria-label="企划总导言">
+        <section
+          class="intro container"
+          data-i18n-attr="aria-label:story.intro.aria"
+          aria-label="企划总导言"
+        >
           <blockquote class="intro__quote">
-            <p>怒りも喜びも哀しさも全部ぶちこめ</p>
+            <p data-i18n="story.intro.tagline">怒りも喜びも哀しさも全部ぶちこめ</p>
           </blockquote>
-          <p class="intro__ja">{introJa.text}</p>
-          {introZh.text ? <p class="intro__zh">{introZh.text}</p> : null}
+          <p class="intro__ja" data-i18n="story.intro.ja">{introJa.text}</p>
+          {introZh.text ? <p class="intro__zh" data-i18n="story.intro.zh">{introZh.text}</p> : null}
           <p class="src num">
             {officialOnly([...introJa.sources, ...introZh.sources]).map((u, i) => (
               <>
                 {i > 0 ? " · " : ""}
-                <a href={u} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={u}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-i18n="story.source.link"
+                >
                   出典：{SOURCE_LABEL}
                 </a>
               </>
@@ -255,6 +275,7 @@ const SOURCE_LABEL = "官方网站";
             src={assetUrl(OPENING_ART.path)}
             width={OPENING_ART.width}
             height={OPENING_ART.height}
+            data-i18n-attr="alt:story.art.opening"
             alt="官方动画视觉图"
             loading="lazy"
             decoding="async"
@@ -272,18 +293,18 @@ const SOURCE_LABEL = "官方网站";
 
           <div class="ep__main">
             <h2 class="ep__title">
-              <span class="ep__ja">{ep.ja}</span>
-              {ep.zh ? <span class="ep__zh">{ep.zh}</span> : null}
+              <span class="ep__ja" data-i18n={`${ep.key}.title.ja`}>{ep.ja}</span>
+              {ep.zh ? <span class="ep__zh" data-i18n={`${ep.key}.title.zh`}>{ep.zh}</span> : null}
             </h2>
 
-            {ep.jaSummary ? <p class="ep__ja-body">{ep.jaSummary}</p> : null}
-            {ep.zhSummary ? <p class="ep__zh-body">{ep.zhSummary}</p> : null}
+            {ep.jaSummary ? <p class="ep__ja-body" data-i18n={`${ep.key}.synopsis.ja`}>{ep.jaSummary}</p> : null}
+            {ep.zhSummary ? <p class="ep__zh-body" data-i18n={`${ep.key}.synopsis.zh`}>{ep.zhSummary}</p> : null}
 
             {ep.staff.length ? (
               <dl class="ep__staff">
                 {ep.staff.map((s) => (
                   <>
-                    <dt>{s.role}</dt>
+                    <dt data-i18n={STAFF_KEYS[s.role]}>{s.role}</dt>
                     <dd>{s.name}</dd>
                   </>
                 ))}
@@ -292,8 +313,8 @@ const SOURCE_LABEL = "官方网站";
 
             {ep.tribute ? (
               <p class="ep__tribute">
-                <span class="ep__tag label">致敬</span>
-                {ep.tribute}
+                <span class="ep__tag label" data-i18n="story.tribute.tag">致敬</span>
+                <span data-i18n={`${ep.key}.tribute`}>{ep.tribute}</span>
               </p>
             ) : null}
 
@@ -302,7 +323,12 @@ const SOURCE_LABEL = "官方网站";
                 {officialOnly(ep.sources).map((u, k) => (
                   <>
                     {k > 0 ? " · " : ""}
-                    <a href={u} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={u}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-i18n="story.source.link"
+                    >
                       出典：{SOURCE_LABEL}
                     </a>
                   </>
@@ -317,6 +343,7 @@ const SOURCE_LABEL = "官方网站";
                 src={assetUrl(INLINE_ART[i].path)}
                 width={INLINE_ART[i].width}
                 height={INLINE_ART[i].height}
+                data-i18n-attr="alt:story.art.inline"
                 alt="官方视觉资料"
                 loading="lazy"
                 decoding="async"

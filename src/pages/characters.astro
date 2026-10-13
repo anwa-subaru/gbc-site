@@ -158,11 +158,11 @@ if (missing.length) {
 }
 ---
 
-<Layout title="角色" description="GIRLS BAND CRY 五位成员档案：官方设定、声优、担当乐器与角色 PV">
+<Layout titleKey="meta.title.characters" descKey="meta.desc.characters">
   <header class="cp-head container">
     <p class="cp-head__ja">キャラクター</p>
     <h1 class="cp-head__en">CHARACTER</h1>
-    <p class="cp-head__lead">トゲナシトゲアリ 五名成员</p>
+    <p class="cp-head__lead">トゲナシトゲアリ <span data-i18n="characters.lead">五名成员</span></p>
   </header>
 
   {
@@ -179,6 +179,8 @@ if (missing.length) {
             width={m.hero!.width}
             height={m.hero!.height}
             alt={`${m.meta.ja}（${m.meta.en}）立绘`}
+            data-i18n-attr="alt:characters.art.alt"
+            data-i18n-vars={`name:${m.meta.ja},en:${m.meta.en}`}
             loading="lazy"
             decoding="async"
           />
@@ -207,32 +209,32 @@ if (missing.length) {
 
           <ul class="member__facts">
             <li>
-              <span class="member__k">担当</span>
-              <span class="member__v">{m.part.zh} / {m.part.en}</span>
+              <span class="member__k" data-i18n="characters.fact.part">担当</span>
+              <span class="member__v"><span data-i18n={`characters.part.${m.meta.part}`}>{m.part.zh}</span> / {m.part.en}</span>
             </li>
             <li>
-              <span class="member__k">声优</span>
+              <span class="member__k" data-i18n="characters.fact.cv">声优</span>
               <span class="member__v">{m.cv}</span>
             </li>
             {m.position ? (
               <li>
-                <span class="member__k">定位</span>
-                <span class="member__v">{m.position}</span>
+                <span class="member__k" data-i18n="characters.fact.position">定位</span>
+                <span class="member__v" data-i18n={`characters.${m.slug}.position`}>{m.position}</span>
               </li>
             ) : null}
             {m.group ? (
               <li>
-                <span class="member__k">团体</span>
-                <span class="member__v">{m.group}</span>
+                <span class="member__k" data-i18n="characters.fact.group">团体</span>
+                <span class="member__v" data-i18n={`characters.${m.slug}.group`}>{m.group}</span>
               </li>
             ) : null}
           </ul>
 
           {m.jaOriginal ? (
             <blockquote class="member__quote">
-              <p>{m.jaOriginal}</p>
+              <p data-i18n={`characters.${m.slug}.bio`}>{m.jaOriginal}</p>
               <footer class="num">
-                出典：
+                <span data-i18n="characters.quote.source">出典：</span>
                 <a href={m.jaSource} target="_blank" rel="noopener noreferrer">
                   {m.jaSource.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                 </a>
@@ -241,7 +243,12 @@ if (missing.length) {
           ) : null}
 
           {m.art.length > 1 ? (
-            <div class="rail" aria-label={`${m.meta.ja} 立绘`}>
+            <div
+              class="rail"
+              data-i18n-attr="aria-label:characters.art.rail.alt"
+              data-i18n-vars={`name:${m.meta.ja}`}
+              aria-label={`${m.meta.ja} 立绘`}
+            >
               {m.art
                 .filter((e) => e.path !== m.hero!.path)
                 .map((e) => (
@@ -250,6 +257,8 @@ if (missing.length) {
                     width={e.width}
                     height={e.height}
                     alt={`${m.meta.ja} ${e.label ?? "立绘"}`}
+                    data-i18n-attr={e.label ? undefined : "alt:characters.art.rail.alt"}
+                    data-i18n-vars={e.label ? undefined : `name:${m.meta.ja}`}
                     loading="lazy"
                     decoding="async"
                   />
@@ -272,7 +281,7 @@ if (missing.length) {
             ) : null}
             {m.pv ? (
               <a class="member__pv" href={url("/music")}>
-                角色 PV
+                <span data-i18n="characters.pv">角色 PV</span>
                 <span class="num">{Math.round(m.pv.duration ?? 0)}s</span>
               </a>
             ) : null}

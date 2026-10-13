@@ -50,7 +50,14 @@ const first = payload[0];
   <div class="pl__now" data-now>
     <span class="pl__seekline" aria-hidden="true"><i data-seekline /></span>
 
-    <div class="pl__art" data-lyrics-open role="button" tabindex="-1" aria-label="查看歌词">
+    <div
+      class="pl__art"
+      data-lyrics-open
+      role="button"
+      tabindex="-1"
+      data-i18n-attr="aria-label:playerbar.aria.viewLyrics"
+      aria-label="查看歌词"
+    >
       {first.cover ? <img src={first.cover} alt="" width="300" height="300" data-art /> : null}
       <span class="pl__art--none" data-art-none aria-hidden="true">SELECT<br />A TRACK</span>
     </div>
@@ -60,6 +67,7 @@ const first = payload[0];
       data-lyrics-open
       role="button"
       tabindex="0"
+      data-i18n-attr="aria-label:playerbar.aria.viewLyrics,title:playerbar.aria.viewLyrics"
       aria-label="查看歌词"
       title="查看歌词"
     >
@@ -87,18 +95,31 @@ const first = payload[0];
         value="0"
         step="1"
         data-seek
+        data-i18n-attr="aria-label:playerbar.aria.seek"
         aria-label="播放进度"
       />
       <p class="pl__times num"><span data-cur>0:00</span><span data-total>0:00</span></p>
     </div>
 
     <div class="pl__ctrl">
-      <button class="pl__ic" type="button" data-prev aria-label="上一首">
+      <button
+        class="pl__ic"
+        type="button"
+        data-prev
+        data-i18n-attr="aria-label:playerbar.prev"
+        aria-label="上一首"
+      >
         <svg viewBox="0 0 20 20" aria-hidden="true" width="18" height="18">
           <path d="M15 4v12L7 10zM5 4h1.6v12H5z" fill="currentColor"></path>
         </svg>
       </button>
-      <button class="pl__ic pl__ic--main" type="button" data-toggle aria-label="播放">
+      <button
+        class="pl__ic pl__ic--main"
+        type="button"
+        data-toggle
+        data-i18n-attr="aria-label:playerbar.play"
+        aria-label="播放"
+      >
         <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" data-icon-play>
           <path d="M7 4.5v15l13-7.5z" fill="currentColor"></path>
         </svg>
@@ -113,7 +134,13 @@ const first = payload[0];
           <path d="M7 4.5h3.4v15H7zM13.6 4.5H17v15h-3.4z" fill="currentColor"></path>
         </svg>
       </button>
-      <button class="pl__ic" type="button" data-next aria-label="下一首">
+      <button
+        class="pl__ic"
+        type="button"
+        data-next
+        data-i18n-attr="aria-label:playerbar.next"
+        aria-label="下一首"
+      >
         <svg viewBox="0 0 20 20" aria-hidden="true" width="18" height="18">
           <path d="M5 4v12l8-6zM13.4 4H15v12h-1.6z" fill="currentColor"></path>
         </svg>
@@ -138,6 +165,7 @@ const first = payload[0];
         value="90"
         step="1"
         data-vol
+        data-i18n-attr="aria-label:playerbar.aria.volume"
         aria-label="音量"
       />
     </div>

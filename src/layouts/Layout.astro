@@ -12,6 +12,7 @@ import Footer from "../components/Footer.astro";
 import Lightbox from "../components/Lightbox.astro";
 import PlayerBar from "../components/PlayerBar.astro";
 import { assetUrl } from "../lib/assets";
+import { DICTS, STORAGE_KEY } from "../i18n";
 import "../styles/global.css";
 
 /*
@@ -25,21 +26,26 @@ import barlow900Url from "../assets/fonts/barlow-900.woff2?url";
 import tekturUrl from "../assets/fonts/tektur-var.woff2?url";
 
 interface Props {
-  title?: string;
-  description?: string;
+  /** 词典 key：<title> 与 meta description 都从这里取，切语言时客户端会改写 */
+  titleKey?: string;
+  descKey?: string;
   ogImage?: string;
   noindex?: boolean;
 }
 
 const {
-  title,
-  description = "GIRLS BAND CRY（少女乐队哭泣）粉丝站 —— 角色、音乐、画廊与剧情资料整理，文案取自官方公开资料",
+  titleKey = "meta.title.home",
+  descKey = "meta.desc.home",
   ogImage = "assets/posters/01.webp",
   noindex = false,
 } = Astro.props;
 
 const SITE = "GIRLS BAND CRY";
-const fullTitle = title ? `${title} | ${SITE}` : `${SITE} | 少女乐队哭泣 粉丝站`;
+/* SSR 一律输出中文（本站主要面向中文用户，也是默认语言）：
+   关掉 JS 或爬虫抓到的都是完整中文页面，切语言由 src/scripts/i18n.ts 在客户端做 */
+const zh = DICTS.zh;
+const fullTitle = zh[titleKey] ?? SITE;
+const description = zh[descKey] ?? "";
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? "http://localhost:4321");
 const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:4321");
@@ -89,6 +95,30 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
 
     <ClientRouter />
 
+    <!--
+      首屏语言：在绘制前把 localStorage 里的选择写到 <html> 上。
+      必须是内联脚本——外链模块要等解析完才开始下载，那样非中文用户会先看到
+      一整屏中文再被替换掉（明显闪一下）。astro:after-swap 让跨页导航同样不闪。
+    -->
+    <script is:inline>
+      (function () {
+        var K = "gbc.lang";
+        var L = { zh: "zh-CN", en: "en", ja: "ja" };
+        function sync() {
+          try {
+            var v = localStorage.getItem(K);
+            if (v !== "zh" && v !== "en" && v !== "ja") v = "zh";
+            document.documentElement.lang = L[v];
+            document.documentElement.dataset.lang = v;
+          } catch (e) {
+            /* 隐私模式读不到，保持默认中文 */
+          }
+        }
+        sync();
+        document.addEventListener("astro:after-swap", sync);
+      })();
+    </script>
+
     <!-- 无 JS / JS 失败时的兜底：[data-reveal] 由脚本触发入场，
          脚本没跑时必须让内容直接可见，否则整页正文永久隐藏。 -->
     <noscript>
@@ -101,8 +131,8 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
     </noscript>
   </head>
 
-  <body>
-    <a class="skip-link" href="#main">跳到主要内容</a>
+  <body data-i18n-title={titleKey} data-i18n-desc={descKey}>
+    <a class="skip-link" href="#main" data-i18n="layout.skip">跳到主要内容</a>
     <Nav />
     <main id="main">
       <slot />
@@ -117,6 +147,7 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
 
     <script>
       import "../scripts/site.ts";
+      import "../scripts/i18n.ts";
     </script>
   </body>
 </html>

@@ -1,0 +1,14 @@
+{
+  "meta.title.gallery": "画廊 | GIRLS BAND CRY",
+  "meta.desc.gallery": "GIRLS BAND CRY 官方视觉资料：宣发海报、贺图与周边收藏集，点击可全屏放大浏览",
+  "gallery.head.lead": "站内收录官方宣发海报、贺图与周边收藏集视觉资料，共",
+  "gallery.count.unit": "张",
+  "gallery.tabs.aria": "画廊分类筛选",
+  "gallery.tab.all": "全部",
+  "gallery.tab.posters": "海报",
+  "gallery.tab.art": "贺图",
+  "gallery.tab.collections": "收藏集",
+  "gallery.tab.stickers": "表情",
+  "gallery.empty": "该分类下暂无素材",
+  "gallery.item.zoom": "放大查看：{name}"
+}

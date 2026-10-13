@@ -8,11 +8,15 @@
 import Layout from "../layouts/Layout.astro";
 import { assetUrl, category, type AssetEntry } from "../lib/assets";
 import customLabels from "../data/gallery-labels.json";
+import customLabelsEn from "../data/gallery-labels.en.json";
+import customLabelsJa from "../data/gallery-labels.ja.json";
 
 /* ---------- 分类：按来源分区（DESIGN.md §7.4「分组」） ---------- */
 interface GroupDef {
   id: string;
   label: string;
+  /** 词典 key：筛选按钮文案（按钮内文字由 data-i18n 替换，计数单独成 span 不被覆盖） */
+  i18n: string;
   ja: string;
   note: string;
   /** 参与该组的子目录（空数组 = 该分类根目录） */
@@ -27,6 +31,7 @@ const GROUPS: GroupDef[] = [
   {
     id: "poster",
     label: "海报",
+    i18n: "gallery.tab.posters",
     ja: "宣伝ビジュアル",
     note: "宣发海报 / KV",
     subs: [],
@@ -36,6 +41,7 @@ const GROUPS: GroupDef[] = [
   {
     id: "art",
     label: "贺图",
+    i18n: "gallery.tab.art",
     ja: "描き下ろし",
     note: "官方贺图与角色设定图",
     subs: [
@@ -52,6 +58,7 @@ const GROUPS: GroupDef[] = [
   {
     id: "collect",
     label: "收藏集",
+    i18n: "gallery.tab.collections",
     ja: "グッズ",
     note: "周边、联动与收藏用视觉资料",
     subs: [
@@ -80,6 +87,7 @@ const GROUPS: GroupDef[] = [
   {
     id: "sticker",
     label: "表情",
+    i18n: "gallery.tab.stickers",
     ja: "スタンプ",
     note: "官方表情包（静图 / 动图）",
     subs: [],
@@ -121,36 +129,46 @@ const countOf = (id: string): number => ITEMS.filter((i) => i.group === id).leng
 /* 显示名：优先用 src/data/gallery-labels.json 里人工核定的名称。
    原始素材名大量是 UUID、纯编号（101.webp）或时间戳，直接展示等于没有名字。
    兜底仍保留原文件名去扩展名、连字符转空格。 */
-const LABELS = customLabels as Record<string, string>;
-const labelOf = (e: AssetEntry): string =>
-  LABELS[e.path] ?? e.source_name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+const LABELS: Record<string, Record<string, string>> = {
+  zh: customLabels as Record<string, string>,
+  en: customLabelsEn as Record<string, string>,
+  ja: customLabelsJa as Record<string, string>,
+};
+/** 图注按语言取；某语言缺这条就回落到中文，再回落到文件名 */
+const labelOf = (e: AssetEntry, lang = "zh"): string =>
+  LABELS[lang]?.[e.path] ??
+  LABELS.zh[e.path] ??
+  e.source_name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
 
 const GROUPS_WITH_COUNT = GROUPS.map((g) => ({ ...g, count: countOf(g.id) }));
 const TOTAL = ITEMS.length;
 const EAGER = 6;
 ---
 
-<Layout
-  title="画廊"
-  description="GIRLS BAND CRY 官方视觉资料：宣发海报、贺图与周边收藏集，点击可全屏放大浏览"
->
+<Layout titleKey="meta.title.gallery" descKey="meta.desc.gallery">
   <header class="gp-head container">
     <p class="gp-head__ja">ギャラリー</p>
     <h1 class="gp-head__en">GALLERY</h1>
     <p class="gp-head__lead">
-      站内收录官方宣发海报、贺图与周边收藏集视觉资料，共
-      <span class="num">{TOTAL}</span> 张
+      <span data-i18n="gallery.head.lead">站内收录官方宣发海报、贺图与周边收藏集视觉资料，共</span>
+      <span class="num">{TOTAL}</span>
+      <span data-i18n="gallery.count.unit">张</span>
     </p>
   </header>
 
-  <nav class="gp-tabs container" aria-label="画廊分类筛选" data-gal-filter>
+  <nav
+    class="gp-tabs container"
+    data-i18n-attr="aria-label:gallery.tabs.aria"
+    aria-label="画廊分类筛选"
+    data-gal-filter
+  >
     <button class="gp-tab is-on" type="button" data-gal-tab="all" aria-pressed="true">
-      全部<span class="num">{TOTAL}</span>
+      <span data-i18n="gallery.tab.all">全部</span><span class="num">{TOTAL}</span>
     </button>
     {
       GROUPS_WITH_COUNT.map((g) => (
         <button class="gp-tab" type="button" data-gal-tab={g.id} aria-pressed="false">
-          {g.label}
+          <span data-i18n={g.i18n}>{g.label}</span>
           <span class="num">{g.count}</span>
         </button>
       ))
@@ -168,6 +186,9 @@ const EAGER = 6;
             data-gal-item={e.group}
             data-lightbox-src={assetUrl(e.path)}
             data-lightbox-alt={labelOf(e)}
+            data-alt-zh={labelOf(e, "zh")}
+            data-alt-en={labelOf(e, "en")}
+            data-alt-ja={labelOf(e, "ja")}
             data-lightbox-w={e.width ?? 0}
             data-lightbox-h={e.height ?? 0}
             data-lightbox-group={e.group}
@@ -202,7 +223,9 @@ const EAGER = 6;
       }
     </div>
 
-    <p class="gp-empty" data-gal-empty hidden>该分类下暂无素材</p>
+    <p class="gp-empty" data-gal-empty hidden>
+      <span data-i18n="gallery.empty">该分类下暂无素材</span>
+    </p>
   </div>
 </Layout>
 

@@ -210,6 +210,9 @@ category("covers") / characterArt("nina") / characterPrimary("nina") / groupShot
             { n, title, artist, lyricist, composer, use, source,
               lines: string[],          ← ①的文本，按行（日文原文）
               times: number[],          ← 每行起始秒（37/38 首有）
+              kch: string[],            ← 逐字时间轴：每行一个逗号分隔串，
+                                          是"每个字相对 times[i] 的厘秒偏移"
+                                          （"" = 这行没有逐字数据）
               zh: string[],             ← 网易云 tlyric 中文翻译（1336/1354 行）
               en: string[] }            ← 本站英文翻译（1390/1390 行）
             ↓ scripts/lyrics-lrc-align.py 从官方 LRC 生成
@@ -218,7 +221,33 @@ category("covers") / characterArt("nina") / characterPrimary("nina") / groupShot
            → player.ts 解析 → 渲染 + 高亮 + 逐字扫红
 ```
 
-**时间轴来源**：`/workspace/GBC-all-lyrics-lrc.txt`（93 KB，2022 行）
+**时间轴来源**：
+
+| 层 | 源文件 | 精度 | 生成脚本 |
+|---|---|---|---|
+| 行级 `times` | `/workspace/GBC-all-lyrics-lrc.txt`（网易云 LRC） | 逐行 | `scripts/lyrics-lrc-align.py` |
+| 逐字 `kch` | `/workspace/gbc-lyrics/output/*.json`（酷狗 KRC 解包） | **逐字** | `scripts/lyrics-krc-chars.py` |
+
+**为什么行锚点用网易云、逐字用 KRC**：两家的行起始时间**互有偏差**（同一首能差 100–500 ms，
+例：`Cycle Of Sorrow` 网易云比 KRC 晚约 498 ms，`碧いif` 早约 85 ms），
+且用音频 RMS/频谱分析判不出谁对（摇滚混音太密）。
+所以**行高亮沿用已验证过的网易云 `times`（零回归）**，
+`kch` 只把 KRC 的绝对逐字时间**平移**到 `times[i]` 上，保证扫红精确、行高亮不动。
+
+**逐字对齐算法**（`scripts/lyrics-krc-chars.py`）：
+
+1. 读 KRC 解包出的 `output/*.json`：`{ls: 行起始ms, ld: 行时长ms, chars: [[相对ms, 时长ms, "字或词"], ...]}`
+2. 展平成**整首**的逐字序列（KRC 会把多个字合成一个词、也会拆行，逐行对齐会错位）
+3. 用 `difflib.SequenceMatcher` 做**整首字符级**对齐（站内 `lines` 拼接 vs KRC 拼接）
+4. 按行切回，行内做单调钳制（保证偏移非递减）
+5. 写 `kch[k] = (krc绝对ms − times[i]*1000)`，负值钳到 0；KRC 缺字的行留 `""`
+
+**运行时**：`player.ts` 的 `paint()` 里
+`while (n < ln.offs.length && ln.offs[n] <= elapsed) n++;`
+有 `offs`（即 `kch` 解析结果）就走真实逐字；没有就退回原来的线性估算。
+
+**实测**：37 首 / 1354 行 / 18353 字，字符命中率 87–100%，原始数据 +57 KB。
+线上用 `audio.currentTime` 精确 seek 到 6 个时间点核对"已红字数"，**全部与数据一致**。
 
 - 网易云标准 LRC，**逐行**时间戳，1751 行 / 38 首
 - ⚠️ **不是逐字时间轴**（没有 `<mm:ss.xxx>` 内联标记）。用户曾以为是逐字，实际只有逐行
@@ -295,6 +324,55 @@ python3 scripts/lyrics-translations.py --refresh # 忽略缓存重新抓
 - `characters.astro` 读 `content/characters.md`：5 位角色（nina/momoka/subaru/tomo/rupa），逐条带出处 URL
 - 解析是**正则**的，改了 Markdown 结构要同步改页面里的解析逻辑
 - 已知历史缺陷：第 4 话标题因日文嵌套括号导致中文译名丢失（REVIEW.md M2），已修，注意别回归
+
+---
+
+### 5.6 全站界面三语（中 / 英 / 日）
+
+**这不是歌词的日/中/英切换**，是两套互相独立的机制：
+
+| | 界面语言（本节） | 歌词显示语言（§5.3.1） |
+|---|---|---|
+| 作用范围 | 导航、按钮、aria、meta、标题……全站 chrome | 只影响歌词面板里的译文行 |
+| 入口 | 导航 / 抽屉 / 页脚的三颗按钮（中 / EN / 日） | 歌词面板右上角 日 / 中 / 英 |
+| 持久化 | `localStorage["gbc.lang"]` | 不持久化 |
+| 默认 | **中文**（受众是中文用户） | 日文原文 |
+
+**实现（客户端换字，不做路由）**：
+
+- 词典 `src/i18n/{zh,en,ja}.json`，各 **230 键**，三语 key 集合必须完全一致
+  - 键按 `区块.元素[.子项]` 命名，如 `playerbar.empty.title`、`gallery.item.zoom`
+  - 值可带占位符 `{name}`；带逗号的参数要用 `key:value,key2:value2` 形式（正则按 `,` 切但要求 `名字:` 前缀）
+- `src/i18n/index.ts`：`LANGS` / `DICTS` / `t()` / `isLang()` / `HTML_LANG` / `DEFAULT_LANG="zh"`
+- `src/scripts/i18n.ts`（运行时）：`applyLang()` 扫 `[data-i18n]`（文本）与
+  `[data-i18n-attr="attr:key,attr2:key2"]`（属性），切完派发 `gbc:lang` 事件；
+  `setLang()` 走 `html.lang-swap` 过场（150 ms 淡出 → 换字 → 200 ms 淡入，`prefers-reduced-motion` 时跳过）
+- `<head>` 里有一段**内联**脚本，在首屏绘制前把 `localStorage` 的语言写到 `<html lang>` / `data-lang`，避免闪一下中文
+- 静态站 + ClientRouter：`applyLang()` 挂在 `astro:after-swap`（早于绘制）与 `astro:page-load`（幂等兜底）
+
+**写文案时的坑（都踩过）**：
+
+- `setText()` 只替换**直接文本节点**，保留子元素（否则 `textContent=` 会抹掉 `<span class="num">`）
+- 译文为空串 ⇒ 打 `is-i18n-empty` 类（CSS `display:none`），**不要**用 `hidden` 属性：
+  `player.ts` 要控制空状态元素的 `hidden`，i18n 一改就把它顶回来了
+- **JS 自己写的节点不要挂 `data-i18n`**（曲名 / 歌手 / 歌词标题 / 播放暂停 / 折叠按钮）：
+  切语言时 i18n 会把它们刷回初始文案。这些节点由 `player.ts` 监听 `gbc:lang` 后重写；
+  又因为 i18n 运行时是 `player.ts` 的依赖（模块求值顺序），**首次派发的事件它收不到**，
+  所以 `player.ts` 初始化时要自己 `uiLang = getLang(); applyUiLang();` 跑一遍
+- 数据驱动的文案（剧情简介、角色介绍、画廊图注）**以词典为准**：改了 `content/*.md` 要同步改 `src/i18n/*.json`
+- 故意不翻译：日文设计标签（`ギャラリー` / `CHARACTER` / `STORY`）、徽章（`ALBUM` / `PV`）、
+  歌名 / 展会名 / 角色名等专有名词、官网日文标语（Hero 的 `怒りも、悲しみも、全部ぶつけろ`）
+- 曲目署名里的 `作词 / 作曲 / 编曲` 标签在构建期被切成 `<span data-i18n="music.credit.*">`
+  （`music.astro` 的 `creditParts()`），人名不动
+
+**画廊图注三语**：`src/data/gallery-labels{,.en,.ja}.json`（各 **479** 条），
+`gallery.astro` 把三语都写进 `data-alt-{zh,en,ja}`，`site.ts` 的 `applyGalleryLang()` 按语言换；
+词典里没有的素材会**回落成原始文件名**（还剩 51 张，都是日文原名或无意义 ID，可接受）。
+新增素材时记得补这三份 JSON。
+
+**验收方式**：用 Playwright 起三语 × 手机/桌面各扫 5 个页面，
+逐元素核对 `[data-i18n]` 文本是否等于词典值，再用"中文词典原文"反查 DOM 里有没有漏刷的节点
+（zh / ja 各 0 处；en 剩 23 处，全是日文歌名与官方标语）。
 
 ---
 
@@ -381,8 +459,12 @@ src/scripts/player.ts → astro:page-load → 取 window.__gbcPlayer，没有就
 
 **面板**：`<dialog class="lyr" data-lyrics>`，`showModal()`，**铺满整屏**（手机与桌面一致，无圆角无边距）。内含：
 
-- 背景：模糊的专辑封面（`blur(56px)` + 遮罩渐变）
+- 背景：**该曲所属专辑的封面**（`img[data-lyr-cover]`，`blur(7px) saturate(1.18)`，不透明度 1）+ 遮罩渐变。
+  这里调过两轮：`blur(56px)` + 0.72 遮罩会糊成一片黑、**等于没有封面**；
+  18px + 0.9 也只剩灰底。现在 7px 保留构图与配色，中段用径向遮罩压暗保证歌词可读，
+  歌词与署名各加一层 `text-shadow`。改参数时**必须截图量像素**，别凭感觉
 - 顶部：收起键 `⌄` + 居中歌名/歌手/时长（右侧有等宽占位，否则标题会被挤右 22 px）
+- 顶部歌名下方：**作词・作曲署名在歌词上方**（`[data-lyr-cred]`，切语言时由 `player.ts` 重写）
 - 中部：歌词区（`mask-image` 上下渐隐 + 内部滚动，**绝不滚整页**）
 - 底部：**全屏自带的**进度条 + 上一首/播放暂停/下一首 + 作词作曲署名（全屏后底栏被盖住，操作必须能在全屏内完成）
 
@@ -394,6 +476,9 @@ src/scripts/player.ts → astro:page-load → 取 window.__gbcPlayer，没有就
 - **字号统一**，当前句不再放大。早期把当前句放到 24px（手机）/ 36px（桌面），
   换句时整列高度跳动；现在所有行同字号（手机 19px / 桌面 25px），
   当前句只加粗到 900 + 变白。
+- **逐字扫红**：当前句的字**逐个变红**，时间来自 `kch`（酷狗逐字，见 §5.3）；
+  没有逐字数据的行退回按行时长线性估算。`player.ts` 用
+  `while (n < ln.offs.length && ln.offs[n] <= elapsed) n++;` 推已红字数
 - **译文行**：原文下方 `margin-top: 5px`，小一档（手机 14px / 桌面 16px）、
   暗一档（非当前句 `rgb(154 161 174 / .62)`）。两种语言的 `<span>` **都常驻 DOM**，
   切语言只改 `<dialog>` 上的 `data-lang` 属性，由 CSS 决定显示哪个：
@@ -554,6 +639,14 @@ console.log('错误:', errs.length ? errs.join(' | ') : '无');
    都要多传约 48 KB gzip。音乐页 gzip 后 89 KB。
    优化方向：把歌词改成 `public/lyrics/NN.json` 按需 `fetch`（打开面板时加载），
    代价是引入异步与竞态处理。
+
+7. **画廊还有 51 张图没有人工图注**
+   页面会把这些素材的**原始文件名**当说明显示（例：`assets/posters/01.webp` → `【ゲーム】…ティザーPV【ガルリフ】`，
+   `assets/posters/19.webp` → `GeBzXCEboAAAUOg`）。目前剩下的都是日文原名或无意义 ID，
+   不影响三语（没有中文），但补上更好。补法：往 `gallery-labels{,.en,.ja}.json` 三份里加同一个 key。
+8. **Hero 的日文标语没翻译**
+   `怒りも、悲しみも、全部ぶつけろ` 等 5 句是官网日文原句，三语下都显示日文（当作设计元素保留）。
+   若要翻译，加 5 个词典键即可。
 
 ### 9.2 可做但没做的优化（用户提过或明显可做）
 

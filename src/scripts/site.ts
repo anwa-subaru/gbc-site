@@ -8,6 +8,7 @@
  * 每个 init 函数自身幂等（用 dataset 打标），避免重复绑定监听。
  */
 import { initPlayer } from "./player";
+import { getLang, t } from "./i18n";
 
 
 export const prefersReducedMotion = (): boolean =>
@@ -239,7 +240,7 @@ function initLightbox(): void {
     imgEl.height = item.h;
     if (captionEl) captionEl.textContent = item.alt;
     if (counterEl)
-      counterEl.textContent = `${index + 1} / ${items.length}`;
+      counterEl.textContent = t("lightbox.counter", { current: index + 1, total: items.length });
   };
 
   const open = (i: number): void => {
@@ -302,15 +303,55 @@ function initLightbox(): void {
 /* 启动                                                                         */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * 画廊图注随语言切换
+ * ---------------------------------------------------------------------------
+ * 246 条图注来自 src/data/gallery-labels*.json，构建期把三种语言都写进
+ * data-alt-zh / -en / -ja。切语言时把 alt、灯箱说明、放大按钮的 aria-label
+ * 和浮层文字一起换掉；灯箱开着也要立刻刷新。
+ */
+function applyGalleryLang(): void {
+  const l = getLang();
+  const key = `alt${l[0].toUpperCase()}${l.slice(1)}` as "altZh" | "altEn" | "altJa";
+  document.querySelectorAll<HTMLElement>("[data-alt-zh]").forEach((el) => {
+    const cap = el.dataset[key] || el.dataset.altZh || "";
+    if (!cap) return;
+    el.setAttribute("data-lightbox-alt", cap);
+    el.setAttribute("aria-label", t("gallery.item.zoom", { name: cap }));
+    const img = el.querySelector("img");
+    if (img) img.alt = cap;
+    const label = el.querySelector(".gal__label");
+    if (label) label.textContent = cap;
+  });
+  // 灯箱开着 → 立刻换成新语言的说明
+  const lb = document.querySelector<HTMLElement>("[data-lightbox][data-open]");
+  const cap = lb?.querySelector<HTMLElement>("[data-lightbox-caption]");
+  const src = lb?.querySelector<HTMLImageElement>("[data-lightbox-img]")?.getAttribute("src");
+  if (cap && src) {
+    const hit = [...document.querySelectorAll<HTMLElement>("[data-alt-zh]")].find((el) =>
+      el.dataset.lightboxSrc === src,
+    );
+    const text = hit ? hit.dataset[key] || hit.dataset.altZh || "" : "";
+    if (text) {
+      cap.textContent = text;
+      const im = lb?.querySelector("img");
+      if (im) im.alt = text;
+    }
+  }
+}
+
 function initAll(): void {
   initNav();
   initReveal();
   initCarousel();
   initLightbox();
+  applyGalleryLang();
   initPlayer();
 }
 
 document.addEventListener("astro:page-load", initAll);
+/* 语言切换：图注不归 data-i18n 管（是内容不是 UI 文案），单独重刷 */
+document.addEventListener("gbc:lang", applyGalleryLang);
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initAll);

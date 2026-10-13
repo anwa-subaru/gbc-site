@@ -1,0 +1,14 @@
+{
+  "lyrics.aria.dialog": "歌词",
+  "lyrics.close": "收起歌词",
+  "lyrics.empty.title": "未选择曲目",
+  "lyrics.lang.aria": "翻译语言",
+  "lyrics.lang.off": "只显示日文原文",
+  "lyrics.lang.zh": "日文原文 + 中文翻译",
+  "lyrics.lang.en": "日文原文 + English",
+  "lyrics.empty": "这首歌还没有收录歌词",
+  "lyrics.aria.seek": "播放进度",
+  "lyrics.prev": "上一首",
+  "lyrics.play": "播放",
+  "lyrics.next": "下一首"
+}

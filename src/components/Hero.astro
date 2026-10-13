@@ -73,7 +73,14 @@ const defaultSlides: Slide[] = ORDER.map((slug) => {
 const { slides = defaultSlides, interval = 6000 } = Astro.props;
 ---
 
-<section class="hero halftone" data-carousel data-interval={interval} aria-roledescription="carousel" aria-label="成员轮播">
+<section
+  class="hero halftone"
+  data-carousel
+  data-interval={interval}
+  aria-roledescription="carousel"
+  data-i18n-attr="aria-label:hero.aria.carousel"
+  aria-label="成员轮播"
+>
   {
     slides.map((s, i) => (
       <div
@@ -106,7 +113,7 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
             )}
             <p class="hero__tagline">{s.tagline}</p>
             <a class="btn btn--primary hero__cta" href={url(s.href)}>
-              {s.cta}
+              <span data-i18n="hero.cta.prefix">认识</span>{s.nameJa}
             </a>
           </div>
 
@@ -114,6 +121,8 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
           <figure class="hero__art" data-mirror={s.mirror ? "" : undefined}>
             <img
               src={assetUrl(s.entry.path)}
+              data-i18n-attr="alt:hero.art.alt"
+              data-i18n-vars={`name:${s.nameJa}`}
               alt={`${s.nameJa} 立绘`}
               width={s.entry.width}
               height={s.entry.height}
@@ -128,12 +137,23 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
   }
 
   <div class="hero__controls container">
-    <button class="hero__arrow" type="button" data-carousel-prev aria-label="上一张">
+    <button
+      class="hero__arrow"
+      type="button"
+      data-carousel-prev
+      data-i18n-attr="aria-label:hero.aria.prev"
+      aria-label="上一张"
+    >
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M15 5l-7 7 7 7" />
       </svg>
     </button>
-    <div class="hero__dots" role="tablist" aria-label="选择成员">
+    <div
+      class="hero__dots"
+      role="tablist"
+      data-i18n-attr="aria-label:hero.aria.dots"
+      aria-label="选择成员"
+    >
       {
         slides.map((s, i) => (
           <button
@@ -148,7 +168,13 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
         ))
       }
     </div>
-    <button class="hero__arrow" type="button" data-carousel-next aria-label="下一张">
+    <button
+      class="hero__arrow"
+      type="button"
+      data-carousel-next
+      data-i18n-attr="aria-label:hero.aria.next"
+      aria-label="下一张"
+    >
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 5l7 7-7 7" />
       </svg>

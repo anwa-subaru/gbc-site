@@ -4,26 +4,30 @@
  * 出处仅标注官方公开渠道（站内不出现第三方百科字样）。
  */
 import { assetUrl, url } from "../lib/assets";
+import LangSwitch from "./LangSwitch.astro";
 
 const year = new Date().getFullYear();
 
 const LINKS = [
-  { href: "/characters", label: "角色" },
-  { href: "/music", label: "音乐" },
-  { href: "/gallery", label: "画廊" },
-  { href: "/story", label: "剧情" },
+  { href: "/characters", label: "角色", key: "footer.link.characters" },
+  { href: "/music", label: "音乐", key: "footer.link.music" },
+  { href: "/gallery", label: "画廊", key: "footer.link.gallery" },
+  { href: "/story", label: "剧情", key: "footer.link.story" },
 ];
 
+/* label 是官方站名原文（日文），保持不动；只有 note 需要 i18n */
 const SOURCES = [
   {
     label: "アニメ公式サイト",
     href: "https://girls-band-cry.com/",
     note: "动画官方网站",
+    noteKey: "footer.source.anime.note",
   },
   {
     label: "ゲーム公式サイト",
     href: "https://girlsbandcry.jp/",
     note: "游戏官方网站",
+    noteKey: "footer.source.game.note",
   },
 ];
 ---
@@ -44,13 +48,17 @@ const SOURCES = [
       </p>
     </div>
 
-    <nav class="footer__nav" aria-label="页脚导航">
+    <nav
+      class="footer__nav"
+      data-i18n-attr="aria-label:footer.aria.nav"
+      aria-label="页脚导航"
+    >
       <h2 class="footer__head label">SITEMAP</h2>
       <ul>
         {
           LINKS.map((l) => (
             <li>
-              <a href={url(l.href)}>{l.label}</a>
+              <a href={url(l.href)} data-i18n={l.key}>{l.label}</a>
             </li>
           ))
         }
@@ -65,7 +73,7 @@ const SOURCES = [
             <li>
               <a href={s.href} target="_blank" rel="noopener noreferrer">
                 {s.label}
-                <span class="footer__note">{s.note}</span>
+                <span class="footer__note" data-i18n={s.noteKey}>{s.note}</span>
               </a>
             </li>
           ))
@@ -75,11 +83,15 @@ const SOURCES = [
   </div>
 
   <div class="container footer__bottom">
-    <p class="footer__legal">
+    <p class="footer__legal" data-i18n="footer.disclaimer">
       本站为粉丝自制非营利站点，与官方无关联，文案与素材整理自官方公开资料，版权归
       ©東映アニメーション・agehasprings 等原权利人所有
     </p>
     <p class="footer__copy num">© {year} GBC FAN SITE</p>
+  </div>
+
+  <div class="footer__lang">
+    <LangSwitch class="footer__lang-switch" />
   </div>
 </footer>
 
@@ -197,5 +209,14 @@ const SOURCES = [
     font-size: var(--fs-xs);
     letter-spacing: 0.08em;
     color: var(--ink-300);
+  }
+
+  /* 页脚最底部：语言切换（写法参考 Nav 的 .nav__drawer-lang） */
+  .footer__lang {
+    margin-top: var(--sp-5);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
   }
 </style>

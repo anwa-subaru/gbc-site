@@ -669,3 +669,28 @@ p {
     opacity: 0;
   }
 }
+
+/* ---- 全站语言切换过场（src/scripts/i18n.ts 加/去 html.lang-swap） ----
+   只淡正文与页脚：导航和播放条常驻，跟着闪会显得整页在抖。 */
+main,
+.footer {
+  transition: opacity 150ms var(--ease-out-cubic);
+}
+
+html.lang-swap main,
+html.lang-swap .footer {
+  opacity: 0.25;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main,
+  .footer {
+    transition: none;
+  }
+}
+
+/* data-i18n 的文案在某种语言下为空（例如英文下导航不需要第二行小字）时，
+   用 class 隐藏而不是改 hidden 属性——很多元素本来就有自己的 hidden 语义 */
+[data-i18n].is-i18n-empty {
+  display: none;
+}

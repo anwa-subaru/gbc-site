@@ -1,0 +1,85 @@
+---
+/**
+ * 语言切换：中 / EN / 日
+ *  - 客户端切换（见 src/scripts/i18n.ts），不刷新页面、不跳路由，
+ *    所以正在播的歌和歌词面板状态都不会丢
+ *  - 状态存在 localStorage["gbc.lang"]，<head> 里的内联脚本会在首屏绘制前
+ *    把结果写到 <html data-lang>，避免整页闪一下中文
+ */
+import { LANGS, LANG_NAME, LANG_SHORT } from "../i18n";
+
+interface Props {
+  /** nav = 顶部条里的紧凑版；drawer = 抽屉里的大号版 */
+  variant?: "nav" | "drawer";
+  /** 允许调用方追加类名（Astro 不会自动透传 class） */
+  class?: string;
+}
+const { variant = "nav", class: cls = "" } = Astro.props;
+---
+
+<div
+  class:list={["lang", `lang--${variant}`, cls]}
+  role="group"
+  data-i18n-attr="aria-label:nav.lang.aria"
+  aria-label="切换语言"
+>
+  {
+    LANGS.map((l) => (
+      <button
+        class:list={["lang__btn", l === "zh" && "is-on"]}
+        type="button"
+        data-lang-set={l}
+        title={LANG_NAME[l]}
+        aria-pressed={l === "zh" ? "true" : "false"}
+      >
+        {LANG_SHORT[l]}
+      </button>
+    ))
+  }
+</div>
+
+<style>
+  .lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.04);
+  }
+
+  .lang__btn {
+    min-width: 34px;
+    height: 26px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--ink-400);
+    font-family: var(--font-lyric);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease-out-cubic),
+      background-color var(--dur-fast) var(--ease-out-cubic);
+  }
+
+  .lang__btn:hover {
+    color: var(--fg);
+  }
+
+  .lang__btn.is-on {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .lang--drawer .lang__btn {
+    min-width: 52px;
+    height: 34px;
+    font-size: 14px;
+  }
+</style>
