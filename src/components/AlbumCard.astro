@@ -63,34 +63,38 @@ const label = playable
     aria-label={label}
     title={playable ? `双击播放：${playLabel ?? cleanTitle}` : undefined}
   >
-    <div class="ac__frame">
-      <img
-        class="ac__img"
-        src={assetUrl(entry.path)}
-        alt={cleanTitle}
-        width={entry.width}
-        height={entry.height}
-        loading={eager ? "eager" : "lazy"}
-        decoding="async"
-      />
-      <span class="ac__badge label">{typeBadge}</span>
-      <span class="ac__scan" aria-hidden="true"></span>
+    <div class="ac__media">
+      <div class="ac__frame">
+        <img
+          class="ac__img"
+          src={assetUrl(entry.path)}
+          alt={cleanTitle}
+          width={entry.width}
+          height={entry.height}
+          loading={eager ? "eager" : "lazy"}
+          decoding="async"
+        />
+        <span class="ac__badge label">{typeBadge}</span>
+        <span class="ac__scan" aria-hidden="true"></span>
+      </div>
+      {
+        playable && (
+          <svg class="ac__spikes" viewBox="-62 -62 124 124" aria-hidden="true" data-spikes>
+            <defs>
+              <radialGradient id={gid} gradientUnits="userSpaceOnUse" cx="0" cy="0" r="62">
+                {/* 封面边(50/62≈0.81)附近正红 → 刺尖黑红，"红里带黑" */}
+                <stop offset="0.78" stop-color="#f40000" />
+                <stop offset="0.9" stop-color="#9c0000" />
+                <stop offset="1" stop-color="#2b0000" />
+              </radialGradient>
+            </defs>
+            <g class="ac__spikes-g" fill={`url(#${gid})`}>
+              <path data-spike-path d="" />
+            </g>
+          </svg>
+        )
+      }
     </div>
-    {
-      playable && (
-        <svg class="ac__spikes" viewBox="-60 -60 120 120" aria-hidden="true" data-spikes>
-          <defs>
-            <radialGradient id={gid} gradientUnits="userSpaceOnUse" cx="0" cy="0" r="58">
-              {/* 刺基座(≈39)正红 → 刺尖(58)黑红，"红里带黑" */}
-              <stop offset="0.67" stop-color="#f40000" />
-              <stop offset="0.85" stop-color="#9c0000" />
-              <stop offset="1" stop-color="#2b0000" />
-            </radialGradient>
-          </defs>
-          <g class="ac__spikes-g" data-spikes-g fill={`url(#${gid})`} />
-        </svg>
-      )
-    }
     <div class="ac__body">
       <h3 class="ac__title">{cleanTitle}</h3>
       {subtitle && <p class="ac__sub">{subtitle}</p>}
@@ -135,16 +139,25 @@ const label = playable
   }
 
   /* ---- 音频驱动的红刺环 ----
-     player.ts 用 AnalyserNode 每帧改 <g> 里每个 <polygon> 的 points。
-     关键布局：SVG 铺到封面的 150%（viewBox -60..60 ⇒ 封面对应 ±40），
-     并垫在封面(z-index:1)之下 —— 静止时刺(半径≤40)整个藏在封面后面
-     不可见，声音越强刺尖越过封面边缘伸得越长，像从盘沿炸出来 */
+     player.ts 沿方框周界采样后重写 <path> 的 d。关键布局：SVG 铺到封面的
+     124%（viewBox ±62 ⇒ 封面对应 ±50），并垫在封面(z-index:1)之下 ——
+     静止时路径正好是封面方框、完全藏在封面后面，声音越强刺沿方框边缘
+     向外长，只在封面四周的窄环里出现，不侵入画面也不压到曲名 */
+  /* 封面 + 刺环的定位容器：高度正好等于封面（frame 是 1:1 且撑满宽度），
+     这样刺环用百分比定位才是以「封面」为基准。
+     注意不能直接相对 .ac__link 定位 —— 那里面还有标题，百分比高度会按
+     含标题的高度算，SVG 被拉成长方形后 preserveAspectRatio 会把图形
+     居中缩到短边，整个环会往下偏移十几像素 */
+  .ac__media {
+    position: relative;
+  }
+
   .ac__spikes {
     position: absolute;
-    left: -25%;
-    top: -25%;
-    width: 150%;
-    height: 150%;
+    left: -12%;
+    top: -12%;
+    width: 124%;
+    height: 124%;
     /* 全局有 svg{max-width:100%}，不覆盖的话会被压回容器宽，
        刺永远藏在封面后面伸不出来 */
     max-width: none;

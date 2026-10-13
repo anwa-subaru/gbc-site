@@ -184,16 +184,66 @@ export function initPlayer(): void {
   nextBtn?.addEventListener("click", () => step(1));
 
   /* ---------- 音频驱动的封面红刺环 ----------
-     AnalyserNode 取实时频谱：低频（鼓/贝斯）决定整圈基础长度，
-     中高频（人声/吉他）叠加各刺自己的波动 —— 人声越高刺越长。
-     只在「正在播放的那张封面」上跑 rAF，暂停时把刺收回再停。 */
+     沿「方形」封面周界采样，每个采样点沿径向位移，再用 Catmull-Rom
+     转三次贝塞尔连成一条平滑闭合路径：
+       · 位移为 0 时整条路径正好是封面方框，又垫在封面下层 → 完全看不见
+       · 位移量由实时频谱驱动：低频定整体强度，中高频（人声）给每个
+         采样点各自的起伏，声越大刺越长
+       · 频谱按相位取样 + 正弦包络随时间平移 → 刺围着封面流动
+     只在「正在播放的那张封面」上跑 rAF，暂停时衰减收回再停帧。 */
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const SPIKE_N = 36; // 刺的数量
-  /* SVG 铺到封面 150%（viewBox ±60），封面在 SVG 里是 ±40 的圆
-     ——刺垫在封面下层，静止(≤40)时全部藏在封面后不可见，
-     声音越强尖越过盘沿伸出，像从盘沿炸出来 */
-  const SPIKE_BASE = 39; // 刺基座半径：贴着封面内沿
-  const SPIKE_MAX = 58; // 刺尖最远半径（≈封面的 145%）
+  const RING_N = 192; // 周界采样点数（越高越平滑）
+  const RING_HALF = 50; // 封面半边长：SVG 铺 124% ⇒ 1 单位 = 封面的 1%
+  const RING_MAX = 15; // 刺最长伸出量（封面边长的 15%）
+  const RING_LOBES = 15; // 环形波瓣数：少而宽太平，多了成锯齿，15 左右牙齿分明
+
+  // 预计算周界采样点 + 外法线。基座是「圆角方框」而不是尖角方框：
+  // 尖角处外扩后曲线要在极短弧长内拐 90°，必然出现尖点（实测 74°）；
+  // 圆角半径 12 的方框，外扩 11 后转角半径变 23，整圈平滑。
+  // 圆角完全落在封面尖角内侧，静止时被封面挡住，看不出来。
+  const RING = (() => {
+    const H = RING_HALF;
+    const r = 12; // 圆角半径
+    const line = 2 * H - 2 * r; // 直线段长 76
+    const arc = (Math.PI / 2) * r; // 每段圆角弧长
+    const segs: { len: number; at: (t: number) => { x: number; y: number; nx: number; ny: number } }[] = [
+      { len: line, at: (t) => ({ x: -H + r + line * t, y: -H, nx: 0, ny: -1 }) },
+      { len: arc, at: (t) => { const a = -Math.PI / 2 + (Math.PI / 2) * t; return { x: H - r + r * Math.cos(a), y: -H + r + r * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a) }; } },
+      { len: line, at: (t) => ({ x: H, y: -H + r + line * t, nx: 1, ny: 0 }) },
+      { len: arc, at: (t) => { const a = (Math.PI / 2) * t; return { x: H - r + r * Math.cos(a), y: H - r + r * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a) }; } },
+      { len: line, at: (t) => ({ x: H - r - line * t, y: H, nx: 0, ny: 1 }) },
+      { len: arc, at: (t) => { const a = Math.PI / 2 + (Math.PI / 2) * t; return { x: -H + r + r * Math.cos(a), y: H - r + r * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a) }; } },
+      { len: line, at: (t) => ({ x: -H, y: H - r - line * t, nx: -1, ny: 0 }) },
+      { len: arc, at: (t) => { const a = Math.PI + (Math.PI / 2) * t; return { x: -H + r + r * Math.cos(a), y: -H + r + r * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a) }; } },
+    ];
+    const total = segs.reduce((s, g) => s + g.len, 0);
+    const out: { x: number; y: number; nx: number; ny: number; edge: number }[] = [];
+    for (let i = 0; i < RING_N; i++) {
+      let s = (i / RING_N) * total;
+      let g = segs[0];
+      for (const seg of segs) {
+        if (s <= seg.len) {
+          g = seg;
+          break;
+        }
+        s -= seg.len;
+        g = seg;
+      }
+      const p = g.at(Math.min(1, s / g.len));
+      /* 下边缘（曲名那侧）几乎不长刺：按法线 y 的 0.8 次方衰减，底边只留
+         一条细红边（15% 高度）把环闭合，刺集中在顶边与两侧 —— 曲名区域
+         始终干净，符合「刺只能在封面边缘」 */
+      const nyPos = Math.max(0, p.ny);
+      out.push({
+        x: p.x,
+        y: p.y,
+        nx: p.nx,
+        ny: p.ny,
+        edge: 0.15 + 0.85 * (1 - Math.pow(nyPos, 0.8)),
+      });
+    }
+    return out;
+  })();
 
   let analyser: AnalyserNode | null = null;
   let audioCtx: AudioContext | null = null;
@@ -224,26 +274,34 @@ export function initPlayer(): void {
     if (audioCtx && audioCtx.state === "suspended") void audioCtx.resume();
   };
 
-  // 每张可播放卡片的刺环 SVG 一次性建好 <polygon>，之后只改 points
-  const spikeEls = new Map<HTMLElement, SVGPolygonElement[]>();
-  const buildSpikes = (card: HTMLElement): SVGPolygonElement[] => {
-    let polys = spikeEls.get(card);
-    if (polys) return polys;
-    const g = card.querySelector<SVGGElement>("[data-spikes-g]");
-    const svg = card.ownerDocument;
-    polys = [];
-    if (g && svg) {
-      for (let i = 0; i < SPIKE_N; i++) {
-        const p = svg.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        g.appendChild(p);
-        polys.push(p);
-      }
-      spikeEls.set(card, polys);
-    }
-    return polys;
+  // 每张卡一个 <path>，之后只重写 d
+  const spikePaths = new Map<HTMLElement, SVGPathElement>();
+  const pathOf = (card: HTMLElement): SVGPathElement | null => {
+    const cached = spikePaths.get(card);
+    if (cached) return cached;
+    const p = card.querySelector<SVGPathElement>("[data-spike-path]");
+    if (p) spikePaths.set(card, p);
+    return p;
   };
 
-  // 频谱 → 每根刺的长度
+  /* Catmull-Rom → 三次贝塞尔（闭合）。直接连采样点会是一圈折线尖角，
+     过一遍样条后波峰波谷都是圆的 —— 就是"刺要平滑"那点 */
+  const smoothClosed = (xy: number[]): string => {
+    const n = xy.length / 2;
+    const px = (i: number): number => xy[(((i % n) + n) % n) * 2];
+    const py = (i: number): number => xy[(((i % n) + n) % n) * 2 + 1];
+    let d = `M${px(0).toFixed(1)},${py(0).toFixed(1)}`;
+    for (let i = 0; i < n; i++) {
+      const c1x = px(i) + (px(i + 1) - px(i - 1)) / 6;
+      const c1y = py(i) + (py(i + 1) - py(i - 1)) / 6;
+      const c2x = px(i + 1) - (px(i + 2) - px(i)) / 6;
+      const c2y = py(i + 1) - (py(i + 2) - py(i)) / 6;
+      d += `C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${px(i + 1).toFixed(1)},${py(i + 1).toFixed(1)}`;
+    }
+    return `${d}Z`;
+  };
+
+  // 频谱 → 频段平均能量
   const level = (lo: number, hi: number): number => {
     if (!analyser || !freqData) return 0;
     let sum = 0;
@@ -253,46 +311,59 @@ export function initPlayer(): void {
     return sum / ((b - a) * 255);
   };
 
+  const FLAT = smoothClosed(RING.flatMap((r) => [r.x, r.y]));
+  let amp = 0; // 包络：快起慢落，像音量表
+  let phase = 0; // 流动相位
+  /* 逐点能量。必须平滑后再用：频谱相邻 bin 差异极大，直接当位移
+     会得到一圈锯齿（之前"太刺、不平滑"就是这个）。
+     smooth[i] = 空间 3 抽头 + 时间低通，得到连续起伏 */
+  const smooth = new Float32Array(RING_N);
+
   const tick = (): void => {
     rafId = 0;
     const card = document.querySelector<HTMLElement>(".ac.is-playing");
-    if (!card) return;
-    if (analyser && !audio.paused) analyser.getByteFrequencyData(freqData!);
-
-    // 暂停/结束时把刺收回（每帧衰减），收完停帧
+    const path = card ? pathOf(card) : null;
+    if (!card || !path) return;
     const decaying = audio.paused;
-    if (decaying && !spikeEls.get(card)?.length) return;
+    if (analyser && !decaying) analyser.getByteFrequencyData(freqData!);
 
-    // 低频 = 底座；0.1~0.55 频段集中了人声基频与吉他泛音
     const bass = decaying ? 0 : level(0, 0.08);
     const voice = decaying ? 0 : level(0.1, 0.55);
-    const polys = buildSpikes(card);
-    let alive = false;
-    for (let i = 0; i < polys.length; i++) {
-      const ang = (i / polys.length) * Math.PI * 2;
-      const j = (i * 7) % polys.length; // 打乱相位，避免整圈同起同落
-      const wobble = Math.sin(performance.now() / 90 + j * 1.7) * 0.5 + 0.5;
-      const grow = bass * 0.45 + voice * 0.75;
-      const len = SPIKE_BASE + grow * (SPIKE_MAX - SPIKE_BASE) * (0.35 + 0.65 * wobble);
-      if (decaying) {
-        // 衰减模式：读当前刺尖半径往回缩
-        const pts = (polys[i].getAttribute("points") || "").split(" ");
-        const tip = pts[1] ? Number(pts[1].split(",")[0]) : SPIKE_BASE;
-        if (Math.abs(tip) > SPIKE_BASE + 0.4) alive = true;
-      }
-      const ca = Math.cos(ang);
-      const sa = Math.sin(ang);
-      const wid = 0.055 + 0.03 * voice; // 声越大刺越宽
-      const r1 = SPIKE_BASE - 4;
-      const x1 = ca * Math.cos(wid) * r1 - sa * Math.sin(wid) * r1;
-      const y1 = sa * Math.cos(wid) * r1 + ca * Math.sin(wid) * r1;
-      const x2 = ca * len;
-      const y2 = sa * len;
-      const x3 = ca * Math.cos(-wid) * r1 - sa * Math.sin(-wid) * r1;
-      const y3 = sa * Math.cos(-wid) * r1 + ca * Math.sin(-wid) * r1;
-      polys[i].setAttribute("points", `${x1.toFixed(1)},${y1.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} ${x3.toFixed(1)},${y3.toFixed(1)}`);
+    const target = Math.min(1, bass * 0.5 + voice * 0.85);
+    amp += (target - amp) * (target > amp ? 0.42 : 0.07);
+    phase = (phase + 0.0016 + amp * 0.005) % 1; // 越响流得越快
+
+    const bins = freqData ? freqData.length : 0;
+    // 1) 取频谱 + 时间低通
+    for (let i = 0; i < RING_N; i++) {
+      const u = i / RING_N;
+      const bin = bins ? Math.floor(((u + phase) % 1) * 0.55 * bins) : 0;
+      const raw = bins && freqData ? freqData[bin] / 255 : 0;
+      smooth[i] += (raw - smooth[i]) * 0.3;
     }
-    if (!decaying || alive) rafId = requestAnimationFrame(tick);
+    // 2) 空间 3 抽头平滑（环状，首尾相接）
+    const xy: number[] = [];
+    for (let i = 0; i < RING_N; i++) {
+      const r = RING[i];
+      const u = i / RING_N;
+      const lv =
+        (smooth[(i - 1 + RING_N) % RING_N] + 2 * smooth[i] + smooth[(i + 1) % RING_N]) / 4;
+      /* 只取正弦的正半周再抬到 1.4 次方：波峰是圆头牙齿、波谷压平，
+         相邻牙齿之间留一条细红边 —— 纯正弦会连成一坨圆团（没有"刺"）
+         指数 >1 保证接合处导数为 0，不会在谷底出现尖点；1.15 让牙尖更圆 */
+      const s = Math.sin(2 * Math.PI * (RING_LOBES * u - phase * 3));
+      const wave = s > 0 ? Math.pow(s, 1.3) : 0;
+      const h = RING_MAX * amp * r.edge * (0.3 + 0.7 * lv) * (0.12 + 0.88 * wave);
+      xy.push(r.x + r.nx * h, r.y + r.ny * h);
+    }
+    path.setAttribute("d", smoothClosed(xy));
+
+    if (!decaying || amp > 0.006) rafId = requestAnimationFrame(tick);
+    else {
+      amp = 0;
+      smooth.fill(0);
+      path.setAttribute("d", FLAT); // 收干净，路径回到方框（藏在封面后）
+    }
   };
 
   const startSpikes = (): void => {
