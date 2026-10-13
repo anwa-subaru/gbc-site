@@ -194,7 +194,7 @@ export function initPlayer(): void {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const RING_N = 192; // 周界采样点数（越高越平滑）
   const RING_HALF = 50; // 封面半边长：SVG 铺 124% ⇒ 1 单位 = 封面的 1%
-  const RING_MAX = 15; // 刺最长伸出量（封面边长的 15%）
+  const RING_MAX = 8.5; // 刺最长伸出量（封面边长的 8.5%，约 13px）
   const RING_LOBES = 15; // 环形波瓣数：少而宽太平，多了成锯齿，15 左右牙齿分明
 
   // 预计算周界采样点 + 外法线。基座是「圆角方框」而不是尖角方框：
@@ -312,12 +312,18 @@ export function initPlayer(): void {
   };
 
   const FLAT = smoothClosed(RING.flatMap((r) => [r.x, r.y]));
-  let amp = 0; // 包络：快起慢落，像音量表
+  let amp = 0; // 快起慢落包络（像音量表）
+
+  let burst = 0; // 爆发量：冲过均值就炸一次，然后衰减
   let phase = 0; // 流动相位
   /* 逐点能量。必须平滑后再用：频谱相邻 bin 差异极大，直接当位移
      会得到一圈锯齿（之前"太刺、不平滑"就是这个）。
      smooth[i] = 空间 3 抽头 + 时间低通，得到连续起伏 */
   const smooth = new Float32Array(RING_N);
+  /* 频谱通量用的上一帧频谱：现代混音整体能量几乎恒定，靠能量均值
+     检测不到鼓点，得看"频谱形状的突变"（onset） */
+  const prevSpec = new Uint8Array(128);
+  let fluxAvg = 0.04;
 
   const tick = (): void => {
     rafId = 0;
@@ -327,19 +333,41 @@ export function initPlayer(): void {
     const decaying = audio.paused;
     if (analyser && !decaying) analyser.getByteFrequencyData(freqData!);
 
-    const bass = decaying ? 0 : level(0, 0.08);
+    /* 低频取到 0.06（鼓点基频），人声段 0.1~0.55 */
+    const bass = decaying ? 0 : level(0, 0.06);
     const voice = decaying ? 0 : level(0.1, 0.55);
-    const target = Math.min(1, bass * 0.5 + voice * 0.85);
-    amp += (target - amp) * (target > amp ? 0.42 : 0.07);
-    phase = (phase + 0.0016 + amp * 0.005) % 1; // 越响流得越快
+    const energy = Math.min(1, bass * 0.6 + voice * 0.8);
+    // 起得极快、落得慢：重音一响刺立刻炸出来
+    amp += (energy - amp) * (energy > amp ? 0.78 : 0.09);
+
+    /* onset 检测：频谱通量（只看正向增量）比能量均值灵敏得多，
+       压缩过的混音里底鼓/军鼓一打，频谱形状就会突变 */
+    let flux = 0;
+    if (freqData && !decaying) {
+      const nb = Math.floor(freqData.length * 0.6);
+      for (let i = 0; i < nb; i++) {
+        const d = freqData[i] - prevSpec[i];
+        if (d > 0) flux += d;
+      }
+      prevSpec.set(freqData.subarray(0, prevSpec.length));
+      flux /= nb * 255;
+    }
+    fluxAvg += (flux - fluxAvg) * 0.05; // 自适应底噪
+    /* 增益 55 是按实测标的：本曲 flux 常年 0.007、鼓点峰值 0.025，
+       ×75 后常态≈0、重音≈1 */
+    const onset = decaying ? 0 : Math.min(1, Math.max(0, flux - fluxAvg) * 75);
+    // 常态只到 50%，onset 顶满 —— 这个差值就是"爆发性"
+    burst = Math.max(onset, burst * 0.86);
+    const drive = Math.min(1, amp * 0.5 + burst);
+    phase = (phase + 0.0012 + amp * 0.003 + burst * 0.01) % 1;
 
     const bins = freqData ? freqData.length : 0;
-    // 1) 取频谱 + 时间低通
+    // 1) 取频谱 + 时间低通（上冲比回落快，保住瞬态）
     for (let i = 0; i < RING_N; i++) {
       const u = i / RING_N;
       const bin = bins ? Math.floor(((u + phase) % 1) * 0.55 * bins) : 0;
       const raw = bins && freqData ? freqData[bin] / 255 : 0;
-      smooth[i] += (raw - smooth[i]) * 0.3;
+      smooth[i] += (raw - smooth[i]) * (raw > smooth[i] ? 0.55 : 0.22);
     }
     // 2) 空间 3 抽头平滑（环状，首尾相接）
     const xy: number[] = [];
@@ -348,12 +376,13 @@ export function initPlayer(): void {
       const u = i / RING_N;
       const lv =
         (smooth[(i - 1 + RING_N) % RING_N] + 2 * smooth[i] + smooth[(i + 1) % RING_N]) / 4;
-      /* 只取正弦的正半周再抬到 1.4 次方：波峰是圆头牙齿、波谷压平，
-         相邻牙齿之间留一条细红边 —— 纯正弦会连成一坨圆团（没有"刺"）
-         指数 >1 保证接合处导数为 0，不会在谷底出现尖点；1.15 让牙尖更圆 */
+      /* 只取正弦的正半周再抬到 2 次方：牙窄而分明、谷底压平，相邻牙齿
+         之间留一条细红边。指数 >1 保证接合处导数为 0（谷底不会出尖点），
+         指数越大牙越窄越"炸" */
       const s = Math.sin(2 * Math.PI * (RING_LOBES * u - phase * 3));
-      const wave = s > 0 ? Math.pow(s, 1.3) : 0;
-      const h = RING_MAX * amp * r.edge * (0.3 + 0.7 * lv) * (0.12 + 0.88 * wave);
+      const wave = s > 0 ? s * s : 0;
+      /* lv 抬到 1.5 次方：安静处几乎贴边、重音处顶满，拉开动态范围 */
+      const h = RING_MAX * drive * r.edge * (0.22 + 0.78 * Math.pow(lv, 1.5)) * (0.1 + 0.9 * wave);
       xy.push(r.x + r.nx * h, r.y + r.ny * h);
     }
     path.setAttribute("d", smoothClosed(xy));
@@ -361,6 +390,7 @@ export function initPlayer(): void {
     if (!decaying || amp > 0.006) rafId = requestAnimationFrame(tick);
     else {
       amp = 0;
+      burst = 0;
       smooth.fill(0);
       path.setAttribute("d", FLAT); // 收干净，路径回到方框（藏在封面后）
     }

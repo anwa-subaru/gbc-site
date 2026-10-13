@@ -82,10 +82,10 @@ const label = playable
           <svg class="ac__spikes" viewBox="-62 -62 124 124" aria-hidden="true" data-spikes>
             <defs>
               <radialGradient id={gid} gradientUnits="userSpaceOnUse" cx="0" cy="0" r="62">
-                {/* 封面边(50/62≈0.81)附近正红 → 刺尖黑红，"红里带黑" */}
-                <stop offset="0.78" stop-color="#f40000" />
-                <stop offset="0.9" stop-color="#9c0000" />
-                <stop offset="1" stop-color="#2b0000" />
+                {/* 封面边(50/62≈0.81)正红 → 刺尖(58.5/62≈0.94)黑红，"红里带黑" */}
+                <stop offset="0.8" stop-color="#f40000" />
+                <stop offset="0.88" stop-color="#9c0000" />
+                <stop offset="0.96" stop-color="#2b0000" />
               </radialGradient>
             </defs>
             <g class="ac__spikes-g" fill={`url(#${gid})`}>
