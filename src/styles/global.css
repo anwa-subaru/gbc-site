@@ -695,7 +695,7 @@ body > .plbar {
 /* 淡出：不等待、更短，避免整页空屏太久 */
 html.lang-swap body > * {
   opacity: 0;
-  transition: opacity 180ms ease-in;
+  transition: opacity 170ms ease-in;
   transition-delay: 0ms;
 }
 

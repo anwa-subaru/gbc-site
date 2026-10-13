@@ -117,7 +117,7 @@ export const applyLang = (next: Lang = lang): void => {
 };
 
 /** 切换过场：正文淡出 → 换语言 → 淡入（见 global.css 的 html.lang-swap）。
-    直接替换会"啪"地全页换字，很硬：先整页淡出 180ms，在全透明时换字，
+    直接替换会"啪"地全页换字，很硬：先整页淡出 170ms，在全透明时换字，
     再按 CSS 里配好的延迟错开淡入（导航→正文→页脚/播放条）。
     只在用户主动切换时走动画，首屏与跨页导航是直接应用，不闪。 */
 let swapTimer = 0;
@@ -140,7 +140,7 @@ export const setLang = (next: Lang): void => {
     applyLang(next); // 页面此刻是全透明的，换字过程看不见
     root.classList.remove("lang-swap"); // 去掉后由 CSS 错开淡入
     swapTimer = 0;
-  }, 180);
+  }, 215); // 比 CSS 的 170ms 淡出多留一点，保证换字时已经全透明
 };
 
 const readStored = (): void => {
