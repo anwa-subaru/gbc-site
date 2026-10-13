@@ -131,6 +131,12 @@ const MEMBERS = characterSlugs.map((slug, i) => {
       e.character === slug && e.path.startsWith(`assets/characters/${slug}/`),
   );
   const pv = videos().find((v) => v.character === slug);
+  /* 视频用 preload=none（5 段一起预载是 19MB），所以配一张首帧海报当缩略图 */
+  const pvPoster = (() => {
+    if (!pv) return undefined;
+    const q = pv.path.replace(/\.webm$/, "-poster.webp");
+    return fs.existsSync(path.resolve(process.cwd(), "public", q)) ? q : undefined;
+  })();
   const intro = paragraphs(subBlock(body, "官方性格描述"))[0];
 
   return {
@@ -142,6 +148,7 @@ const MEMBERS = characterSlugs.map((slug, i) => {
     hero,
     art,
     pv,
+    pvPoster,
     position: field(body, "乐队定位"),
     cv: field(body, "声优 (CV)"),
     group: field(body, "所属团体"),
@@ -279,13 +286,29 @@ if (missing.length) {
                 decoding="async"
               />
             ) : null}
-            {m.pv ? (
-              <a class="member__pv" href={url("/music")}>
+          </div>
+
+
+          {m.pv ? (
+            <figure class="member__pv" data-reveal>
+              <video
+                class="member__pv__video"
+                src={assetUrl(m.pv.path)}
+                poster={m.pvPoster ? assetUrl(m.pvPoster) : undefined}
+                preload="none"
+                playsinline
+                controls
+                width="720"
+                height="405"
+                data-i18n-attr="aria-label:characters.pv.aria"
+                data-i18n-vars={`name:${m.meta.ja}`}
+              />
+              <figcaption class="member__pv__cap">
                 <span data-i18n="characters.pv">角色 PV</span>
                 <span class="num">{Math.round(m.pv.duration ?? 0)}s</span>
-              </a>
-            ) : null}
-          </div>
+              </figcaption>
+            </figure>
+          ) : null}
         </div>
       </section>
     ))
@@ -541,29 +564,32 @@ if (missing.length) {
     opacity: 0.9;
   }
 
+  /* 该角色的官方 PV（约 30 秒），直接嵌在他/她自己的卡片里，
+     不再让音乐页替角色们放视频 */
   .member__pv {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-3);
-    padding: var(--sp-3) var(--sp-4);
+    margin: var(--sp-5) 0 0;
     border: 1px solid var(--border);
-    color: var(--ink-100);
-    font-size: var(--fs-sm);
-    letter-spacing: 0.08em;
-    text-decoration: none;
-    transition:
-      border-color var(--dur-base) var(--ease-out-cubic),
-      color var(--dur-base) var(--ease-out-cubic);
+    background: #000;
   }
 
-  .member__pv .num {
+  .member__pv__video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    background: #000;
+  }
+
+  .member__pv__cap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    border-top: 1px solid var(--border);
     color: var(--ink-300);
     font-size: var(--fs-xs);
-  }
-
-  .member__pv:hover {
-    border-color: var(--c);
-    color: var(--c);
+    letter-spacing: 0.08em;
   }
 
   /* ---- 桌面：左右分栏，立绘吸顶 ---- */
@@ -600,8 +626,5 @@ if (missing.length) {
   @media (prefers-reduced-motion: reduce) {
     .member__art img,
     .rail img,
-    .member__pv {
-      transition: none;
-    }
   }
 </style>

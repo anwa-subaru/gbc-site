@@ -23,6 +23,8 @@ const { variant = "nav", class: cls = "" } = Astro.props;
   data-i18n-attr="aria-label:nav.lang.aria"
   aria-label="切换语言"
 >
+  {/* 当前语言的红底由这个滑块承担：切换时它滑过去，而不是按钮各自闪一下 */}
+  <span class="lang__pill" aria-hidden="true"></span>
   {
     LANGS.map((l) => (
       <button
@@ -40,6 +42,7 @@ const { variant = "nav", class: cls = "" } = Astro.props;
 
 <style>
   .lang {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 2px;
@@ -49,7 +52,31 @@ const { variant = "nav", class: cls = "" } = Astro.props;
     background: rgb(255 255 255 / 0.04);
   }
 
+  .lang__pill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* 首帧先把滑块放到当前语言上，再打开过渡，
+     否则刚加载时它会从左上角滑进来 */
+  .lang.is-ready .lang__pill {
+    opacity: 1;
+    transition:
+      transform 360ms var(--ease-out-expo),
+      width 360ms var(--ease-out-expo),
+      height 360ms var(--ease-out-expo);
+  }
+
   .lang__btn {
+    position: relative;
+    z-index: 1;
     min-width: 34px;
     height: 26px;
     padding: 0 6px;
@@ -63,10 +90,8 @@ const { variant = "nav", class: cls = "" } = Astro.props;
     line-height: 1;
     letter-spacing: 0;
     cursor: pointer;
-    transition:
-      color 240ms var(--ease-out-cubic),
-      background-color 240ms var(--ease-out-cubic),
-      transform 240ms var(--ease-out-cubic);
+    /* 底色交给滑块，按钮只做文字颜色的过渡 */
+    transition: color 260ms var(--ease-out-cubic);
   }
 
   .lang__btn:hover {
@@ -74,9 +99,21 @@ const { variant = "nav", class: cls = "" } = Astro.props;
   }
 
   .lang__btn.is-on {
-    background: var(--accent);
     color: #fff;
-    transform: scale(1.06);
+  }
+
+  /* 320px 窄屏：顶部条要同时放品牌标、切换器、汉堡，按钮收小一点 */
+  @media (max-width: 359.98px) {
+    .lang {
+      padding: 2px;
+    }
+
+    .lang__btn {
+      min-width: 29px;
+      height: 24px;
+      padding: 0 4px;
+      font-size: 11px;
+    }
   }
 
   .lang--drawer .lang__btn {

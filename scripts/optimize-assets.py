@@ -524,10 +524,22 @@ def encode_video(src: str, dst: str, max_edge: int) -> dict:
             return False
         return True
 
+    def poster() -> None:
+        """抽第 1.5 秒一帧当海报。视频默认 preload=none（否则一页 19MB），
+        没有海报就是一块黑框，很难看。"""
+        out = os.path.splitext(dst)[0] + "-poster.webp"
+        r = subprocess.run(
+            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", "1.5", "-i", dst,
+             "-frames:v", "1", "-vf", "scale=720:-2", "-c:v", "libwebp", "-quality", "80", out],
+            capture_output=True, text=True)
+        if r.returncode != 0:
+            log(f"[warn] 海报抽取失败：{os.path.basename(dst)}")
+
     if not run("34", None):
         raise RuntimeError("ffmpeg 首次编码失败")
     size = os.path.getsize(dst)
     if size <= VIDEO_MAX_BYTES:
+        poster()
         return {"duration": round(dur, 2), "video_pass": "crf34"}
 
     # 超限：用时长算目标码率再压一档
@@ -540,6 +552,7 @@ def encode_video(src: str, dst: str, max_edge: int) -> dict:
     size = os.path.getsize(dst)
     if size > VIDEO_MAX_BYTES:
         raise RuntimeError(f"视频仍超预算：{human_size(size)}")
+    poster()
     return {"duration": round(dur, 2), "video_pass": "crf40-capped"}
 
 

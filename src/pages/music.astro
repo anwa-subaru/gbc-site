@@ -3,7 +3,7 @@
  * 音乐页 `/music`（t5d）
  * 版式取自 DESIGN.md §7.3：发行物封面网格 + 曲目表。
  * 文案 100% 来自 content/music.md（官网 goods 页 + 萌娘百科），构建期解析，零硬编码。
- * 角色 PV 直接用 <video controls> 内嵌（assets/videos 真实资产），
+ * 角色 PV 已挪到角色页（每位角色自己的卡片里内嵌），音乐页只留发行物与曲目。
  * 站内没有独立音源，因此不虚构任何音频 URL。
  */
 import fs from "node:fs";
@@ -11,7 +11,7 @@ import path from "node:path";
 import Layout from "../layouts/Layout.astro";
 import AlbumCard from "../components/AlbumCard.astro";
 import SongPlayer from "../components/SongPlayer.astro";
-import { assetUrl, category, videos, type AssetEntry } from "../lib/assets";
+import { assetUrl, category, type AssetEntry } from "../lib/assets";
 import songsData from "../data/songs.json";
 
 /* ---------- 解析 content/music.md ---------- */
@@ -221,7 +221,6 @@ const PLAYABLE = new Map(RELEASES.map((r) => [r.ja, playableOf(r)]));
 
 const MISSING_ART = RELEASES.filter((r) => r.art.length === 0).map((r) => r.ja);
 
-const PVS = videos();
 /* 来源仅保留官方链接（萌娘百科来源不再出现在站内文案中） */
 const officialOnly = (urls: string[]): string[] =>
   urls.filter((u) => !u.includes("moegirl"));
@@ -371,39 +370,6 @@ const SOURCE_LABEL = "官方网站";
     </ol>
   </section>
 
-  <section class="mu-sec container" id="pv">
-    <header class="mu-sec__head">
-      <h2 class="mu-sec__en">ROLE PV</h2>
-      <p class="mu-sec__ja">キャラクター PV</p>
-      <p class="mu-sec__count num">{PVS.length} VIDEOS</p>
-    </header>
-
-    <p class="mu-note" data-i18n="music.pv.note">
-      官方角色 PV（约 30 秒），点击即可站内播放，完整曲目请通过上方各发行物的官方渠道收听
-    </p>
-
-    <div class="mu-pvs">
-      {
-        PVS.map((v) => (
-          <figure class="mu-pv" data-reveal>
-            <video
-              class="mu-pv__video"
-              src={assetUrl(v.path)}
-              preload="none"
-              playsinline
-              controls
-              width="720"
-              height="405"
-            />
-            <figcaption class="mu-pv__cap num">
-              {v.character ? `${v.character.toUpperCase()} · ` : ""}
-              {Math.round(v.duration ?? 0)}s
-            </figcaption>
-          </figure>
-        ))
-      }
-    </div>
-  </section>
 </Layout>
 
 <style>
@@ -629,54 +595,6 @@ const SOURCE_LABEL = "官方网站";
     color: var(--gbc-red-text);
   }
 
-  /* ---- 角色 PV ---- */
-  .mu-note {
-    max-width: 72ch;
-    margin-bottom: var(--sp-5);
-    color: var(--ink-300);
-    font-size: var(--fs-sm);
-    line-height: 1.9;
-  }
-
-  .mu-pvs {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--sp-4);
-  }
-
-  @media (min-width: 768px) {
-    .mu-pvs {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .mu-pvs {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  .mu-pv {
-    border: 1px solid var(--border);
-    background: var(--ink-950);
-  }
-
-  .mu-pv__video {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    background: var(--ink-950);
-  }
-
-  .mu-pv__cap {
-    padding: var(--sp-2) var(--sp-3);
-    font-size: var(--fs-xs);
-    letter-spacing: 0.08em;
-    color: var(--ink-300);
-    border-top: 1px solid var(--border);
-  }
 
   @media (prefers-reduced-motion: reduce) {
     .mu-head__lead a,

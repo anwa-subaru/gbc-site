@@ -4,7 +4,6 @@
  * 出处仅标注官方公开渠道（站内不出现第三方百科字样）。
  */
 import { assetUrl, url } from "../lib/assets";
-import LangSwitch from "./LangSwitch.astro";
 
 const year = new Date().getFullYear();
 
@@ -88,10 +87,6 @@ const SOURCES = [
       ©東映アニメーション・agehasprings 等原权利人所有
     </p>
     <p class="footer__copy num">© {year} GBC FAN SITE</p>
-  </div>
-
-  <div class="footer__lang">
-    <LangSwitch class="footer__lang-switch" />
   </div>
 </footer>
 
@@ -209,14 +204,5 @@ const SOURCES = [
     font-size: var(--fs-xs);
     letter-spacing: 0.08em;
     color: var(--ink-300);
-  }
-
-  /* 页脚最底部：语言切换（写法参考 Nav 的 .nav__drawer-lang） */
-  .footer__lang {
-    margin-top: var(--sp-5);
-    padding-top: var(--sp-4);
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: center;
   }
 </style>

@@ -103,9 +103,6 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
         ))
       }
     </ul>
-    <div class="nav__drawer-lang">
-      <LangSwitch variant="drawer" />
-    </div>
   </nav>
 </div>
 
@@ -145,6 +142,17 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
   @media (min-width: 1024px) {
     .nav__brand img {
       height: 28px;
+    }
+  }
+
+  /* 320px 窄屏：品牌标收窄，给唯一的语言切换器和汉堡让位 */
+  @media (max-width: 359.98px) {
+    .nav__inner {
+      gap: var(--sp-2);
+    }
+
+    .nav__brand img {
+      height: 20px;
     }
   }
 
@@ -333,25 +341,11 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
     color: var(--gbc-red-text);
   }
 
-  /* 抽屉底部：语言切换（手机端没有别处能切） */
-  .nav__drawer-lang {
-    margin-top: var(--sp-5);
-    padding-top: var(--sp-4);
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: center;
-  }
-
-  /* 顶部条里的切换器只在桌面出现：手机上品牌标 + 汉堡已经占满，
-     再塞三个按钮在 320px 宽上会挤爆 */
+  /* 全站唯一的语言切换器就在这里（桌面与手机都在顶部条）。
+     以前导航、抽屉、页脚各有一个，一页上出现三组按钮，太吵。 */
   .nav__lang {
-    display: none;
-  }
-
-  @media (min-width: 1024px) {
-    .nav__lang {
-      display: inline-flex;
-    }
+    display: inline-flex;
+    flex: 0 0 auto;
   }
 
   .nav__drawer-inner a[aria-current="page"] .nav__drawer-en {

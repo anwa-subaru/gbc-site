@@ -83,6 +83,36 @@ export const t = (key: string, vars?: Record<string, string | number>): string =
 
 export const getLang = (): Lang => lang;
 
+/** 滑块定位 + 当前项标记。切换时按钮要立刻响应，所以点击时先调它、
+    再走整页淡出（否则滑块是在页面全黑时滑的，用户看不到）。 */
+let pillsArmed = false;
+const syncPills = (): void => {
+  document.querySelectorAll<HTMLElement>(".lang").forEach((box) => {
+    const on = box.querySelector<HTMLElement>(".lang__btn.is-on");
+    const pill = box.querySelector<HTMLElement>(".lang__pill");
+    if (!on || !pill) return;
+    pill.style.width = `${on.offsetWidth}px`;
+    pill.style.height = `${on.offsetHeight}px`;
+    pill.style.transform = `translate(${on.offsetLeft}px, ${on.offsetTop}px)`;
+  });
+};
+const armPills = (): void => {
+  if (pillsArmed) return;
+  pillsArmed = true;
+  requestAnimationFrame(() => {
+    document.querySelectorAll<HTMLElement>(".lang").forEach((b) => b.classList.add("is-ready"));
+  });
+};
+export const markActive = (next: Lang): void => {
+  document.querySelectorAll<HTMLElement>("[data-lang-set]").forEach((b) => {
+    const on = b.dataset.langSet === next;
+    b.classList.toggle("is-on", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+  syncPills();
+  armPills();
+};
+
 export const applyLang = (next: Lang = lang): void => {
   lang = next;
   const root = document.documentElement;
@@ -97,11 +127,7 @@ export const applyLang = (next: Lang = lang): void => {
     const spec = el.dataset.i18nAttr;
     if (spec) fillAttrs(el, spec, next);
   });
-  document.querySelectorAll<HTMLElement>("[data-lang-set]").forEach((b) => {
-    const on = b.dataset.langSet === next;
-    b.classList.toggle("is-on", on);
-    b.setAttribute("aria-pressed", String(on));
-  });
+  markActive(next);
 
   // <title> 与 meta description（由 Layout 在 <body> 上挂 key）
   const tk = document.body?.dataset.i18nTitle;
@@ -159,8 +185,12 @@ document.addEventListener("click", (e) => {
   const btn = (e.target as HTMLElement | null)?.closest<HTMLElement>("[data-lang-set]");
   if (!btn) return;
   const v = btn.dataset.langSet;
-  if (isLang(v)) setLang(v);
+  if (!isLang(v) || v === getLang()) return;
+  markActive(v); // 滑块先滑过去，页面这时还在淡出，用户看得见
+  setLang(v);
 });
+
+window.addEventListener("resize", syncPills);
 
 // ClientRouter：after-swap 早于绘制，先应用一次；page-load 再兜一次（幂等）
 document.addEventListener("astro:after-swap", () => {
