@@ -1,0 +1,555 @@
+# GBC 粉丝站 · 交接文档（HANDOVER.md）
+
+> 最后更新：2026-10-13
+> 对应提交：`063c09d` 歌词接上官方逐行时间轴（37/38 首）
+> 仓库路径：`/workspace/gbc-site`（**本地 git，未配置 remote**）
+> 配套文档：[DESIGN.md](./DESIGN.md) 设计规范（色板/字体/网格/组件）、[REVIEW.md](./REVIEW.md) 一次双端视觉审计报告
+
+---
+
+## 0. 30 秒速览
+
+| 项 | 值 |
+|---|---|
+| 线上地址 | https://gbc.misakamikoto.xyz |
+| 服务器 | `82.158.230.34`，Caddy 2.6.2 直接托管静态文件 |
+| 站点根目录 | `/var/www/gbc`（328 MB） |
+| 本地仓库 | `/workspace/gbc-site` |
+| 技术栈 | Astro 5.18.2（纯静态 `output: 'static'`）+ 原生 TS，无框架、无运行时依赖 |
+| 页面 | 5 页：`/` 首页、`/music/` 音乐、`/gallery/` 画廊、`/characters/` 角色、`/story/` 剧情 |
+| 内容量 | 38 首曲（235 MB 音频）、914 个图片/视频素材、38 首歌词（37 首带官方时间轴）、画廊 530 项 |
+| 构建 | `rm -rf dist && BASE_PATH=/ SITE_URL=https://gbc.misakamikoto.xyz pnpm build` |
+| 部署 | `tar` 打包 `dist/` → ssh 解到 `/var/www/gbc`（见 §4） |
+| 构建产物 | `dist/` 328 MB（其中 `assets/` 326 MB） |
+| 页面 HTML | 首页 120 KB / 音乐 216 KB / 画廊 615 KB / 角色 149 KB / 剧情 132 KB（Caddy 走 gzip+zstd，音乐页 gzip 后 41 KB） |
+
+**一句话现状**：站点功能完整、线上稳定，五个页面双端零报错；最近一轮工作集中在**播放器的全屏歌词**（全屏化、点播放器进入、逐字扫红、官方 LRC 时间轴）。
+
+---
+
+## 1. 项目定位与硬约束
+
+这是 GIRLS BAND CRY（ガールズバンドクライ）的**粉丝站**，内容整理自官方公开资料。接手前必须知道的四条硬约束：
+
+1. **文案只能来自官方来源**。角色页/剧情页的每一个字都来自 `content/*.md`，而 `content/*.md` 里逐条标注了出处 URL。**不要自己写描述性文案**——这是用户反复强调的红线。
+2. **审美好是验收标准，不是加分项**。用户用真机（Android Edge）看，对"干巴巴的过渡""页面跳动""排版不齐"极度敏感。
+3. **双端必须都验**。手机（iPhone 13 模拟 / 375–390 宽）与桌面（1440×900）都要过，任何改动都要跑一遍五页 × 双端的回归（见 §8）。
+4. **版权敏感**。音频、图片、歌词都是版权物；用户已授权歌词并接受站点风险，站内有免责声明。**不要新增额外的版权说教文案**，也不要移除现有声明。
+
+---
+
+## 2. 目录结构
+
+```
+/workspace/gbc-site
+├── astro.config.mjs          # site/base 推导（本地 '/'，CI 注入 BASE_PATH）
+├── DESIGN.md                 # 设计规范：色板/字体/网格/组件/动效
+├── REVIEW.md                 # 一次完整双端审计报告（含历史缺陷）
+├── HANDOVER.md               # 本文档
+├── content/                  # ★ 文案源（构建期 fs 读取并解析）
+│   ├── about.md              #   站点说明
+│   ├── characters.md         #   5 位角色（21 KB，逐条带出处 URL）
+│   ├── music.md              #   发行物/曲目说明（20 KB）
+│   └── story.md              #   13 话剧情（20 KB，日文原文 + 中文译名）
+├── public/assets/            # ★ 全部静态素材（326 MB，见 §5.1）
+│   ├── manifest.json         #   资产清单（914 条，构建期读取，勿手改）
+│   ├── audio/                #   38 个 mp3（235 MB）
+│   ├── artworks/  characters/ covers/ emoji/ logo/ posters/ videos/
+├── scripts/
+│   ├── optimize-assets.py    # 素材管线：源目录 → public/assets + manifest.json
+│   ├── lyrics-lrc-align.py   # ★ 官方 LRC 时间轴 → src/data/lyrics/*.json
+│   ├── mobile-audit.mjs      # 手机端截图 + 布局诊断（Playwright）
+│   └── pc-audit.mjs          # 桌面端同上
+├── src/
+│   ├── assets/fonts/         # 自托管字体（7 个 woff2，见 §5.4）
+│   ├── components/           # 12 个组件（见 §6）
+│   ├── data/
+│   │   ├── songs.json        # 38 首曲目元数据（n/file/title/artist/dur/cover/album）
+│   │   ├── lyrics/NN.json    # 38 首歌词（lines[] + times[]）
+│   │   └── gallery-labels.json
+│   ├── layouts/Layout.astro  # 全局 head / 导航 / 页脚 / ClientRouter / PlayerBar
+│   ├── lib/assets.ts         # ★ 资产访问层（assetUrl/url/category/...）
+│   ├── pages/                # 5 个页面
+│   └── styles/global.css     # 设计 token + 全局样式
+├── mobile-shots/ pc-shots/ review-shots/   # 审计截图（gitignore）
+└── dist/                     # 构建产物（gitignore）
+```
+
+---
+
+## 3. 本地开发
+
+```bash
+cd /workspace/gbc-site
+pnpm install                 # 依赖只有 astro + playwright
+pnpm dev                     # http://localhost:4321
+```
+
+### 3.1 本地预览构建产物（重要坑）
+
+```bash
+fuser -k 8899/tcp 2>/dev/null; sleep 1
+(cd dist && setsid python3 -m http.server 8899 >/tmp/httpd.log 2>&1 < /dev/null &)
+```
+
+⚠️ **`python3 -m http.server` 不支持 HTTP Range**，后果是：
+
+- `audio.currentTime = x` 会被浏览器拒绝并弹回 0（表现为"seek 失败/时间重置"）
+- 于是**本地测不了任何 seek 相关行为**：拖进度条、点歌词行跳转、切歌后的定位
+
+**结论**：seek 相关验证必须部署到线上（Caddy 支持 Range）再测。本地只适合验证 DOM/CSS/交互流程。合成事件 `dispatchEvent(new Event('ended'))` 在本地是好的，可以用来测"放完一首"的逻辑。
+
+### 3.2 构建
+
+```bash
+rm -rf dist && BASE_PATH=/ SITE_URL=https://gbc.misakamikoto.xyz timeout 300 pnpm build
+```
+
+- `BASE_PATH=/`：线上是根路径部署。**若改部署到子路径**（如 GitHub Pages 的 `/<repo>/`），必须传对应的 `BASE_PATH`，否则全部资源 404。
+- `SITE_URL`：写进 canonical / OG 标签，必须与真实域名一致。
+- `dist/` 是**全量**产物（328 MB，含音频），不是增量。
+
+---
+
+## 4. 构建与部署
+
+### 4.1 部署命令（一条）
+
+```bash
+cd /workspace/gbc-site
+rm -rf dist && BASE_PATH=/ SITE_URL=https://gbc.misakamikoto.xyz timeout 300 pnpm build
+tar czf - -C dist . | sshpass -p "$GBC_SSH_PASS" ssh -o StrictHostKeyChecking=no root@82.158.230.34 \
+  'rm -rf /var/www/gbc/* && tar xzf - -C /var/www/gbc && echo DEPLOYED'
+```
+
+> **敏感信息**：`$GBC_SSH_PASS` 是服务器 root 密码，当前会话里为 `[REDACTED]`。
+> 本文档与仓库**不得公开**（仓库当前没有配置 git remote，不要贸然 `git remote add` 后 push）。
+> 若将来要开源，先把这一节和任何明文凭据删掉，改用密钥登录。
+
+### 4.2 服务器现状
+
+- Caddy 2.6.2，systemd 服务名 `caddy`，配置文件 `/etc/caddy/Caddyfile`
+- 该站点的 Caddy 块（**已启用 gzip + zstd，且对指纹资源做一年强缓存**）：
+
+```caddyfile
+gbc.misakamikoto.xyz {
+	root * /var/www/gbc
+	encode gzip zstd
+	file_server
+	# 静态资源长缓存（指纹化文件）
+	@immutable path /_astro/* /assets/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+	handle_errors {
+		respond "{err.status_code} {err.status_text}" {err.status_code}
+	}
+}
+```
+
+- 磁盘：`/` 30 G，已用 16 G（站点占 328 M），余量充足
+- **注意**：`/assets/*` 是一年强缓存。若替换了**同名**素材（例如换了 `assets/covers/album/25.webp` 的内容但不改文件名），用户端会长期看到旧图。换素材要么改文件名，要么让用户强刷。
+
+### 4.3 回滚
+
+服务器上没有历史版本，`dist/` 也不入库。回滚方式：
+
+```bash
+cd /workspace/gbc-site
+git log --oneline            # 找到目标提交
+git checkout <commit>        # 或 git revert
+# 重新构建 + 部署（§4.1）
+git checkout main
+```
+
+因为每次部署都是 `rm -rf /var/www/gbc/*` 全量覆盖，**没有"只回滚一个文件"的路径**。
+
+### 4.4 CI（存在但未启用）
+
+`.github/workflows/deploy.yml` 是给 GitHub Pages 用的（`pnpm build` → 上传 `dist/`）。当前仓库**没有 remote**，所以这条流水线从未运行。若将来推 GitHub：
+
+- `astro.config.mjs` 会自动从 `GITHUB_REPOSITORY` 推导 `base=/<repo>`，**不要改这段推导逻辑**（它同时服务本地与 CI）
+- 但线上是 `gbc.misakamikoto.xyz` 根路径 + Caddy，与 Pages 是两套部署，别混淆
+
+---
+
+## 5. 内容与数据管线
+
+### 5.1 素材管线 `scripts/optimize-assets.py`
+
+- **输入**：`/workspace/gbcc/gbc/gbc`（991 个文件 / 2.3 GB，原始目录名是字面量 `#Uxxxx` 转义）
+- **输出**：`public/assets/{characters,logo,posters,covers,artworks,emoji,videos}/` + `public/assets/manifest.json`
+- **做四件事**：① 解码 `#Uxxxx` 转义文件名 ② 分类归档 ③ 转 WebP / 压缩 / 生成响应式尺寸 ④ 写 manifest
+- **实测结果**：914 个文件、输出 90.7 MB（源 2.29 GB），耗时 370 s，失败 0
+- 重新生成后**必须** `pnpm build`，因为 `src/lib/assets.ts` 在构建期读 manifest
+
+`src/lib/assets.ts` 是唯一允许拼素材路径的地方：
+
+```ts
+assetUrl("assets/covers/album/25.webp")  // → /assets/covers/album/25.webp
+url("/characters")                       // → /characters（自动带 base 前缀）
+category("covers") / characterArt("nina") / characterPrimary("nina") / groupShots() ...
+```
+
+> **禁止**在组件里手拼 `"/assets/..."`——manifest 里的 path 不带前导斜杠，手拼会在子路径部署时全部 404。
+
+### 5.2 曲目数据 `src/data/songs.json`
+
+38 条，字段：`{ n, file, title, artist, dur, cover, album }`
+
+- `n`：曲目编号 1–38，**是 lyrics/*.json 与音频文件名的连接键**
+- `file`：`assets/audio/NN.mp3`；`cover`：`assets/covers/album/NN.webp`
+- `dur`：秒（用于等距时间轴兜底、歌词面板显示）
+
+### 5.3 歌词：三层结构
+
+歌词是这个项目里最复杂的一条链，分三层，**改动任何一层都要重跑后一层**：
+
+```
+① 文本     用户收集的官方歌词页（纯文本，无时间轴）
+            ↓ 已固化进仓库
+② 数据     src/data/lyrics/NN.json
+            { n, title, artist, lyricist, composer, use, source,
+              lines: string[],          ← ①的文本，按行
+              times: number[] }         ← ②新增：每行起始秒（37/38 首有）
+            ↓ scripts/lyrics-lrc-align.py 从官方 LRC 生成
+③ 运行时   PlayerBar.astro 构建期 fs 读取全部 38 个 JSON →
+           内联成 <script type="application/json" data-lyrics>
+           → player.ts 解析 → 渲染 + 高亮 + 逐字扫红
+```
+
+**时间轴来源**：`/workspace/GBC-all-lyrics-lrc.txt`（93 KB，2022 行）
+
+- 网易云标准 LRC，**逐行**时间戳，1751 行 / 38 首
+- ⚠️ **不是逐字时间轴**（没有 `<mm:ss.xxx>` 内联标记）。用户曾以为是逐字，实际只有逐行
+- 文件里还带了中文翻译（tlyric），**当前未使用**（可作为后续"日/中切换"的数据源）
+
+**对齐算法**（`scripts/lyrics-lrc-align.py`，已固化、幂等，可重复跑）：
+
+1. 解析段落，剔除 `作词/作曲/编曲` 元数据行与纯空行
+2. 标题归一化匹配（抹平全半角/装饰符号/大小写，含 `arrow` ↔ `箭` 这类异名）
+3. **动态规划单调对齐**：行文本相似度 ×2−0.4 为匹配分，跳过得 −0.7，相似度 <0.34 不允许匹配
+4. 未对齐行按前后邻居线性插值 → 单调化（保证时间严格递增）
+5. **只写 `times`，不动 `lines`**——站内文本比 LRC 干净（LRC 里有 `抜け殼`/`じや`/`せがい`/`疑神暗鬼` 这类错字）
+
+**跳过规则**：
+
+- LRC 末行时间 < 曲长 × 0.6 → 判定 short ver.，保留等距估算
+- 对齐率 < 50% → 判定匹配错歌，保留等距估算
+- 当前唯一被跳过：`n=8 さよならあの日のメロディ`（网易云只有 4 行 / 15.5 s 的 short ver.，站内是 267 s 完整版）
+
+**为什么必须做这一步**：等距估算（曲长 ÷ 行数）会让整首高亮**抢跑**。例：`碧いif` 首句实际在 **13.477 s**，等距估算从 0 s 就开始高亮，整首歌错一句；前奏期间还会一直亮着第一句。接入真实时间轴后，前奏 1.6–9.7 s 完全不高亮，13.7 s 才亮第一句。
+
+### 5.4 字体子集化（歌词用的官方同款字体）
+
+`src/assets/fonts/`：
+
+| 文件 | 大小 | 用途 |
+|---|---|---|
+| `barlow-{400,600,900}.woff2` | 各 22 KB | 全站西文/数字 |
+| `tektur-var.woff2` | 12 KB | 编号/标签 |
+| `nsjp-{500,700,900}.woff2` | 各 ~160 KB | **歌词面板**（`--font-lyric`） |
+
+`nsjp-*` 是 Noto Sans CJK JP 的**文本子集**：
+
+- 源：`noto-cjk` release `Sans2.004` 的 `06_NotoSansCJKjp.zip`（94 MB）
+- 用 `fonttools` + `brotli` 的 `Subsetter` API 子集到 **1118 个字符**（38 首歌词全文 + 元数据 + UI 字符串 + 全假名 + 符号）
+- 三档字重 500/700/900，合计 ~487 KB
+- **不要**换成 Google Fonts 的 unicode-range 分片方案：早期试过 79 分片 × 3 字重 = 237 文件 / 7.9 MB，被否
+
+> 如果新增了歌词（出现 1118 字符集之外的汉字），必须**重新子集化**，否则新字会掉回系统字体，同一行里字形不一致。子集化脚本当时是一次性执行、未入库；重建方法见 `git log` 里 `5d8497d` 的说明，或按上面两步重跑。
+
+### 5.5 文案源 `content/*.md`
+
+`story.astro` / `characters.astro` 在**构建期** `fs.readFileSync` 解析 Markdown：
+
+- `content/story.md`：13 话，官网日文原文 + 萌娘百科中文译名/Staff/致敬典故，逐条带出处
+- `characters.astro` 读 `content/characters.md`：5 位角色（nina/momoka/subaru/tomo/rupa），逐条带出处 URL
+- 解析是**正则**的，改了 Markdown 结构要同步改页面里的解析逻辑
+- 已知历史缺陷：第 4 话标题因日文嵌套括号导致中文译名丢失（REVIEW.md M2），已修，注意别回归
+
+---
+
+## 6. 运行时架构
+
+### 6.1 入口与初始化
+
+```
+Layout.astro
+  ├─ <ClientRouter />           Astro View Transitions（无整页刷新）
+  ├─ <Nav /> <slot /> <Footer /> <Lightbox />
+  └─ <PlayerBar transition:persist />   ★ 底栏播放器，跨页不销毁
+src/scripts/site.ts   → astro:page-load → initAll()
+src/scripts/player.ts → astro:page-load → 取 window.__gbcPlayer，没有就 createCore()
+```
+
+关键机制：
+
+- **`transition:persist`**：PlayerBar 的 DOM（含 `<audio>`、`<dialog>`、歌词数据）在站内导航时**不重建**，所以音频不断、歌词面板不关
+- **`window.__gbcPlayer = { bar, core }`**：核心实例只创建一次；每次 `astro:page-load` 只调 `core.refresh()` 重新绑定**页面局部**元素（曲目列表、专辑卡）
+- **`dataset.bound`**：所有 `addEventListener` 都用它做幂等守卫，防止跨页重复绑定
+- **测试时必须用页内链接点击**（`<a>`）来验证跨页行为；`page.goto()` 是整页刷新，会杀掉音频，测出来的"断了"是假象
+
+### 6.2 全局播放器
+
+| 文件 | 行数 | 职责 |
+|---|---|---|
+| `src/scripts/player.ts` | 1147 | 播放核心：队列、模式、进度、频谱、折叠、歌词 |
+| `src/components/PlayerBar.astro` | 669 | 底栏 DOM + 样式 + 歌词 JSON 内联 |
+| `src/components/LyricsPanel.astro` | 518 | 全屏歌词面板（`<style is:global>`） |
+| `src/components/SongPlayer.astro` | 466 | 音乐页的曲目列表条 + 模式按钮 |
+| `src/components/AlbumCard.astro` | 288 | 专辑卡（封面 + 卡内轮播 + 刺环挂载点） |
+
+`player.ts` 内部分段（行号为当前提交，改动后会漂移）：
+
+| 行 | 段 |
+|---|---|
+| ~107 | 音量持久化（`localStorage["gbc.vol"]`） |
+| ~155 | UI 同步（标题/封面/播放态） |
+| ~222 | 播放控制（load/play/advance） |
+| ~304 | **频谱引擎**（环形刺） |
+| ~668 | 循环/随机模式 |
+| ~695 | 双击播放（鼠标与触摸同一条路径） |
+| ~732 | 底栏按钮 |
+| ~753 | 进度/音量（`timeupdate`） |
+| ~809 | 键盘 ←/→ 切歌 |
+| ~818 | Media Session 硬件按键 |
+| ~865 | **歌词面板** |
+
+**状态**：`mode`（list/one/shuffle/off）与折叠状态**只放内存**，刷新即重置（这是刻意的，别改成 localStorage）。
+
+### 6.3 环形频谱（专辑封面上的音频可视化）
+
+- `RAY_PER_SIDE = 8` → 每边 8 根、整圈 32 根刺，贴合正方形封面四边
+- `AnalyserNode`，`fftSize = 256`，`smoothingTimeConstant = 0.5`
+- 核心是**白化**：`RAY_REF`（每根刺的慢参考，本频段常态水平）与 `RAY_SCORE`（本帧激励分 = 当前/参考），保证"有动态范围、有高低差"而不是一起跳
+- `prefers-reduced-motion` 时降级（不跑刺，只留红描边）
+- 无 Web Audio 的极老浏览器：`analyser = null`，静默降级
+- 历史调优结论（用户逐轮反馈）：刺要**长出来**不是跳出来；圆顶；低频矮高频高；人声主导；手机端振幅加大
+- 曾修过的 bug：切页返回后刺环不出现（`refresh()` 里要清刺的缓存）
+
+### 6.4 折叠
+
+- 底栏可完整收起（滑出屏幕外，body padding 归 0），右下角浮出圆形还原按钮
+- 状态在内存里（`let folded`），刷新即展开
+- 动画用 spring 曲线，`prefers-reduced-motion` 下关闭
+
+### 6.5 播放模式
+
+`MODE_ORDER = ["list", "one", "shuffle", "off"]`，一个按钮循环切换，四种模式各有专属图标：
+
+| 模式 | 文案 | 颜色 |
+|---|---|---|
+| `list` | 列表循环 | 青 `--neon-cyan` |
+| `one` | 单曲循环 | 红 `--accent` |
+| `shuffle` | 随机播放 | 粉 `--neon-pink` |
+| `off` | 顺序播放 | 灰 |
+
+语义：`list` 顺序循环；`one` 单曲重来；`shuffle` 随机带环绕；`off` 顺序播完即停。
+
+### 6.6 全屏歌词（最近一轮的重点）
+
+**入口**：点底栏上的**封面**或**曲名区**（`[data-lyrics-open]`），或底栏除控件外的任何空白处（`bar` 上的委托点击，会排除 `button/input/a/label`）。手机上有一个常驻的 `^` 提示箭头（有曲目时 75% 透明）——**没有它用户找不到入口**（这是踩过的坑）。
+
+**面板**：`<dialog class="lyr" data-lyrics>`，`showModal()`，**铺满整屏**（手机与桌面一致，无圆角无边距）。内含：
+
+- 背景：模糊的专辑封面（`blur(56px)` + 遮罩渐变）
+- 顶部：收起键 `⌄` + 居中歌名/歌手/时长（右侧有等宽占位，否则标题会被挤右 22 px）
+- 中部：歌词区（`mask-image` 上下渐隐 + 内部滚动，**绝不滚整页**）
+- 底部：**全屏自带的**进度条 + 上一首/播放暂停/下一首 + 作词作曲署名（全屏后底栏被盖住，操作必须能在全屏内完成）
+
+**逐字扫红（卡拉OK）**：
+
+- 每行在渲染时按**字**拆成 `<span class="lyr__ch">`
+- 当前行整句**白字**，已唱到的字加 `.is-on` → 红色 + `0 0 14px` 红晕
+- 推进：`n = round(clamp((pos - top) / sweep) * 字数)`
+- `sweep = min(到下一句的间隔 × 0.85, max(0.9, 字数 × 0.17))`
+  —— 前者保证不拖过下一句，后者是按"约 6 字/秒"估的人声速度
+- 只在**字数变化时**写 DOM，不逐帧重排
+
+**位置算法**：
+
+- 二分查找当前行（`times` 单调递增，可直接二分）
+- 当前行居中锚点取容器高度的 **42%**（视觉重心略偏上更耐看）
+- `lyrBody.scrollTo({ top, behavior: "smooth" })`，**只在换行时**调用
+- 点任意一句 → `audio.currentTime = 该句 top`
+
+### 6.7 `site.ts` 的页面级行为
+
+`initNav`（抽屉导航）/ `initReveal`（滚动揭示）/ `initCarousel`（首页轮播）/ `initLightbox`（画廊灯箱），全部挂在 `astro:page-load` 上并用 `dataset.bound` 守卫。
+
+---
+
+## 7. 关键约定与坑（踩过的，务必读）
+
+### 7.1 Astro
+
+| 坑 | 现象 | 做法 |
+|---|---|---|
+| **scoped style 不作用于 JS 创建的元素** | 给歌词 `<li>` 写的样式完全无效（字体/字重/颜色全是默认） | Astro 的 `<style>` 会被加上 `data-astro-cid-*` 属性选择器，JS 动态创建的元素没有该属性。**动态内容的样式必须写在 `<style is:global>` 里**（LyricsPanel 就是这么做的） |
+| **同优先级媒体查询写在基础规则之前** | 断点样式静默失效 | CSS 里 `@media` 必须放在它要覆盖的基础规则**之后**（这个坑踩过两次） |
+| **`[data-lyrics]` 会匹配到 JSON script** | `showModal is not a function` | 页面上同时存在 `<script type="application/json" data-lyrics>` 和 `<dialog data-lyrics>`，选择器必须写成 **`dialog[data-lyrics]`** |
+| **`<script>` 里的 JSON 要 `is:inline`** | 构建后 JSON 被当模块处理 | `PlayerBar.astro` 用的是 `<script type="application/json" data-lyrics is:inline set:html={...}>` |
+
+### 7.2 CSS / 布局
+
+| 坑 | 现象 | 做法 |
+|---|---|---|
+| **`display: grid` 会把每个 `<span>` 变成独立网格项** | 逐字歌词变成"一个字一行" | 歌词行用 `display: block` + 固定 `line-height` 做行盒，不要用 grid 居中 |
+| **`font-size` 加 transition = 逐帧重排** | 换句时"卡一下" | 只过渡 `color`。当前句放大靠**固定行盒**（手机 52 px / 桌面 68 px）吸收，不用字号过渡 |
+| **`color-mix()` 需要兜底** | 不支持的浏览器整行颜色异常 | 先写 `color: var(--ink-300)`，再写 `color: color-mix(...)` |
+| **`max-width/height` 被 dialog 的 UA 样式压制** | 全屏面板左右各留 3 px | `dialog` 要显式 `max-width:100%; max-height:100%` |
+| **CSS `columns` 布局下 DOM 顺序 ≠ 视觉阅读顺序** | 灯箱"下一张"跳序（**未修**，见 §9） | 若要修，需要按视觉位置重排 `items` |
+| **全角 `｜` 在等宽字体栈里会 fallback** | 歌词副标题竖线粗细不一 | 换成 1 px 的 `<i>` 元素 |
+
+### 7.3 播放器 / 媒体
+
+| 坑 | 现象 | 做法 |
+|---|---|---|
+| 本地 `python3 -m http.server` 不支持 Range | 一切 seek 测试失败 | seek 只能上线上测（§3.1） |
+| `page.goto()` 是整页刷新 | 测"跨页不断播"必然失败 | 用页内 `<a>` 点击做导航 |
+| 手机端无曲目时底栏 `visibility: hidden` | 空状态下点不到播放条 | 这是**刻意设计**（不占屏），不是 bug；桌面端底栏常驻 |
+| `current == null` 时点歌词入口 | 以前静默无反应 | 现在允许打开空态面板（有反馈胜过没反应） |
+| `renderLyrics()` 在 `showModal()` 之前跑 | `lyrBody.clientHeight === 0`，首次定位算错且被"当前行没变"提前返回卡死 | **先 `showModal()`，再 `requestAnimationFrame(() => paintLyric(true))`** |
+| 全屏进度条不动 | 只更新了主进度条 | `timeupdate` 里要显式调 `syncLyricBar()`（注意源文件里变量名是 `d` 不是 `t`，字符串替换容易漏） |
+
+### 7.4 工程习惯
+
+- **临时脚本放 `scripts/_*.mjs`，提交前删掉**（`git status` 必须是干净的）
+- **提交信息用文件传**：`git -c user.name=... commit -q -F /tmp/msgN.txt`
+  —— 内联 `-m` 遇到信息里的引号会炸
+- 改动前先 `git log --oneline` 看上下文，提交信息是中文、写"为什么"而不只是"改了什么"
+
+---
+
+## 8. 验证方法（这套流程是被用户验收逼出来的）
+
+### 8.1 原则
+
+1. **数值探针优先于肉眼**：用 Playwright `evaluate` 读 `getBoundingClientRect` / `getComputedStyle` / class 状态 / `window.scrollY`，不要只靠截图
+2. **截图用于审美**：数值对了但"不好看"一样不通过，审美问题交给能读图的子代理审查
+3. **双端 × 五页回归**：每次改动都要跑
+
+### 8.2 标准回归脚本骨架
+
+```js
+import { chromium, devices } from 'playwright';
+const b = await chromium.launch();
+const errs = [];
+for (const [name, opt] of [
+  ['手机', { ...devices['iPhone 13'], hasTouch: true }],
+  ['桌面', { viewport: { width: 1440, height: 900 } }],
+]) {
+  const p = await (await b.newContext(opt)).newPage();
+  p.on('pageerror', e => errs.push(name + ':' + e));
+  for (const path of ['', 'music/', 'gallery/', 'characters/', 'story/']) {
+    await p.goto('http://localhost:8899/' + path, { waitUntil: 'load' });
+    // 断言：无横向溢出
+    const over = await p.evaluate(() =>
+      document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    if (over > 0) console.log('!! 横向溢出', name, path, over);
+  }
+  // …交互断言…
+}
+console.log('错误:', errs.length ? errs.join(' | ') : '无');
+```
+
+### 8.3 必须过的验收项
+
+- [ ] 五页 × 双端：**零 `pageerror`**、**零横向溢出**
+- [ ] 播放：双击曲目 → 出封面/标题/进度；播放条进度与时间在走
+- [ ] 模式按钮：四种模式循环，图标/颜色正确
+- [ ] 折叠：收起 → 底栏滑出 + body padding 归零 + 还原按钮出现；再点还原
+- [ ] 歌词：点封面/曲名/空白 → 全屏打开；`dialog` 尺寸 == 视口尺寸
+- [ ] 歌词：当前句**白字**、已唱字**红字**、扫红在推进
+- [ ] 歌词：点某句 → seek 到该句（**线上测**），当前行号正确
+- [ ] 歌词：`window.scrollY` 全程不变（绝不滚整页）
+- [ ] 换句时相邻行**位移为 0**（无布局抖动）
+- [ ] 跨页：开着歌词点页内链接 → 面板仍在、音频仍在放
+- [ ] 点大红播放键**不会**误开歌词
+
+### 8.4 最近一轮的实测基线（可作回归对照）
+
+| 项 | 数值 |
+|---|---|
+| 歌词时间轴覆盖 | 38 首中 **37 首**，共 1390 行 |
+| `碧いif` 首句时间 | **13.477 s**（前奏 1.6–9.7 s 无高亮，13.7 s 亮第一句） |
+| 全屏尺寸 | 手机 `390×664` / 桌面 `1440×900`（== 视口） |
+| 点第 6 句 | 音频落在 36.7 s，当前行号 5，15/15 字全红 |
+| 换句布局位移 | 相邻 6 行全部 `0` |
+| 点击耗时 | 手机 ~12 ms / 桌面 ~18 ms（线上含 seek 约 26 ms） |
+| 标题居中偏差 | `0 px`（修之前是 +22 px） |
+| 署名对比度 | `#9aa1ae` on `#07080c` ≈ 7:1（修之前 3.6:1） |
+
+---
+
+## 9. 已知问题 / 待办
+
+### 9.1 已知缺陷（未修）
+
+1. **画廊灯箱顺序 ≠ 视觉顺序**
+   `Gallery.astro` 用 CSS `columns` 多列布局，`site.ts` 的 `initLightbox` 按 DOM 顺序取 `items`，导致"下一张"在视觉上是跳的。
+   修法：按 `getBoundingClientRect()` 的 `top/left` 重排 items（注意窗口 resize 要重算）。
+2. **`n=8 さよならあの日のメロディ` 没有时间轴**
+   网易云只有 short ver.（4 行 / 15.5 s），站内是 267 s 完整版。目前退回等距估算（这首会抢跑）。拿到完整版 LRC 即可用 `scripts/lyrics-lrc-align.py` 重跑。
+3. **歌词字体子集是静态的 1118 字符**
+   新增歌词若出现集外汉字，会掉回系统字体。需要重新子集化（§5.4）。
+4. **歌词面板只显示日文原文**
+   LRC 文件里带了网易云的中文翻译（tlyric），**未接入**。可作为"日/中切换"功能的数据源。
+
+### 9.2 可做但没做的优化（用户提过或明显可做）
+
+- Media Session 元数据完善（锁屏显示封面/歌手）
+- 灯箱相邻图预加载
+- 画廊 **530 项**（HTML 615 KB，主要是内联的清单数据）的回到顶部按钮
+- 图片 blur-up 占位
+- 手机端歌词入口的首次引导（现在靠常驻 `^` 箭头）
+
+---
+
+## 10. 未决问题（需要用户拍板）
+
+1. **音乐页的 ROLE PV 区块要不要删？**
+   已问过两次，用户没回答。该区块内嵌 5 支官方角色 PV（`assets/videos/`，20 MB），位于 `src/pages/music.astro` 的 `PVS`（~line 197/335）。
+2. 歌词是否需要日/中双语切换（数据现成）。
+3. 歌词扫红速度是否合适（用户还没在真机上给过反馈）。
+
+---
+
+## 11. 关键提交历史（由近及远）
+
+| 提交 | 内容 |
+|---|---|
+| `063c09d` | 歌词接上官方逐行时间轴（37/38 首） |
+| `cc53a74` | 歌词改成逐字扫红 + 修掉换句卡顿 |
+| `aa8ce81` | 歌词入口更好找：加提示箭头 + 播放条空白处也能点 |
+| `7ee230d` | 歌词改成全屏，入口改为点播放器 |
+| `5d8497d` | 新增歌词面板：点「词」看歌词，随进度高亮居中，官方同款字体 |
+| `a11e497` | 播放模式合并成一个按钮：随机并进来，四种模式各有专属图标 |
+| `171885e` | 播放器折叠改成完全收起 + 补上折叠动画 |
+| `a760fdf` | 播放器重构：全局底栏 + 专辑内轮播 + 循环模式 + 跨页不断播 |
+| `86675de` | 专辑封面环形频谱：正方形四边各 3 根圆顶刺，低频矮高频高 |
+
+（完整历史：`git log --oneline`）
+
+---
+
+## 12. 版权与出处
+
+- 音频、图片、视频、角色设定均为 GIRLS BAND CRY 官方版权物，本站为非官方粉丝站
+- 站内**所有文案逐条带出处 URL**（官网 / 萌娘百科 / 官方 X），出处标注是强制组件（见 DESIGN.md §5.6）
+- 歌词：**用户已授权使用**，站内有免责声明（"如果有侵权，我就立刻下架网站"）。**不要新增额外的版权说教文案，也不要删除现有声明**
+- 素材管线来源目录：`/workspace/gbcc/gbc/gbc`（2.3 GB 原始素材）
+
+---
+
+## 13. 交接检查清单
+
+接手后建议按顺序做：
+
+1. `pnpm install && pnpm dev` 起本地，五个页面点一遍
+2. 读 [DESIGN.md](./DESIGN.md)（色板/字体/网格是硬规范，别自由发挥）
+3. 读本文档 §7（坑）——**能省掉至少半天返工**
+4. 跑一次 §8.2 的回归脚本，确认当前线上/本地基线
+5. 若要改歌词：改 `src/data/lyrics/*.json` → `python3 scripts/lyrics-lrc-align.py` → `pnpm build`
+6. 若要改素材：改 `scripts/optimize-assets.py` 的输入 → 重跑 → `pnpm build`
+7. 任何改动：**双端五页回归 → 视觉审查 → 部署 → 线上复验（尤其 seek）→ 提交**
+8. 部署凭据见 §4.1（**不要把仓库推到公开远端**）
