@@ -79,13 +79,13 @@ const label = playable
       </div>
       {
         playable && (
-          <svg class="ac__spikes" viewBox="-66 -66 132 132" aria-hidden="true" data-spikes>
+          <svg class="ac__spikes" viewBox="-70 -70 140 140" aria-hidden="true" data-spikes>
             <defs>
-              <radialGradient id={gid} gradientUnits="userSpaceOnUse" cx="0" cy="0" r="66">
+              <radialGradient id={gid} gradientUnits="userSpaceOnUse" cx="0" cy="0" r="70">
                 {/* 封面边(50/66≈0.76)正红 → 刺尖(63/66≈0.95)黑红，"红里带黑" */}
-                <stop offset="0.76" stop-color="#f40000" />
-                <stop offset="0.86" stop-color="#9c0000" />
-                <stop offset="0.96" stop-color="#2b0000" />
+                <stop offset="0.68" stop-color="#f40000" />
+                <stop offset="0.79" stop-color="#9c0000" />
+                <stop offset="0.9" stop-color="#2b0000" />
               </radialGradient>
             </defs>
             <g class="ac__spikes-g">
@@ -155,10 +155,10 @@ const label = playable
 
   .ac__spikes {
     position: absolute;
-    left: -16%;
-    top: -16%;
-    width: 132%;
-    height: 132%;
+    left: -20%;
+    top: -20%;
+    width: 140%;
+    height: 140%;
     /* 全局有 svg{max-width:100%}，不覆盖的话会被压回容器宽，
        刺永远藏在封面后面伸不出来 */
     max-width: none;
@@ -237,6 +237,14 @@ const label = playable
     position: relative;
     z-index: 1;
     padding-top: var(--sp-4);
+  }
+
+  /* 手机上振幅加大到 17.5%，底边的刺最长能到约 25px，24px 的间距不够用，
+     这里把曲名再往下让 8px，保证任何重音都压不到字 */
+  @media (max-width: 640px) {
+    .ac__body {
+      padding-top: var(--sp-5);
+    }
   }
 
   .ac__title {

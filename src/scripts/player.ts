@@ -193,8 +193,12 @@ export function initPlayer(): void {
          整张专辑就是这台环形频谱仪
      只在「正在播放的那张封面」上跑 rAF，暂停时衰减收回再停帧。 */
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const RING_HALF = 50; // 封面半边长：SVG 铺 132% ⇒ 1 单位 = 封面的 1%
-  const RING_MAX = 13; // 刺最长伸出量（封面边长的 13%，约 20px）
+  const RING_HALF = 50; // 封面半边长：SVG 铺 148% ⇒ 1 单位 = 封面的 1%
+  /* 振幅（封面边长的百分比）。手机上封面只有 160px 左右，13% 的刺看着
+     太小，实测后加大到 17.5%；画布已同步放大到 ±74，不会裁切。
+     220px 是分界：手机竖屏两列时单卡约 159~183px，桌面单卡 220px 起 */
+  const ampUnitsFor = (coverWidth: number): number =>
+    coverWidth > 0 && coverWidth < 220 ? 17.5 : 13;
   const RAY_PER_SIDE = 8; // 每边 8 根 → 整圈 32 根：少而清楚，不拥挤
   const RAY_COUNT = RAY_PER_SIDE * 4;
   /* 每根刺的轮廓（单位：槽宽的比例）。刺占槽宽约一半，两侧留空 ——
@@ -291,7 +295,9 @@ export function initPlayer(): void {
      高度再按"超出多少"给：刚过线的矮、冲到峰值的高，同一条边上
      自然一高一低 */
   const PER_SIDE_MAX = 4;
-  const H_MAX = 13.2; // 刺尖伸出上限：再多就越出 SVG 画布被裁掉
+  /* 刺尖伸出上限跟着振幅走：桌面 13 → 上限 13.1（维持原有观感），
+     手机 17.5 → 上限 17.7。画布 ±70、封面边 50，留 2 单位余量不裁切 */
+  const H_MAX_OF = (amp: number): number => amp * 1.01;
   const SPECTRUM_MAX = 0.72; // 只取 0~17.3kHz 的音乐主体，避开极高频噪声
   const spectrum = new Float32Array(SPECTRUM_BINS);
   const burst = new Float32Array(SPECTRUM_BINS);
@@ -313,6 +319,15 @@ export function initPlayer(): void {
     return map;
   })();
   /* 刺高随频率递增：底边低频只有约 45%，顶部高频顶到 100% */
+  /* 手机上再陡一点：短刺更短、长刺更长，"上下幅度"才看得出来 */
+  let ampUnits = 13; // 每帧的振幅（单位 = 封面边长的 1%），随封面宽度更新
+  let levelCurve = 1.3; // 手机上用 1.9：短刺更短、长刺更长，幅度更明显
+  const measureAmp = (): void => {
+    const el = document.querySelector<HTMLElement>(".ac.is-playing .ac__frame");
+    const w = el ? el.getBoundingClientRect().width : 240;
+    ampUnits = ampUnitsFor(w);
+    levelCurve = ampUnits > 13 ? 1.9 : 1.3;
+  };
   const RAY_SCORE = new Float32Array(RAY_COUNT); // 每帧每根刺的响度分
   const RAY_LEVEL = new Float32Array(RAY_COUNT); // 边内归一化后的相对强弱
   const RAY_SMOOTH = new Float32Array(RAY_COUNT); // 平滑后的实际高度系数
@@ -418,7 +433,6 @@ export function initPlayer(): void {
         if (v < lo) lo = v;
       }
       SIDE_REF[side] = Math.max(hi, SIDE_REF[side] * 0.992);
-      const ref = Math.max(SIDE_REF[side], ABS_FLOOR);
       /* 把这条边自己的动态范围拉满：本边最弱→0、最强→1。
          这一步是"有高有低"的关键 —— 若按"取最高的 4 根"来选，这 4 根
          天然彼此接近，看着就一样高；拉满范围之后，同一条边上的刺会
@@ -429,7 +443,10 @@ export function initPlayer(): void {
       const span = Math.max(SIDE_HI[side] - SIDE_LO[side], 0.06);
       for (let j = 0; j < RAY_PER_SIDE; j++) {
         const i = from + j;
-        RAY_LEVEL[i] = Math.min(1, Math.max(0, (RAY_SCORE[i] - SIDE_LO[side]) / span));
+        RAY_LEVEL[i] = Math.pow(
+          Math.min(1, Math.max(0, (RAY_SCORE[i] - SIDE_LO[side]) / span)),
+          levelCurve,
+        );
       }
       // 再挑出本边最高的 4 根，且弱的（<0.2）直接缩回，不出场
       for (let j = 0; j < RAY_PER_SIDE; j++) SIDE_SCRATCH[j] = RAY_LEVEL[from + j];
@@ -449,7 +466,6 @@ export function initPlayer(): void {
           RAY_LEVEL[i] = 0;
         }
       }
-      void ref;
     }
 
     /* 刺根位移恒 0（贴在封面边线上，被封面挡住），刺尖位移 =
@@ -471,8 +487,8 @@ export function initPlayer(): void {
         // 轻微流光：整圈像有光在转，但不改变"哪根刺管哪个频率"
         const shimmer = 0.94 + 0.06 * Math.sin(2 * Math.PI * (u * 8 - phase * 2));
         h = Math.min(
-          H_MAX,
-          RING_MAX * heightForFrequency(FREQ_OF_RAY[r.ray]) * gated * shimmer,
+          H_MAX_OF(ampUnits),
+          ampUnits * heightForFrequency(FREQ_OF_RAY[r.ray]) * gated * shimmer,
         ) * r.w; // 圆顶轮廓：谷底 0 → 顶 0.97
       }
       xy.push(r.x + r.nx * h, r.y + r.ny * h);
@@ -498,6 +514,8 @@ export function initPlayer(): void {
     wakeCtx();
     if (reduceMotion.matches) return;
     ensureAnalyser();
+    measureAmp();
+    window.addEventListener("resize", measureAmp, { passive: true });
     if (!rafId) rafId = requestAnimationFrame(tick);
   };
 

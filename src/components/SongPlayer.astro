@@ -233,7 +233,7 @@ const mmss = (sec: number): string =>
     display: inline-flex;
     align-items: center;
     gap: var(--sp-2);
-    min-height: 40px;
+    min-height: 44px;
     padding: 0 var(--sp-4);
     border: 1px solid var(--border);
     border-radius: 999px;
@@ -573,7 +573,9 @@ const mmss = (sec: number): string =>
     flex: 1 1 auto;
     min-width: 0;
     width: 100%;
-    height: 16px;
+    /* 滑块轨道只有 2px，但整个输入框做成 44px：拖动手感从"狙击"
+       变成"随便点"，滑轨位置不变（webkit 会把轨道垂直居中） */
+    height: 44px;
     margin: 0;
     appearance: none;
     background: none;
@@ -630,8 +632,8 @@ const mmss = (sec: number): string =>
   .pl__ic {
     display: grid;
     place-items: center;
-    width: 32px;
-    height: 32px;
+    width: 44px; /* 移动端触控下限：图标本身没变，热区撑到 44 */
+    height: 44px;
     padding: 0;
     border: 0;
     border-radius: 50%;
@@ -648,8 +650,8 @@ const mmss = (sec: number): string =>
   }
 
   .pl__ic--main {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     background: var(--accent);
     color: var(--ink-000);
   }

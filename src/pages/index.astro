@@ -349,7 +349,13 @@ const entryCards = [
     line-height: 1.9;
   }
 
+  /* 正文里的链接也要够 44px 触控高度：inline-block + 上下 padding 各 13px，
+     再用负 margin 把多出来的高度抵消掉，段落排版完全不变。
+     （伪元素方案试过：行内元素上只有上半边能命中，下半边会漏） */
   .notice a {
+    display: inline-block;
+    padding-block: 13px;
+    margin-block: -13px;
     color: var(--ink-100);
     text-decoration: underline;
     text-underline-offset: 4px;

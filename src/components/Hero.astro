@@ -377,6 +377,8 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
   .hero__arrow {
     display: grid;
     place-items: center;
+    /* 不许被 flex 容器压缩：手机上曾把 44px 挤成 29px，触控目标不达标 */
+    flex: 0 0 auto;
     width: 44px;
     height: 44px;
     border: 1px solid rgba(255, 255, 255, 0.24);
@@ -403,7 +405,7 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     width: 28px;
     height: 4px;
     padding-block: 20px;
-    padding-inline: 4px;
+    padding-inline: 8px; /* 触控目标：28 + 8×2 = 44 宽 */
     box-sizing: content-box;
     background: rgba(255, 255, 255, 0.28);
     background-clip: content-box;
