@@ -36,6 +36,33 @@
   src: url("../assets/fonts/barlow-900.woff2") format("woff2");
 }
 
+/* 歌词面板专用：Noto Sans JP 子集（官方动画站同款字体）。
+   只打包 38 首歌词 + 面板 UI 实际用到的 1118 个字符，
+   三个字重共约 470KB，页面其他部分继续走系统字体栈 */
+@font-face {
+  font-family: "Noto Sans JP Lyric";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fonts/nsjp-500.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans JP Lyric";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../assets/fonts/nsjp-700.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans JP Lyric";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("../assets/fonts/nsjp-900.woff2") format("woff2");
+}
+
 @font-face {
   font-family: "Tektur";
   font-style: normal;
@@ -106,6 +133,10 @@
     -apple-system, sans-serif;
   --font-display: "Barlow", "Noto Sans JP", "Noto Sans SC", "Hiragino Sans",
     system-ui, sans-serif;
+  /* 歌词面板专用：自托管 Noto Sans JP 子集（官方动画站同款字形），
+     站点其他部分不加载，避免整包字体拖慢首屏 */
+  --font-lyric: "Noto Sans JP Lyric", "Noto Sans JP", "Hiragino Sans",
+    "Noto Sans SC", system-ui, sans-serif;
   --font-mono-num: "Tektur", "Barlow", ui-monospace, "SFMono-Regular",
     monospace;
 

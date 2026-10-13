@@ -70,6 +70,10 @@ function createCore(bar: HTMLElement): Core {
     songs = [];
   }
   const byN = new Map(songs.map((s) => [s.n, s]));
+  let LYRICS = new Map<string, unknown>();
+  try {
+    LYRICS = new Map(Object.entries(JSON.parse(bar.querySelector<HTMLScriptElement>("[data-lyrics]")?.textContent ?? "{}")));
+  } catch { LYRICS = new Map(); }
   const byAlbum = new Map<string, Song[]>();
   for (const s of songs) {
     const arr = byAlbum.get(s.album);
@@ -221,7 +225,7 @@ function createCore(bar: HTMLElement): Core {
     paintFold();
   };
 
-  const load = (n: number, play = true): void => {
+  let load = (n: number, play = true): void => {
     const s = byN.get(n);
     if (!s) return;
     current = n;
@@ -828,6 +832,7 @@ function createCore(bar: HTMLElement): Core {
   const refresh = (): void => {
     paintFold();
     paintMode();
+    if (lyrOpen) renderLyrics();
     /* 卡片是新的 DOM，刺环的 <path> 缓存要作废（旧节点已经不在文档里） */
     spikePaths.clear();
     paintCards();
@@ -851,6 +856,162 @@ function createCore(bar: HTMLElement): Core {
       if (allN.length)
         playQueue(allN, mode === "shuffle" ? allN[Math.floor(Math.random() * allN.length)] : allN[0]);
     });
+  };
+
+
+  /* ---------- 歌词面板 ---------- */
+  const lyrDoc = bar.querySelector<HTMLDialogElement>("dialog[data-lyrics]");
+  const lyrBtn = bar.querySelector<HTMLButtonElement>("[data-lyrics-btn]");
+  const lyrTitle = bar.querySelector<HTMLElement>("[data-lyr-title]");
+  const lyrSub = bar.querySelector<HTMLElement>("[data-lyr-sub]");
+  const lyrCred = bar.querySelector<HTMLElement>("[data-lyr-cred]");
+  const lyrBody = bar.querySelector<HTMLElement>("[data-lyr-body]");
+  const lyrList = bar.querySelector<HTMLElement>("[data-lyr-lines]");
+  const lyrEmpty = bar.querySelector<HTMLElement>("[data-lyr-empty]");
+  const lyrClose = bar.querySelector<HTMLButtonElement>("[data-lyr-close]");
+
+  interface LyricLine {
+    el: HTMLLIElement;
+    top: number;
+  }
+  let lyrOpen = false;
+  let lyrLines: LyricLine[] = [];
+  let lyrCur = -1;
+  let lyrTimer = 0;
+
+  /** 打开面板时按当前曲目渲染歌词（等距时间轴：纯文本歌词没有时间标签，
+      按行数均分曲目时长；以后拿到带时间的 LRC 直接换数据源即可） */
+  const renderLyrics = (): void => {
+    if (!lyrList || !lyrEmpty) return;
+    const song = songOf(current);
+    lyrLines = [];
+    lyrCur = -1;
+    if (!song) {
+      lyrTitle!.textContent = "未选择曲目";
+      lyrSub!.textContent = "点击任意曲目开始播放";
+      lyrCred!.textContent = "";
+      lyrList.innerHTML = "";
+      lyrEmpty.hidden = false;
+      return;
+    }
+    const doc = LYRICS.get(String(song.n)) as
+      | { title: string; artist: string; lyricist: string; composer: string; use?: string; source?: string; lines: string[] }
+      | undefined;
+    lyrTitle!.textContent = song.t;
+    lyrSub!.innerHTML = "";
+    const artistEl = document.createElement("span");
+    artistEl.textContent = song.a;
+    const sep = document.createElement("i");
+    sep.className = "lyr__sep";
+    const durEl = document.createElement("span");
+    durEl.className = "num";
+    durEl.textContent = `${song.dur ? Math.floor(song.dur / 60) : 0}:${String((song.dur ?? 0) % 60).padStart(2, "0")}`;
+    lyrSub.append(artistEl, sep, durEl);
+    if (!doc || !doc.lines.length) {
+      lyrList.innerHTML = "";
+      lyrEmpty.hidden = false;
+      lyrCred!.textContent = "";
+      return;
+    }
+    lyrEmpty.hidden = true;
+    const credits = [...new Set([doc.lyricist, doc.composer].filter(Boolean))];
+    lyrCred!.textContent = credits.join("　");
+    const frag = document.createDocumentFragment();
+    for (const text of doc.lines) {
+      const li = document.createElement("li");
+      li.className = "lyr__line";
+      li.textContent = text;
+      frag.appendChild(li);
+    }
+    lyrList.innerHTML = "";
+    lyrList.appendChild(frag);
+    // 等距时间轴：每行起止时间
+    const dur = song.dur || audio.duration || 180;
+    const per = dur / doc.lines.length;
+    lyrLines = [...lyrList.children].map((el, i) => ({
+      el: el as HTMLLIElement,
+      top: i * per,
+    }));
+    // 点击行 → seek 到那一句（双向交互）
+    lyrLines.forEach((ln, i) => {
+      ln.el.addEventListener("click", () => {
+        if (current == null) return;
+        audio.currentTime = Math.min(ln.top + 0.01, Math.max(0, (song.dur || audio.duration) - 0.5));
+        paintLyric(true);
+      });
+    });
+    paintLyric(true);
+  };
+
+  /** 高亮当前句 + 容器内滚动（绝不滚整页——用户明确否过页面跳转） */
+  const paintLyric = (force = false): void => {
+    if (!lyrOpen || !lyrLines.length || !lyrBody) return;
+    const dur = songOf(current)?.dur || audio.duration || 180;
+    const pos = audio.currentTime;
+    // 二分找当前行
+    let lo = 0, hi = lyrLines.length - 1, at = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (lyrLines[mid].top <= pos) { at = mid; lo = mid + 1; } else hi = mid - 1;
+    }
+    if (at === lyrCur && !force) return;
+    lyrCur = at;
+    const center = lyrBody.clientHeight / 2;
+    lyrLines.forEach((ln, i) => {
+      const d = Math.abs(i - at);
+      ln.el.classList.toggle("is-cur", i === at);
+      /* 亮度按距离线性衰减：邻句最亮，6 句外几乎沉底，
+         上下对称（上一句和下一句一样亮，视线有来路） */
+      ln.el.style.setProperty("--d", String(Math.min(1, d / 7)));
+    });
+    if (at >= 0) {
+      const y = lyrLines[at].el.offsetTop - center + lyrLines[at].el.offsetHeight / 2;
+      lyrBody.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }
+  };
+
+  const openLyrics = (): void => {
+    if (!lyrDoc) return;
+    lyrOpen = true;
+    renderLyrics();
+    lyrDoc.showModal();
+    lyrBtn?.setAttribute("aria-pressed", "true");
+    lyrBtn?.setAttribute("aria-expanded", "true");
+    // rAF 跟随：暂停时也停帧（与频谱同款节流），避免空转
+    const loop = (): void => {
+      if (!lyrOpen) { lyrTimer = 0; return; }
+      paintLyric();
+      lyrTimer = requestAnimationFrame(loop);
+    };
+    if (!lyrTimer) lyrTimer = requestAnimationFrame(loop);
+  };
+
+  const closeLyrics = (): void => {
+    if (!lyrDoc) return;
+    lyrOpen = false;
+    if (lyrTimer) { cancelAnimationFrame(lyrTimer); lyrTimer = 0; }
+    lyrDoc.close();
+    lyrBtn?.setAttribute("aria-pressed", "false");
+    lyrBtn?.setAttribute("aria-expanded", "false");
+  };
+
+  lyrBtn?.addEventListener("click", () => {
+    if (lyrOpen) closeLyrics();
+    else if (current != null) openLyrics();
+  });
+  lyrClose?.addEventListener("click", closeLyrics);
+  // 点遮罩关闭（面板外的 dialog 背景）
+  lyrDoc?.addEventListener("click", (e) => {
+    if (e.target === lyrDoc) closeLyrics();
+  });
+  lyrDoc?.addEventListener("cancel", (e) => { e.preventDefault(); closeLyrics(); });
+  // Esc 由 dialog 的 cancel 处理
+
+  // 切歌时若面板开着 → 重渲染（重载 load 本体，避免二次包装）
+  const origLoad = load;
+  load = (n: number, play = true): void => {
+    origLoad(n, play);
+    if (lyrOpen) renderLyrics();
   };
 
   setPlayingUI(false);
