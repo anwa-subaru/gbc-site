@@ -322,6 +322,10 @@ export function initPlayer(): void {
      同一条边上三根也能真正拉开高低 */
   const SIDE_REF = new Float32Array(4).fill(0.15);
   const SIDE_SCRATCH = new Float32Array(RAY_PER_SIDE); // 取前几名用的排序副本
+  /* 归一化用的上下界也做平滑（快跟高、慢跟低）：直接用瞬时 hi/lo 的话，
+     分母每帧都在跳，所有刺的高度会跟着一起抖 */
+  const SIDE_HI = new Float32Array(4);
+  const SIDE_LO = new Float32Array(4).fill(1);
   const FREQ_OF_RAY = (() => {
     const map = new Float32Array(RAY_COUNT);
     for (let k = 0; k < RAY_COUNT; k++) {
@@ -365,9 +369,10 @@ export function initPlayer(): void {
         fluxFloor[b] += (onset - fluxFloor[b]) * 0.05;
         burst[b] = Math.max(
           Math.min(1, Math.max(0, onset - fluxFloor[b]) * 90),
-          burst[b] * 0.6, // onset 衰减快：重音一响那段刺炸长，随即收回
+          burst[b] * 0.88, // 衰减放慢：重音推高后多留几帧，不再一闪就没
         );
-        spectrum[b] += (level - spectrum[b]) * (level > spectrum[b] ? 0.82 : 0.62);
+        /* 起音 0.6 / 回落 0.3：放慢一档，刺是"长出来"的而不是跳出来的 */
+        spectrum[b] += (level - spectrum[b]) * (level > spectrum[b] ? 0.45 : 0.2);
       }
       prevSpec.set(freqData.subarray(0, prevSpec.length));
     } else {
@@ -412,17 +417,19 @@ export function initPlayer(): void {
         if (v > hi) hi = v;
         if (v < lo) lo = v;
       }
-      SIDE_REF[side] = Math.max(hi, SIDE_REF[side] * 0.985);
+      SIDE_REF[side] = Math.max(hi, SIDE_REF[side] * 0.992);
       const ref = Math.max(SIDE_REF[side], ABS_FLOOR);
       /* 把这条边自己的动态范围拉满：本边最弱→0、最强→1。
          这一步是"有高有低"的关键 —— 若按"取最高的 4 根"来选，这 4 根
          天然彼此接近，看着就一样高；拉满范围之后，同一条边上的刺会
          铺开在 0~1 之间，明显一高一低。
          0.06 是护栏：本边频谱本来就很平时不要做除法放大噪声 */
-      const span = Math.max(hi - lo, 0.06);
+      SIDE_HI[side] = Math.max(hi, SIDE_HI[side] * 0.94);
+      SIDE_LO[side] += (lo - SIDE_LO[side]) * 0.06;
+      const span = Math.max(SIDE_HI[side] - SIDE_LO[side], 0.06);
       for (let j = 0; j < RAY_PER_SIDE; j++) {
         const i = from + j;
-        RAY_LEVEL[i] = Math.min(1, Math.max(0, (RAY_SCORE[i] - lo) / span));
+        RAY_LEVEL[i] = Math.min(1, Math.max(0, (RAY_SCORE[i] - SIDE_LO[side]) / span));
       }
       // 再挑出本边最高的 4 根，且弱的（<0.2）直接缩回，不出场
       for (let j = 0; j < RAY_PER_SIDE; j++) SIDE_SCRATCH[j] = RAY_LEVEL[from + j];
@@ -458,7 +465,7 @@ export function initPlayer(): void {
         // 进出都平滑：排名换位时不会"啪"地弹出来
         const target = RAY_LEVEL[r.ray];
         const cur = RAY_SMOOTH[r.ray];
-        RAY_SMOOTH[r.ray] = cur + (target - cur) * (target > cur ? 0.45 : 0.22);
+        RAY_SMOOTH[r.ray] = cur + (target - cur) * (target > cur ? 0.16 : 0.06);
         /* 重音把命中的那根明显推高（×1.9 上限），段落之间就有起伏 */
         const gated = RAY_SMOOTH[r.ray] * (1 + burst[BIN_OF_RAY[r.ray]] * 1.1);
         // 轻微流光：整圈像有光在转，但不改变"哪根刺管哪个频率"
@@ -479,6 +486,8 @@ export function initPlayer(): void {
       burst.fill(0);
       RAY_SMOOTH.fill(0);
       SIDE_REF.fill(0.15);
+      SIDE_HI.fill(0);
+      SIDE_LO.fill(1);
       fluxFloor.fill(0.004);
       prevSpec.fill(0);
       path.setAttribute("d", FLAT);
