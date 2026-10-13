@@ -194,8 +194,8 @@ export function initPlayer(): void {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const RING_N = 192; // 周界采样点数（越高越平滑）
   const RING_HALF = 50; // 封面半边长：SVG 铺 124% ⇒ 1 单位 = 封面的 1%
-  const RING_MAX = 8.5; // 刺最长伸出量（封面边长的 8.5%，约 13px）
-  const RING_LOBES = 15; // 环形波瓣数：少而宽太平，多了成锯齿，15 左右牙齿分明
+  const RING_MAX = 13; // 刺最长伸出量（封面边长的 13%，约 20px）
+  const RING_LOBES = 21; // 环形波瓣数：越多牙越窄，21 是「窄而分明」那一档
 
   // 预计算周界采样点 + 外法线。基座是「圆角方框」而不是尖角方框：
   // 尖角处外扩后曲线要在极短弧长内拐 90°，必然出现尖点（实测 74°）；
@@ -259,7 +259,9 @@ export function initPlayer(): void {
       const src = audioCtx.createMediaElementSource(audio);
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.75;
+      /* 0.75 会让频谱本身滞后约 4 帧，刺收不回来；0.5 保留少量
+         抑制抖动，又能跟上歌声的起落 */
+      analyser.smoothingTimeConstant = 0.5;
       src.connect(analyser);
       analyser.connect(audioCtx.destination);
       freqData = new Uint8Array(analyser.frequencyBinCount);
@@ -333,19 +335,24 @@ export function initPlayer(): void {
     const decaying = audio.paused;
     if (analyser && !decaying) analyser.getByteFrequencyData(freqData!);
 
-    /* 低频取到 0.06（鼓点基频），人声段 0.1~0.55 */
-    const bass = decaying ? 0 : level(0, 0.06);
-    const voice = decaying ? 0 : level(0.1, 0.55);
-    const energy = Math.min(1, bass * 0.6 + voice * 0.8);
-    // 起得极快、落得慢：重音一响刺立刻炸出来
-    amp += (energy - amp) * (energy > amp ? 0.78 : 0.09);
+    /* 频段按 128 bin / 48kHz 折算（每 bin ≈187Hz）：
+       bass  0~0.02    = 0~375Hz      底鼓、贝斯
+       voice 0.035~0.22 = 0.8~5.3kHz  人声基频与共振峰，人声主要落这里 */
+    const bass = decaying ? 0 : level(0, 0.02);
+    const voice = decaying ? 0 : level(0.035, 0.22);
+    // 人声权重最高：人声一起来刺立刻长
+    const energy = Math.min(1, bass * 0.45 + voice * 1.15);
+    // 起落都快：声音一落刺立刻收，实时跟着唱（落 0.5 / 起 0.85）
+    amp += (energy - amp) * (energy > amp ? 0.85 : 0.68);
 
     /* onset 检测：频谱通量（只看正向增量）比能量均值灵敏得多，
-       压缩过的混音里底鼓/军鼓一打，频谱形状就会突变 */
+       压缩过的混音里底鼓/军鼓一打，频谱形状就会突变。
+       只统计 0.02~0.35：鼓与人声的起音都在这一段 */
     let flux = 0;
     if (freqData && !decaying) {
-      const nb = Math.floor(freqData.length * 0.6);
-      for (let i = 0; i < nb; i++) {
+      const a = Math.floor(freqData.length * 0.02);
+      const nb = Math.max(1, Math.floor(freqData.length * 0.35) - a);
+      for (let i = a; i < a + nb; i++) {
         const d = freqData[i] - prevSpec[i];
         if (d > 0) flux += d;
       }
@@ -353,21 +360,22 @@ export function initPlayer(): void {
       flux /= nb * 255;
     }
     fluxAvg += (flux - fluxAvg) * 0.05; // 自适应底噪
-    /* 增益 55 是按实测标的：本曲 flux 常年 0.007、鼓点峰值 0.025，
+    /* 增益按实测标的：本曲 flux 常年 0.007、鼓点峰值 0.025，
        ×75 后常态≈0、重音≈1 */
     const onset = decaying ? 0 : Math.min(1, Math.max(0, flux - fluxAvg) * 75);
-    // 常态只到 50%，onset 顶满 —— 这个差值就是"爆发性"
-    burst = Math.max(onset, burst * 0.86);
-    const drive = Math.min(1, amp * 0.5 + burst);
+    // 重音权重拉高：常态只到 60%，onset 直接顶满
+    burst = Math.max(onset, burst * 0.6); // 衰减快 = 收得干脆
+    const drive = Math.min(1, amp * 0.6 + burst);
     phase = (phase + 0.0012 + amp * 0.003 + burst * 0.01) % 1;
 
     const bins = freqData ? freqData.length : 0;
-    // 1) 取频谱 + 时间低通（上冲比回落快，保住瞬态）
+    // 1) 取频谱 + 时间低通（上冲比回落快，保住瞬态）；
+    //    采样区间挪到 0.03~0.45，避开超低频与最高频，贴人声与乐器基音
     for (let i = 0; i < RING_N; i++) {
       const u = i / RING_N;
-      const bin = bins ? Math.floor(((u + phase) % 1) * 0.55 * bins) : 0;
+      const bin = bins ? Math.floor((0.03 + ((u + phase) % 1) * 0.42) * bins) : 0;
       const raw = bins && freqData ? freqData[bin] / 255 : 0;
-      smooth[i] += (raw - smooth[i]) * (raw > smooth[i] ? 0.55 : 0.22);
+      smooth[i] += (raw - smooth[i]) * (raw > smooth[i] ? 0.75 : 0.68);
     }
     // 2) 空间 3 抽头平滑（环状，首尾相接）
     const xy: number[] = [];
@@ -376,11 +384,11 @@ export function initPlayer(): void {
       const u = i / RING_N;
       const lv =
         (smooth[(i - 1 + RING_N) % RING_N] + 2 * smooth[i] + smooth[(i + 1) % RING_N]) / 4;
-      /* 只取正弦的正半周再抬到 2 次方：牙窄而分明、谷底压平，相邻牙齿
-         之间留一条细红边。指数 >1 保证接合处导数为 0（谷底不会出尖点），
-         指数越大牙越窄越"炸" */
+      /* 只取正弦的正半周再抬到 2.6 次方：牙齿又窄又分明、谷底压平，相邻
+         牙齿之间留一条细红边。指数 >1 保证接合处导数为 0（谷底不出尖点），
+         指数越大牙越窄 —— 2.6 出来是细牙而不是圆包 */
       const s = Math.sin(2 * Math.PI * (RING_LOBES * u - phase * 3));
-      const wave = s > 0 ? s * s : 0;
+      const wave = s > 0 ? Math.pow(s, 2.6) : 0;
       /* lv 抬到 1.5 次方：安静处几乎贴边、重音处顶满，拉开动态范围 */
       const h = RING_MAX * drive * r.edge * (0.22 + 0.78 * Math.pow(lv, 1.5)) * (0.1 + 0.9 * wave);
       xy.push(r.x + r.nx * h, r.y + r.ny * h);

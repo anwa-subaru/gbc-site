@@ -79,12 +79,12 @@ const label = playable
       </div>
       {
         playable && (
-          <svg class="ac__spikes" viewBox="-62 -62 124 124" aria-hidden="true" data-spikes>
+          <svg class="ac__spikes" viewBox="-66 -66 132 132" aria-hidden="true" data-spikes>
             <defs>
-              <radialGradient id={gid} gradientUnits="userSpaceOnUse" cx="0" cy="0" r="62">
-                {/* 封面边(50/62≈0.81)正红 → 刺尖(58.5/62≈0.94)黑红，"红里带黑" */}
-                <stop offset="0.8" stop-color="#f40000" />
-                <stop offset="0.88" stop-color="#9c0000" />
+              <radialGradient id={gid} gradientUnits="userSpaceOnUse" cx="0" cy="0" r="66">
+                {/* 封面边(50/66≈0.76)正红 → 刺尖(63/66≈0.95)黑红，"红里带黑" */}
+                <stop offset="0.76" stop-color="#f40000" />
+                <stop offset="0.86" stop-color="#9c0000" />
                 <stop offset="0.96" stop-color="#2b0000" />
               </radialGradient>
             </defs>
@@ -140,7 +140,7 @@ const label = playable
 
   /* ---- 音频驱动的红刺环 ----
      player.ts 沿方框周界采样后重写 <path> 的 d。关键布局：SVG 铺到封面的
-     124%（viewBox ±62 ⇒ 封面对应 ±50），并垫在封面(z-index:1)之下 ——
+     132%（viewBox ±66 ⇒ 封面对应 ±50、刺尖最长 63），垫在封面(z-index:1)之下 ——
      静止时路径正好是封面方框、完全藏在封面后面，声音越强刺沿方框边缘
      向外长，只在封面四周的窄环里出现，不侵入画面也不压到曲名 */
   /* 封面 + 刺环的定位容器：高度正好等于封面（frame 是 1:1 且撑满宽度），
@@ -154,10 +154,10 @@ const label = playable
 
   .ac__spikes {
     position: absolute;
-    left: -12%;
-    top: -12%;
-    width: 124%;
-    height: 124%;
+    left: -16%;
+    top: -16%;
+    width: 132%;
+    height: 132%;
     /* 全局有 svg{max-width:100%}，不覆盖的话会被压回容器宽，
        刺永远藏在封面后面伸不出来 */
     max-width: none;
