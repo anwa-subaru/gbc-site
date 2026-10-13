@@ -17,6 +17,9 @@ interface Props {
   eager?: boolean;
   /** 点击后要播放的曲目号（songs.json 的 n），不传则不可播放 */
   playTrack?: number;
+  /** 专辑名：脚本据此把这张卡与"当前播放曲目"对应起来，
+      播放时卡面标题会轮播该专辑内的曲名 */
+  album?: string;
   /** 实际会播放的曲名，用于提示与无障碍标签 */
   playLabel?: string;
 }
@@ -31,6 +34,7 @@ const {
   eager = false,
   playTrack,
   playLabel,
+  album,
 } = Astro.props;
 
 const cleanTitle = title ?? entry.source_name.replace(/\.[^.]+$/, "");
@@ -60,6 +64,8 @@ const label = playable
     href={href ? url(href) : undefined}
     type={playable ? "button" : undefined}
     data-play={playable ? playTrack : undefined}
+    data-album={playable ? album : undefined}
+    data-album-title={playable ? cleanTitle : undefined}
     aria-label={label}
     title={playable ? `双击播放：${playLabel ?? cleanTitle}` : undefined}
   >

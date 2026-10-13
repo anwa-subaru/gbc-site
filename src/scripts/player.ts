@@ -1,10 +1,29 @@
 /**
- * 全曲播放器交互（音乐页）
- *  - 单一 <audio> 复用，切歌只换 src，避免多实例抢占播放
- *  - 曲目行 / 上一首 / 下一首 / 播放全部 / 随机 / 进度 / 音量
+ * 全曲播放器交互（全局播放条 + 音乐页曲目表）
+ *  - 底栏与 <audio> 挂在 Layout 上（PlayerBar.astro）并 transition:persist，
+ *    因此切到别的页面（比如主页）歌不会断，按「下一首」也仍能继续
+ *  - 曲目数据由播放条内联的 JSON 提供：在没有曲目表的页面上同样能算下一首
+ *  - 队列模型：从曲目表点歌 → 整个曲目表为队列；从专辑卡点歌 → 该专辑的
+ *    曲目为队列，于是"一张专辑里好几首歌"会在卡面上依次轮播
+ *  - 循环模式：列表循环 / 单曲循环 / 不循环（音乐页列表条上的按钮切换）
  *  - Media Session：手机锁屏与通知栏可控制
- *  - 幂等：重复调用（astro:page-load）只绑定一次
+ *  - 幂等：重复调用（astro:page-load）只绑定一次；页面级的曲目表与专辑卡
+ *    每次导航后重新绑定（它们会被视图过渡替换掉）
  */
+
+interface Song {
+  n: number;
+  t: string;
+  a: string;
+  src: string;
+  cover: string;
+  album: string;
+  dur: number;
+}
+
+interface Core {
+  refresh: () => void;
+}
 
 const fmt = (sec: number): string => {
   if (!Number.isFinite(sec) || sec < 0) return "0:00";
@@ -13,36 +32,68 @@ const fmt = (sec: number): string => {
   return `${m}:${String(s).padStart(2, "0")}`;
 };
 
+type RepeatMode = "list" | "one" | "off";
+const REPEAT_ORDER: RepeatMode[] = ["list", "one", "off"];
+const REPEAT_LABEL: Record<RepeatMode, string> = {
+  list: "列表循环",
+  one: "单曲循环",
+  off: "不循环",
+};
+
+/* 视图过渡时模块可能被重新执行，把实例挂在 window 上保证只有一份，
+   否则 audio 上会叠上第二套事件监听（表现为暂停/播放各触发两次） */
+interface PlayerWindow extends Window {
+  __gbcPlayer?: { bar: HTMLElement; core: Core };
+}
+
 export function initPlayer(): void {
-  const root = document.querySelector<HTMLElement>("[data-player]");
-  if (!root || root.dataset.plReady === "1") return;
-  root.dataset.plReady = "1";
+  const bar = document.querySelector<HTMLElement>("[data-player]");
+  if (!bar) return;
+  const w = window as PlayerWindow;
+  if (!w.__gbcPlayer || w.__gbcPlayer.bar !== bar) {
+    w.__gbcPlayer = { bar, core: createCore(bar) };
+  }
+  w.__gbcPlayer.core.refresh();
+}
 
-  const audio = root.querySelector<HTMLAudioElement>("[data-audio]");
-  const rows = Array.from(root.querySelectorAll<HTMLButtonElement>(".pl__row"));
-  if (!audio || !rows.length) return;
+function createCore(bar: HTMLElement): Core {
+  const audio = bar.querySelector<HTMLAudioElement>("[data-audio]");
+  if (!audio) return { refresh: () => {} };
 
-  const items = Array.from(root.querySelectorAll<HTMLElement>(".pl__item"));
-  const titleEl = root.querySelector<HTMLElement>("[data-title]");
-  const artistEl = root.querySelector<HTMLElement>("[data-artist]");
-  const artEl = root.querySelector<HTMLImageElement>("[data-art]");
-  const artNone = root.querySelector<HTMLElement>("[data-art-none]");
-  const seek = root.querySelector<HTMLInputElement>("[data-seek]");
-  const vol = root.querySelector<HTMLInputElement>("[data-vol]");
-  const curEl = root.querySelector<HTMLElement>("[data-cur]");
-  const totalEl = root.querySelector<HTMLElement>("[data-total]");
-  const seekline = root.querySelector<HTMLElement>("[data-seekline]");
-  const toggleBtn = root.querySelector<HTMLButtonElement>("[data-toggle]");
-  const prevBtn = root.querySelector<HTMLButtonElement>("[data-prev]");
-  const nextBtn = root.querySelector<HTMLButtonElement>("[data-next]");
-  const playAllBtn = root.querySelector<HTMLButtonElement>("[data-play-all]");
-  const shuffleBtn = root.querySelector<HTMLButtonElement>("[data-shuffle]");
-  const iconPlay = root.querySelector<SVGElement>("[data-icon-play]");
-  const iconPause = root.querySelector<SVGElement>("[data-icon-pause]");
+  let songs: Song[] = [];
+  try {
+    songs = JSON.parse(bar.querySelector<HTMLScriptElement>("[data-songs]")?.textContent ?? "[]");
+  } catch {
+    songs = [];
+  }
+  const byN = new Map(songs.map((s) => [s.n, s]));
+  const byAlbum = new Map<string, Song[]>();
+  for (const s of songs) {
+    const arr = byAlbum.get(s.album);
+    if (arr) arr.push(s);
+    else byAlbum.set(s.album, [s]);
+  }
+  const allN = songs.map((s) => s.n);
 
-  let index = -1; // 当前曲目下标
+  const titleEl = bar.querySelector<HTMLElement>("[data-title]");
+  const artistEl = bar.querySelector<HTMLElement>("[data-artist]");
+  const artEl = bar.querySelector<HTMLImageElement>("[data-art]");
+  const artNone = bar.querySelector<HTMLElement>("[data-art-none]");
+  const seek = bar.querySelector<HTMLInputElement>("[data-seek]");
+  const vol = bar.querySelector<HTMLInputElement>("[data-vol]");
+  const curEl = bar.querySelector<HTMLElement>("[data-cur]");
+  const totalEl = bar.querySelector<HTMLElement>("[data-total]");
+  const seekline = bar.querySelector<HTMLElement>("[data-seekline]");
+  const toggleBtn = bar.querySelector<HTMLButtonElement>("[data-toggle]");
+  const prevBtn = bar.querySelector<HTMLButtonElement>("[data-prev]");
+  const nextBtn = bar.querySelector<HTMLButtonElement>("[data-next]");
+  const iconPlay = bar.querySelector<SVGElement>("[data-icon-play]");
+  const iconPause = bar.querySelector<SVGElement>("[data-icon-pause]");
+
+  let current: number | null = null; // 当前曲目号（songs.json 的 n）
+  let queue: number[] = []; // 播放队列（曲目号）
+  let repeat: RepeatMode = "list";
   let shuffle = false;
-  let order: number[] = []; // 随机播放顺序（下标数组）
 
   /* ---------- 音量持久化 ---------- */
   // 注意：localStorage 无记录时 getItem 返回 null，Number(null) === 0，
@@ -63,16 +114,35 @@ export function initPlayer(): void {
   paint(seek, 0);
 
   /* ---------- UI 同步 ---------- */
-  /** 发行物封面卡（SINGLES / ALBUMS …）与当前曲目、播放状态联动 */
+  const songOf = (n: number | null): Song | null => (n == null ? null : (byN.get(n) ?? null));
+
+  /** 发行物封面卡（SINGLES / ALBUMS …）与当前曲目、播放状态联动。
+      专辑正在播放时，卡面标题轮播该专辑内正在放的那首曲名 */
   const paintCards = (): void => {
-    const track = index >= 0 ? (rows[index]?.dataset.track ?? null) : null;
+    const cur = songOf(current);
     const playing = !audio.paused;
     document.querySelectorAll<HTMLElement>("[data-play]").forEach((el) => {
       const ac = el.closest(".ac");
       if (!ac) return;
-      const on = el.dataset.play === track;
+      const album = el.dataset.album ?? "";
+      const on = !!cur && (album ? cur.album === album : el.dataset.play === String(cur.n));
       ac.classList.toggle("is-playing", on);
       ac.classList.toggle("is-paused", on && !playing);
+      const title = el.querySelector<HTMLElement>(".ac__title");
+      if (title) {
+        const want = on && cur ? cur.t : (el.dataset.albumTitle ?? "");
+        if (want && title.textContent !== want) title.textContent = want;
+      }
+    });
+  };
+
+  /** 曲目表高亮：与当前曲目对应（曲目表只存在于音乐页） */
+  const paintList = (): void => {
+    const playing = !audio.paused;
+    document.querySelectorAll<HTMLElement>(".pl__item").forEach((it) => {
+      const on = it.dataset.item === String(current ?? "");
+      it.classList.toggle("is-playing", on);
+      it.classList.toggle("is-paused", on && !playing);
     });
   };
 
@@ -81,108 +151,115 @@ export function initPlayer(): void {
     iconPlay?.classList.toggle("is-off", playing);
     iconPause?.classList.toggle("is-off", !playing);
     toggleBtn?.setAttribute("aria-label", playing ? "暂停" : "播放");
-    items.forEach((it) => it.classList.toggle("is-paused", !playing));
     paintCards();
+    paintList();
   };
 
-  const highlight = (i: number): void => {
-    items.forEach((it, k) => {
-      it.classList.toggle("is-playing", k === i);
-      it.classList.toggle("is-paused", k === i ? audio.paused : false);
-    });
-    paintCards();
-  };
-
-  const setNow = (i: number): void => {
-    const row = rows[i];
-    if (!row) return;
-    const t = row.querySelector(".pl__t")?.textContent?.trim() ?? "";
-    const a = row.querySelector(".pl__a")?.textContent?.trim() ?? "";
-    const cover = row.dataset.cover ?? "";
-    if (titleEl) titleEl.textContent = t;
-    if (artistEl) artistEl.textContent = a;
-
-    if (artEl && cover) {
-      if (artEl.getAttribute("src") !== cover) artEl.setAttribute("src", cover);
+  const setNow = (s: Song): void => {
+    if (titleEl) titleEl.textContent = s.t;
+    if (artistEl) artistEl.textContent = s.a;
+    if (artEl && s.cover) {
+      if (artEl.getAttribute("src") !== s.cover) artEl.setAttribute("src", s.cover);
       artEl.hidden = false;
       if (artNone) artNone.hidden = true;
     } else {
-      artEl && (artEl.hidden = true);
+      if (artEl) artEl.hidden = true;
       if (artNone) artNone.hidden = false;
     }
-
     if ("mediaSession" in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: t,
-        artist: a,
-        album: "GIRLS BAND CRY",
-        artwork: cover ? [{ src: new URL(cover, location.href).href, sizes: "1000x1000", type: "image/webp" }] : [],
+        title: s.t,
+        artist: s.a,
+        album: s.album,
+        artwork: s.cover
+          ? [{ src: new URL(s.cover, location.href).href, sizes: "1000x1000", type: "image/webp" }]
+          : [],
       });
     }
   };
 
   /* ---------- 播放控制 ---------- */
-  const load = (i: number, play = true): void => {
-    const row = rows[i];
-    if (!row) return;
-    index = i;
-    audio.src = row.dataset.src ?? "";
+  const markLive = (): void => {
+    bar.dataset.live = "1";
+    document.body.classList.add("has-plbar");
+  };
+
+  const load = (n: number, play = true): void => {
+    const s = byN.get(n);
+    if (!s) return;
+    current = n;
+    audio.src = s.src;
     audio.currentTime = 0;
-    setNow(i);
-    highlight(i);
-    // 手机端固定底栏"播放后才出现"
-    root.dataset.live = "1";
+    setNow(s);
+    markLive();
+    paintCards();
+    paintList();
     if (play) void audio.play().catch(() => setPlayingUI(false));
   };
 
-  const step = (dir: 1 | -1): void => {
-    if (index < 0) return load(0, true);
-    if (shuffle) {
-      if (!order.length) order = shuffled(rows.length);
-      const at = order.indexOf(index);
-      const nextIdx = order[(at + dir + order.length) % order.length] ?? 0;
-      return load(nextIdx, true);
-    }
-    load((index + dir + rows.length) % rows.length, true);
-  };
-
-  const shuffled = (n: number): number[] => {
-    const a = Array.from({ length: n }, (_, i) => i);
-    for (let i = a.length - 1; i > 0; i--) {
+  const shuffledFrom = (list: number[], first: number): number[] => {
+    const rest = list.filter((n) => n !== first);
+    for (let i = rest.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
+      [rest[i], rest[j]] = [rest[j], rest[i]];
     }
-    return a;
+    return [first, ...rest];
   };
 
-  rows.forEach((row, i) => {
-    row.addEventListener("click", () => {
-      if (i === index) {
-        if (audio.paused) void audio.play();
-        else audio.pause();
-        return;
-      }
-      load(i, true);
-    });
-  });
+  /** 用给定队列播放其中某一首（随机开启时把这首放在队首、其余打乱） */
+  const playQueue = (list: number[], start: number): void => {
+    if (!list.length || !byN.has(start)) return;
+    queue = shuffle ? shuffledFrom(list, start) : [...list];
+    load(start, true);
+  };
 
-  toggleBtn?.addEventListener("click", () => {
-    if (index < 0) return load(0, true);
-    if (audio.paused) void audio.play();
-    else audio.pause();
-  });
-
-  prevBtn?.addEventListener("click", () => {
-    // 播放超过 3 秒时「上一首」先回到开头（与常见播放器一致）
-    if (audio.currentTime > 3) {
-      audio.currentTime = 0;
+  const advance = (dir: 1 | -1): void => {
+    if (current == null || !queue.length) {
+      if (allN.length) playQueue(allN, allN[0]);
       return;
     }
-    step(-1);
-  });
+    const at = queue.indexOf(current);
+    let next = at + dir;
+    if (next >= queue.length) next = repeat === "list" ? 0 : queue.length - 1;
+    if (next < 0) next = repeat === "list" ? queue.length - 1 : 0;
+    if (next === at) {
+      // 队列里只有一首且不循环：重头再放
+      audio.currentTime = 0;
+      void audio.play();
+      return;
+    }
+    load(queue[next], true);
+  };
 
-  nextBtn?.addEventListener("click", () => step(1));
+  /** 音乐页曲目行点歌：队列 = 整个曲目表 */
+  const playRow = (n: number): void => {
+    if (!byN.has(n)) return;
+    if (n === current) {
+      if (audio.paused) void audio.play();
+      else audio.pause();
+      return;
+    }
+    playQueue(allN, n);
+  };
 
+  /** 专辑卡双击：队列 = 这张专辑的曲目，卡面随之轮播曲名 */
+  const playCard = (hit: HTMLElement): void => {
+    const n = Number(hit.dataset.play);
+    if (!Number.isFinite(n) || !byN.has(n)) return;
+    if (!reduceMotion.matches) navigator.vibrate?.(12);
+    const album = hit.dataset.album ?? "";
+    const cur = songOf(current);
+    if (cur && album && cur.album === album) {
+      // 这张专辑正在播：双击 = 暂停/继续，而不是重头再来
+      if (audio.paused) void audio.play();
+      else audio.pause();
+      return;
+    }
+    const list = album && byAlbum.has(album) ? byAlbum.get(album)!.map((s) => s.n) : allN;
+    playQueue(list, n);
+  };
+
+  /* ---------- 频谱引擎（音频驱动的专辑环形频谱） ---------- */
   /* ---------- 音频驱动的专辑环形频谱 ----------
      正方形封面的四条边上长出 64 根独立的尖刺（每边 16 根）：
        · 刺根贴在封面边线上，位移为 0 时整圈藏在封面下层，完全看不见
@@ -328,7 +405,9 @@ export function initPlayer(): void {
     ampUnits = ampUnitsFor(w);
     levelCurve = ampUnits > 13 ? 1.9 : 1.3;
   };
-  const RAY_SCORE = new Float32Array(RAY_COUNT); // 每帧每根刺的响度分
+  const RAY_SCORE = new Float32Array(RAY_COUNT); // 每帧每根刺的"激励"分（白化后）
+  const RAY_REF = new Float32Array(RAY_COUNT); // 每根刺的慢参考：本频段的常态水平
+  const RAY_ABS = new Float32Array(RAY_COUNT); // 每根刺的绝对强度：安静时不让刺冒高
   const RAY_LEVEL = new Float32Array(RAY_COUNT); // 边内归一化后的相对强弱
   const RAY_SMOOTH = new Float32Array(RAY_COUNT); // 平滑后的实际高度系数
   /* 每条边"最近峰值"的慢参考（约 1 秒半衰）。用它而不是"本帧最强"来
@@ -353,6 +432,7 @@ export function initPlayer(): void {
   const heightForFrequency = (f: number): number =>
     Math.min(1.15, 0.2 + 0.95 * Math.pow(f, 0.8));
   const ABS_FLOOR = 0.06; // 绝对底噪：低于此值就是"没声音"，不参与
+  const ABS_FULL = 0.16; // 绝对强度达到此值就算"满"（再响也不会更长）
   /* 相对门限：平时各频段 rel≈1（等于自己的常态）就不冒头；某频段冲到自己
      常态的 1.12 倍以上才开始冒头，1.62 倍长满 —— "等那个声音到了才冒头" */
 
@@ -412,11 +492,18 @@ export function initPlayer(): void {
     updateSpectrum(freqData ? freqData.length : 0, decaying);
     phase = (phase + 0.001 + amp * 0.004) % 1;
 
-    /* 第一步：每根刺的响度分。高频乘一个温和的补偿 —— 音乐能量天然往
-       低频堆，不补一点的话高频段永远争不过低频段 */
+    /* 第一步：每根刺的"激励"分 —— 白化处理。
+       音乐能量天然随频率下降，如果直接比绝对响度，每条边里频率最低的那根
+       永远是本边最强：顶边就表现为左右上角两根"虚长"的刺一直挂着，跟音乐
+       没关系（用户报的就是这个）。
+       所以除以本频段的慢参考（它自己的常态），比的是"比常态强多少"：
+       谁在动谁冒头，固有倾斜被抵消掉。
+       另外单独留一个绝对强度 RAY_ABS，安静段落里不让刺凭空长满。 */
     for (let k = 0; k < RAY_COUNT; k++) {
       const lv = spectrum[BIN_OF_RAY[k]];
-      RAY_SCORE[k] = lv < ABS_FLOOR ? 0 : lv * (1 + 0.5 * FREQ_OF_RAY[k]);
+      RAY_REF[k] += (lv - RAY_REF[k]) * (lv > RAY_REF[k] ? 0.18 : 0.012);
+      RAY_ABS[k] = lv < ABS_FLOOR ? 0 : Math.min(1, lv / ABS_FULL);
+      RAY_SCORE[k] = RAY_ABS[k] <= 0 ? 0 : lv / Math.max(RAY_REF[k], 0.03);
     }
 
     /* 第二步：每条边内部排名，只留最强的 PER_SIDE_MAX 根，并用"该边最强
@@ -427,10 +514,13 @@ export function initPlayer(): void {
       const from = side * RAY_PER_SIDE;
       let hi = -1;
       let lo = 1e9;
+      let sideAbs = 0; // 本边最强的绝对强度：整边都没声音时不冒头
       for (let j = 0; j < RAY_PER_SIDE; j++) {
-        const v = RAY_SCORE[from + j];
+        const i = from + j;
+        const v = RAY_SCORE[i];
         if (v > hi) hi = v;
         if (v < lo) lo = v;
+        if (RAY_ABS[i] > sideAbs) sideAbs = RAY_ABS[i];
       }
       SIDE_REF[side] = Math.max(hi, SIDE_REF[side] * 0.992);
       /* 把这条边自己的动态范围拉满：本边最弱→0、最强→1。
@@ -459,12 +549,18 @@ export function initPlayer(): void {
           RAY_LEVEL[i] > 0.2 &&
           RAY_LEVEL[i] >= c4 - 1e-6 &&
           kept < PER_SIDE_MAX &&
-          hi > ABS_FLOOR
+          sideAbs > 0
         ) {
           kept++;
         } else {
           RAY_LEVEL[i] = 0;
         }
+      }
+      /* 选完再按绝对强度衰减：相对激励决定"谁冒头"，绝对强度决定"冒多高"，
+         两者分开，安静段落就不会出现满格的假刺 */
+      for (let j = 0; j < RAY_PER_SIDE; j++) {
+        const i = from + j;
+        RAY_LEVEL[i] *= RAY_ABS[i];
       }
     }
 
@@ -501,6 +597,8 @@ export function initPlayer(): void {
       spectrum.fill(0);
       burst.fill(0);
       RAY_SMOOTH.fill(0);
+      RAY_REF.fill(0);
+      RAY_ABS.fill(0);
       SIDE_REF.fill(0.15);
       SIDE_HI.fill(0);
       SIDE_LO.fill(1);
@@ -522,34 +620,37 @@ export function initPlayer(): void {
   audio.addEventListener("play", startSpikes);
   audio.addEventListener("pause", startSpikes); // 进衰减模式把刺收回
 
-  /* ---------- 发行物封面 → 双击播放（音乐页 SINGLES / ALBUMS / EP） ----------
-     用双击而不是单击：封面上不放播放按钮，单击留给滚动/误触，
-     播放反馈就是上面的红刺环。 */
-  const playCard = (hit: HTMLElement): void => {
-    const idx = rows.findIndex((r) => r.dataset.track === hit.dataset.play);
-    if (idx < 0) return;
-    // Android 上给一次极短振动（iOS 不支持 vibrate，静默忽略）
-    if (!reduceMotion.matches) navigator.vibrate?.(12);
-    // 双击的就是当前这首：切换播放/暂停，而不是从头重放
-    if (idx === index) {
-      if (audio.paused) void audio.play();
-      else audio.pause();
-      return;
-    }
-    load(idx, true);
-    // 移动端面板是 fixed 底栏，播放后必定可见，不用滚；桌面端面板在页面上方，
-    // 滚远了就看不到控制，此时把它带回视野。
-    // 注意：不能直接量 rect —— 底栏此刻正在做滑入动画，量到的是屏幕外的中间态。
-    const panel = root.querySelector<HTMLElement>("[data-now]") ?? root;
-    if (getComputedStyle(panel).position === "fixed") return;
-    const box = panel.getBoundingClientRect();
-    if (box.bottom < 8 || box.top > window.innerHeight - 8) {
-      root.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+  /* ---------- 循环 / 随机 ---------- */
+  const paintRepeat = (): void => {
+    const btn = document.querySelector<HTMLElement>("[data-repeat]");
+    if (!btn) return;
+    btn.dataset.mode = repeat;
+    btn.setAttribute("aria-pressed", String(repeat !== "off"));
+    const label = btn.querySelector<HTMLElement>("[data-repeat-label]");
+    if (label) label.textContent = REPEAT_LABEL[repeat];
+    btn.setAttribute("title", `循环模式：${REPEAT_LABEL[repeat]}（点击切换）`);
+  };
+
+  const cycleRepeat = (): void => {
+    const at = REPEAT_ORDER.indexOf(repeat);
+    repeat = REPEAT_ORDER[(at + 1) % REPEAT_ORDER.length];
+    paintRepeat();
+  };
+
+  const toggleShuffle = (): void => {
+    shuffle = !shuffle;
+    const btn = document.querySelector<HTMLElement>("[data-shuffle]");
+    btn?.setAttribute("aria-pressed", String(shuffle));
+    // 保持当前这首在前，其余重新排
+    if (current != null && queue.length) {
+      queue = shuffle ? shuffledFrom(queue, current) : [...queue].sort((a, b) => a - b);
     }
   };
 
-  /* 自己判定双击：手机浏览器不一定派发 dblclick（双击缩放被 touch-action
-     关掉后行为也不一致），统一用 pointerup 计时，鼠标和触摸同一条路径。 */
+  /* ---------- 双击播放（鼠标与触摸同一条路径） ---------- */
+  /* 手机浏览器不一定派发 dblclick（双击缩放被 touch-action 关掉后行为也不一致），
+     所以统一用 pointerup 计时自己判定。监听挂在 document 上，只绑一次，
+     每次按下时再实时查 [data-play] —— 页面切换后卡片换了也能命中。 */
   let lastTapAt = 0;
   let lastTapEl: HTMLElement | null = null;
   let downX = 0;
@@ -561,9 +662,7 @@ export function initPlayer(): void {
   });
 
   document.addEventListener("pointerup", (e) => {
-    const hit = (e.target as HTMLElement | null)?.closest?.(
-      "[data-play]",
-    ) as HTMLElement | null;
+    const hit = (e.target as HTMLElement | null)?.closest?.("[data-play]") as HTMLElement | null;
     if (!hit) {
       lastTapEl = null;
       return;
@@ -585,16 +684,26 @@ export function initPlayer(): void {
     lastTapAt = now;
   });
 
-  playAllBtn?.addEventListener("click", () => {
-    order = [];
-    load(shuffle ? (order = shuffled(rows.length))[0] : 0, true);
+  /* ---------- 底栏按钮 ---------- */
+  toggleBtn?.addEventListener("click", () => {
+    if (current == null) {
+      if (allN.length) playQueue(allN, allN[0]);
+      return;
+    }
+    if (audio.paused) void audio.play();
+    else audio.pause();
   });
 
-  shuffleBtn?.addEventListener("click", () => {
-    shuffle = !shuffle;
-    order = shuffle ? shuffled(rows.length) : [];
-    shuffleBtn.setAttribute("aria-pressed", String(shuffle));
+  prevBtn?.addEventListener("click", () => {
+    // 播放超过 3 秒时「上一首」先回到开头（与常见播放器一致）
+    if (audio.currentTime > 3) {
+      audio.currentTime = 0;
+      return;
+    }
+    advance(-1);
   });
+
+  nextBtn?.addEventListener("click", () => advance(1));
 
   /* ---------- 进度 / 音量 ---------- */
   audio.addEventListener("timeupdate", () => {
@@ -613,8 +722,28 @@ export function initPlayer(): void {
 
   audio.addEventListener("play", () => setPlayingUI(true));
   audio.addEventListener("pause", () => setPlayingUI(false));
-  audio.addEventListener("ended", () => step(1));
   audio.addEventListener("error", () => setPlayingUI(false));
+
+  /* 放完一首：单曲循环就重来，否则按队列往后走 */
+  audio.addEventListener("ended", () => {
+    if (repeat === "one" && current != null) {
+      audio.currentTime = 0;
+      void audio.play();
+      return;
+    }
+    const at = current == null ? -1 : queue.indexOf(current);
+    if (at + 1 < queue.length) {
+      load(queue[at + 1], true);
+      return;
+    }
+    if (repeat === "list" && queue.length) {
+      load(queue[0], true);
+      return;
+    }
+    // 不循环：放完就停住（显式 pause，别依赖浏览器自己停）
+    audio.pause();
+    setPlayingUI(false);
+  });
 
   seek?.addEventListener("input", () => {
     const d = audio.duration;
@@ -629,22 +758,52 @@ export function initPlayer(): void {
     localStorage.setItem("gbc.vol", String(v));
   });
 
-  /* ---------- 键盘：焦点在播放器内时 ← → 切歌 ---------- */
-  root.addEventListener("keydown", (e) => {
+  /* ---------- 键盘：焦点在播放条内时 ← → 切歌 ---------- */
+  bar.addEventListener("keydown", (e) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     const tag = (e.target as HTMLElement)?.tagName;
     if (tag === "INPUT") return;
     e.preventDefault();
-    step(e.key === "ArrowRight" ? 1 : -1);
+    advance(e.key === "ArrowRight" ? 1 : -1);
   });
 
   /* ---------- Media Session 硬件按键 ---------- */
   if ("mediaSession" in navigator) {
     navigator.mediaSession.setActionHandler("play", () => void audio.play());
     navigator.mediaSession.setActionHandler("pause", () => audio.pause());
-    navigator.mediaSession.setActionHandler("previoustrack", () => step(-1));
-    navigator.mediaSession.setActionHandler("nexttrack", () => step(1));
+    navigator.mediaSession.setActionHandler("previoustrack", () => advance(-1));
+    navigator.mediaSession.setActionHandler("nexttrack", () => advance(1));
   }
 
+  /* ---------- 每次导航后重新绑定本页元素 ----------
+     播放条本身被 transition:persist 保留（监听还在），但曲目表与列表条上的
+     按钮属于页面内容，会被视图过渡替换成新节点，必须重新绑。 */
+  const bindOnce = (el: HTMLElement | null, fn: () => void): void => {
+    if (!el || el.dataset.bound === "1") return;
+    el.dataset.bound = "1";
+    el.addEventListener("click", fn);
+  };
+
+  const refresh = (): void => {
+    document.body.classList.toggle("has-plbar", bar.dataset.live === "1");
+    paintRepeat();
+    paintCards();
+    paintList();
+    document.querySelectorAll<HTMLButtonElement>(".pl__row").forEach((row) => {
+      if (row.dataset.bound === "1") return;
+      row.dataset.bound = "1";
+      row.addEventListener("click", () => {
+        const n = Number(row.dataset.track);
+        if (Number.isFinite(n)) playRow(n);
+      });
+    });
+    bindOnce(document.querySelector<HTMLElement>("[data-repeat]"), cycleRepeat);
+    bindOnce(document.querySelector<HTMLElement>("[data-shuffle]"), toggleShuffle);
+    bindOnce(document.querySelector<HTMLElement>("[data-play-all]"), () => {
+      if (allN.length) playQueue(allN, shuffle ? allN[Math.floor(Math.random() * allN.length)] : allN[0]);
+    });
+  };
+
   setPlayingUI(false);
+  return { refresh };
 }

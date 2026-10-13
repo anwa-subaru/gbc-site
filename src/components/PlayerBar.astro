@@ -1,0 +1,410 @@
+---
+/**
+ * 全局播放条（所有页面都在，位于 Layout 里）
+ *  - 固定在底部，手机 / 电脑同一套形态
+ *  - `transition:persist`：Astro 视图过渡时这个节点不被替换，
+ *    <audio> 与播放进度得以跨页面存活 —— 从音乐页切到主页歌不会断
+ *  - 曲目数据以 JSON 内联，这样在没有曲目表的页面上也能知道
+ *    「下一首是谁」（否则切到主页后按下一首就无歌可放）
+ */
+import { assetUrl } from "../lib/assets";
+import songsData from "../data/songs.json";
+
+interface Song {
+  n: number;
+  file: string;
+  title: string;
+  artist: string;
+  dur: number;
+  cover: string | null;
+  album: string;
+}
+
+const payload = (songsData as Song[]).map((s) => ({
+  n: s.n,
+  t: s.title,
+  a: s.artist,
+  src: assetUrl(s.file),
+  cover: s.cover ? assetUrl(s.cover) : "",
+  album: s.album,
+  dur: s.dur,
+}));
+
+const first = payload[0];
+---
+
+<div class="plbar" data-player transition:persist>
+  <div class="pl__now" data-now>
+    <span class="pl__seekline" aria-hidden="true"><i data-seekline /></span>
+
+    <div class="pl__art">
+      {first.cover ? <img src={first.cover} alt="" width="300" height="300" data-art /> : null}
+      <span class="pl__art--none" data-art-none aria-hidden="true">SELECT<br />A TRACK</span>
+    </div>
+
+    <div class="pl__info">
+      <p class="pl__nowtitle" data-title>未选择曲目</p>
+      <p class="pl__nowartist" data-artist>点击任意曲目开始播放</p>
+    </div>
+
+    <div class="pl__seek">
+      <input
+        class="pl__range"
+        type="range"
+        min="0"
+        max="1000"
+        value="0"
+        step="1"
+        data-seek
+        aria-label="播放进度"
+      />
+      <p class="pl__times num"><span data-cur>0:00</span><span data-total>0:00</span></p>
+    </div>
+
+    <div class="pl__ctrl">
+      <button class="pl__ic" type="button" data-prev aria-label="上一首">
+        <svg viewBox="0 0 20 20" aria-hidden="true" width="18" height="18">
+          <path d="M15 4v12L7 10zM5 4h1.6v12H5z" fill="currentColor"></path>
+        </svg>
+      </button>
+      <button class="pl__ic pl__ic--main" type="button" data-toggle aria-label="播放">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" data-icon-play>
+          <path d="M7 4.5v15l13-7.5z" fill="currentColor"></path>
+        </svg>
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          width="22"
+          height="22"
+          data-icon-pause
+          class="is-off"
+        >
+          <path d="M7 4.5h3.4v15H7zM13.6 4.5H17v15h-3.4z" fill="currentColor"></path>
+        </svg>
+      </button>
+      <button class="pl__ic" type="button" data-next aria-label="下一首">
+        <svg viewBox="0 0 20 20" aria-hidden="true" width="18" height="18">
+          <path d="M5 4v12l8-6zM13.4 4H15v12h-1.6z" fill="currentColor"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="pl__vol">
+      <svg viewBox="0 0 16 16" aria-hidden="true" width="14" height="14">
+        <path
+          d="M2 6h2.4L7.5 3.4v9.2L4.4 10H2zM10 5.4a3.4 3.4 0 010 5.2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+      <input
+        class="pl__range pl__range--vol"
+        type="range"
+        min="0"
+        max="100"
+        value="90"
+        step="1"
+        data-vol
+        aria-label="音量"
+      />
+    </div>
+
+    <audio data-audio preload="none"></audio>
+  </div>
+
+  <script type="application/json" data-songs is:inline set:html={JSON.stringify(payload)} />
+</div>
+
+<style>
+  /* ---------- 固定底栏（所有断点一致：手机和电脑都在下面） ---------- */
+  .pl__now {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "art info ctrl"
+      "seek seek seek";
+    align-items: center;
+    gap: var(--sp-1) var(--sp-3);
+    padding: var(--sp-1) var(--sp-2) calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--ink-850) 97%, transparent);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 -12px 32px rgb(0 0 0 / 0.5);
+    /* 没开始播放前藏到屏幕外（用 transform 而非 display，方便做滑入动画） */
+    visibility: hidden;
+    transform: translateY(115%);
+    transition:
+      transform var(--dur-base) var(--ease-out-cubic),
+      visibility 0s linear var(--dur-base);
+  }
+
+  .plbar[data-live] .pl__now {
+    visibility: visible;
+    transform: none;
+    transition: transform var(--dur-base) var(--ease-out-cubic);
+  }
+
+  /* 固定底栏会盖住页面末尾：由脚本给 body 加 has-plbar 后留出等高空白 */
+  :global(body.has-plbar) {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pl__seekline {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    overflow: hidden;
+    background: var(--ink-700);
+  }
+
+  .pl__seekline i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .pl__art {
+    grid-area: art;
+    position: relative;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+  }
+
+  .pl__art img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pl__art--none {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono-num);
+    font-size: 0.5rem;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-align: center;
+    color: var(--ink-400);
+    background: repeating-linear-gradient(
+      45deg,
+      var(--ink-800),
+      var(--ink-800) 5px,
+      var(--ink-850) 5px,
+      var(--ink-850) 10px
+    );
+  }
+
+  /* 占位图与封面互斥：本类的 display 会盖掉 UA 的 [hidden]，必须显式兜住 */
+  .pl__art--none[hidden],
+  .pl__art img[hidden] {
+    display: none !important;
+  }
+
+  .pl__info {
+    grid-area: info;
+    min-width: 0;
+  }
+
+  .pl__nowtitle {
+    margin: 0;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pl__nowartist {
+    margin: 2px 0 0;
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pl__seek {
+    grid-area: seek;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-top: -2px;
+  }
+
+  .pl__times {
+    display: flex;
+    gap: var(--sp-2);
+    margin: 0;
+    font-size: 0.625rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-400);
+    flex: 0 0 auto;
+  }
+
+  .pl__range {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    /* 滑块轨道只有 2px，但整个输入框做成 44px：拖动手感从"狙击"
+       变成"随便点"，滑轨位置不变（webkit 会把轨道垂直居中） */
+    height: 44px;
+    margin: 0;
+    appearance: none;
+    background: none;
+    cursor: pointer;
+  }
+
+  .pl__range::-webkit-slider-runnable-track {
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      var(--accent) 0%,
+      var(--accent) var(--p, 0%),
+      var(--ink-700) var(--p, 0%),
+      var(--ink-700) 100%
+    );
+  }
+
+  .pl__range::-moz-range-track {
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      var(--accent) 0%,
+      var(--accent) var(--p, 0%),
+      var(--ink-700) var(--p, 0%),
+      var(--ink-700) 100%
+    );
+  }
+
+  .pl__range::-webkit-slider-thumb {
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    margin-top: -4px;
+    border-radius: 50%;
+    background: var(--ink-000);
+    border: 0;
+  }
+
+  .pl__range::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--ink-000);
+  }
+
+  .pl__ctrl {
+    grid-area: ctrl;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+  }
+
+  .pl__ic {
+    display: grid;
+    place-items: center;
+    width: 44px; /* 触控目标下限：图标本身没变，热区撑到 44 */
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--fg);
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease-out-cubic),
+      background-color var(--dur-fast) var(--ease-out-cubic);
+  }
+
+  .pl__ic:hover {
+    color: var(--accent);
+  }
+
+  .pl__ic--main {
+    width: 48px;
+    height: 48px;
+    background: var(--accent);
+    color: var(--ink-000);
+  }
+
+  .pl__ic--main:hover {
+    color: var(--ink-000);
+    opacity: var(--opacity-hover);
+  }
+
+  .pl__ic[disabled] {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* 播放/暂停图标切换：SVG 元素既无 hidden 属性也不吃 UA 的 [hidden]，用 class */
+  .pl__ic svg.is-off {
+    display: none !important;
+  }
+
+  .pl__vol {
+    display: none;
+  }
+
+  /* ---------- 桌面：同一条底栏，改成横向一行 ---------- */
+  @media (min-width: 1024px) {
+    .pl__now {
+      grid-template-columns: 56px minmax(0, 1fr) minmax(200px, 1.15fr) auto auto;
+      grid-template-areas: "art info seek ctrl vol";
+      gap: var(--sp-2) var(--sp-5);
+      padding: var(--sp-2) var(--sp-5) calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .pl__art {
+      width: 56px;
+      height: 56px;
+    }
+
+    .pl__nowtitle {
+      font-size: var(--fs-body);
+    }
+
+    .pl__nowartist {
+      margin-top: 0;
+    }
+
+    .pl__seek {
+      margin-top: 0;
+    }
+
+    .pl__ic--main {
+      width: 44px;
+      height: 44px;
+    }
+
+    .pl__vol {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      color: var(--fg-muted);
+    }
+
+    .pl__range--vol {
+      flex: 0 0 90px;
+      width: 90px;
+    }
+  }
+</style>

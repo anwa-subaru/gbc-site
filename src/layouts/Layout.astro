@@ -10,6 +10,7 @@ import { ClientRouter } from "astro:transitions";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import Lightbox from "../components/Lightbox.astro";
+import PlayerBar from "../components/PlayerBar.astro";
 import { assetUrl } from "../lib/assets";
 import "../styles/global.css";
 
@@ -107,6 +108,10 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
       <slot />
     </main>
     <Footer />
+
+    {/* 全局播放条：固定在底部，transition:persist 让它在页面切换时不被替换，
+        音乐可以跨页继续放 */}
+    <PlayerBar />
 
     <Lightbox />
 
