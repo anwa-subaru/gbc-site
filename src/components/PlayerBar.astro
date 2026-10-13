@@ -133,6 +133,26 @@ const first = payload[0];
     <audio data-audio preload="none"></audio>
   </div>
 
+  <!-- 完全收起后只剩这个浮动按钮：点它把播放条放回来 -->
+  <button
+    class="plbar__mini"
+    type="button"
+    data-fold
+    aria-expanded="false"
+    aria-label="展开播放器"
+    title="展开播放器"
+  >
+    <svg viewBox="0 0 20 20" aria-hidden="true" width="20" height="20">
+      <path
+        d="M5 12.5l5-5 5 5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+        stroke-linejoin="round"></path>
+    </svg>
+  </button>
+
   <script type="application/json" data-songs is:inline set:html={JSON.stringify(payload)} />
 </div>
 
@@ -175,9 +195,9 @@ const first = payload[0];
     padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* 折叠后条子矮一半，页面留白同步收窄，能多看一截内容 */
+  /* 完全收起后条子不在页面上，底部不留白；浮动按钮浮在角落不占位 */
   :global(body.has-plbar-folded) {
-    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .pl__seekline {
@@ -422,18 +442,74 @@ const first = payload[0];
     transform: rotate(180deg);
   }
 
-  /* 折叠态：只留封面 / 曲名 / 播放键，进度条、切歌、音量都收起，
-     条子从两行变一行，尽量不挡内容；进度仍有顶部那条细线在跑 */
-  .plbar[data-folded] .pl__now {
-    grid-template-columns: 40px minmax(0, 1fr) auto auto;
-    grid-template-areas: "art info ctrl fold";
+  /* ---------- 完全折叠 ----------
+     条子整条滑出屏幕，只留右下角一个浮动按钮把它叫回来。
+     收起：短、干脆地滑下去；展开：稍慢、带一点回弹，别干巴巴地跳 */
+  .pl__now {
+    transition:
+      transform 420ms cubic-bezier(0.34, 1.28, 0.64, 1),
+      visibility 0s;
   }
 
-  .plbar[data-folded] .pl__seek,
-  .plbar[data-folded] .pl__vol,
-  .plbar[data-folded] .pl__ctrl [data-prev],
-  .plbar[data-folded] .pl__ctrl [data-next] {
-    display: none;
+  .plbar[data-folded] .pl__now {
+    visibility: hidden;
+    transform: translateY(115%);
+    transition:
+      transform 320ms cubic-bezier(0.5, 0, 0.75, 0.4),
+      visibility 0s linear 320ms;
+  }
+
+  /* 浮动展开按钮：只播放条真的在用时才出现 */
+  .plbar__mini {
+    position: fixed;
+    right: var(--sp-3);
+    bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+    z-index: 41;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--ink-850) 94%, transparent);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 10px 28px rgb(0 0 0 / 0.55);
+    color: var(--ink-300);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.7);
+    transition:
+      opacity 180ms ease,
+      transform 260ms cubic-bezier(0.5, 0, 0.75, 0.4),
+      color var(--dur-fast) var(--ease-out-cubic),
+      border-color var(--dur-fast) var(--ease-out-cubic),
+      visibility 0s linear 180ms;
+  }
+
+  .plbar[data-live][data-folded] .plbar__mini {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    /* 延迟一点出场：等条子滑走再"长"出来，有先后顺序才不呆 */
+    transition:
+      opacity 220ms ease 150ms,
+      transform 400ms cubic-bezier(0.34, 1.35, 0.64, 1) 150ms,
+      color var(--dur-fast) var(--ease-out-cubic),
+      border-color var(--dur-fast) var(--ease-out-cubic),
+      visibility 0s;
+  }
+
+  .plbar__mini:hover {
+    color: var(--fg);
+    border-color: var(--ink-400);
+  }
+
+  /* 正在放的时候描边透一点红，收起状态下也知道歌还在响 */
+  .plbar__mini.is-playing {
+    border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+    color: var(--fg);
   }
 
   /* ---------- 桌面：同一条底栏，改成横向一行 ---------- */
@@ -479,41 +555,22 @@ const first = payload[0];
       width: 90px;
     }
 
-    /* 桌面折叠：不是压扁而是一条横向的条子，缩成右下角的小药丸，
-       真正把画面让出来；留白也跟着收到最小 */
-    .plbar[data-folded] .pl__now {
-      left: auto;
+    /* 桌面：浮动按钮挪出一点，别贴着屏幕边 */
+    .plbar__mini {
       right: var(--sp-5);
-      bottom: var(--sp-4);
-      width: max-content;
-      max-width: min(520px, calc(100vw - 2 * var(--sp-5)));
-      padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-2);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      box-shadow: 0 14px 36px rgb(0 0 0 / 0.6);
-      gap: var(--sp-2) var(--sp-3);
-      grid-template-columns: 40px minmax(0, 1fr) auto 44px;
-      grid-template-areas: "art info ctrl fold";
+      bottom: calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+      width: 52px;
+      height: 52px;
     }
+  }
 
-    .plbar[data-folded] .pl__art {
-      width: 40px;
-      height: 40px;
-    }
-
-    .plbar[data-folded] .pl__nowtitle {
-      font-size: var(--fs-sm);
-      max-width: 260px;
-    }
-
-    /* 药丸里只留曲名，歌手名与顶部进度线都收掉（圆角上横一条线很脏） */
-    .plbar[data-folded] .pl__nowartist,
-    .plbar[data-folded] .pl__seekline {
-      display: none;
-    }
-
-    :global(body.has-plbar.has-plbar-folded) {
-      padding-bottom: calc(var(--sp-5) + env(safe-area-inset-bottom, 0px));
+  /* 系统开了"减弱动态效果"：不做滑出与回弹，直接到位 */
+  @media (prefers-reduced-motion: reduce) {
+    .pl__now,
+    .plbar__mini,
+    .plbar__fold svg {
+      transition-duration: 1ms !important;
+      transition-delay: 0s !important;
     }
   }
 </style>

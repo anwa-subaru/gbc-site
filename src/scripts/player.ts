@@ -89,7 +89,9 @@ function createCore(bar: HTMLElement): Core {
   const nextBtn = bar.querySelector<HTMLButtonElement>("[data-next]");
   const iconPlay = bar.querySelector<SVGElement>("[data-icon-play]");
   const iconPause = bar.querySelector<SVGElement>("[data-icon-pause]");
-  const foldBtn = bar.querySelector<HTMLButtonElement>("[data-fold]");
+  // 两个折叠按钮：条子里的"收起" + 完全收起后浮在右下角的"展开"
+  const foldBtns = bar.querySelectorAll<HTMLButtonElement>("[data-fold]");
+  const miniBtn = bar.querySelector<HTMLButtonElement>(".plbar__mini");
 
   let current: number | null = null; // 当前曲目号（songs.json 的 n）
   let queue: number[] = []; // 播放队列（曲目号）
@@ -109,28 +111,34 @@ function createCore(bar: HTMLElement): Core {
   }
 
   /* ---------- 折叠 ----------
-     收起后条子只剩封面 / 曲名 / 播放键一行，尽量不挡内容；点箭头再展开。
-     状态存 localStorage，切页与刷新都保持 */
-  let folded = localStorage.getItem("gbc.plbar") === "1";
+     完全收起后条子整条滑出屏幕，只留右下角一个浮动按钮叫它回来。
+     状态只放内存、不落 localStorage：
+       · 视图过渡切页时脚本实例还在（挂在 window 上），所以切页保持折叠；
+       · 刷新页面时音乐本来就断了，此时若还记着"收起"，用户再点歌会看不到
+         播放条、只剩一个悬浮箭头，容易懵 —— 所以刷新即复位为展开 */
+  let folded = false;
 
   const paintFold = (): void => {
     if (folded) bar.dataset.folded = "1";
     else delete bar.dataset.folded;
     const label = folded ? "展开播放器" : "收起播放器";
-    foldBtn?.setAttribute("aria-expanded", String(!folded));
-    foldBtn?.setAttribute("aria-label", label);
-    foldBtn?.setAttribute("title", label);
+    foldBtns.forEach((btn) => {
+      btn.setAttribute("aria-expanded", String(!folded));
+      btn.setAttribute("aria-label", label);
+      btn.setAttribute("title", label);
+    });
     // 折叠后条子矮一截，页面留白跟着换（否则底部会空一大块）
     const live = bar.dataset.live === "1";
     document.body.classList.toggle("has-plbar", live);
     document.body.classList.toggle("has-plbar-folded", live && folded);
   };
 
-  foldBtn?.addEventListener("click", () => {
-    folded = !folded;
-    localStorage.setItem("gbc.plbar", folded ? "1" : "0");
-    paintFold();
-  });
+  foldBtns.forEach((btn) =>
+    btn.addEventListener("click", () => {
+      folded = !folded;
+      paintFold();
+    }),
+  );
 
   const paint = (el: HTMLInputElement | null, pct: number): void => {
     if (el) el.style.setProperty("--p", `${pct}%`);
@@ -176,6 +184,8 @@ function createCore(bar: HTMLElement): Core {
     iconPlay?.classList.toggle("is-off", playing);
     iconPause?.classList.toggle("is-off", !playing);
     toggleBtn?.setAttribute("aria-label", playing ? "暂停" : "播放");
+    // 完全收起时条子看不见，靠浮动按钮的描边颜色提示"还在放"
+    miniBtn?.classList.toggle("is-playing", playing);
     paintCards();
     paintList();
   };
