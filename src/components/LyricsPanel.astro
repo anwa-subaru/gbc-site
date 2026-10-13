@@ -213,6 +213,19 @@
       linear-gradient(to bottom, rgb(7 8 12 / 0.42), rgb(7 8 12 / 0.2) 26%, rgb(7 8 12 / 0.24) 74%, rgb(7 8 12 / 0.48));
   }
 
+  /* 手机：封面做背景太花、压不住字，改深色渐变（桌面仍用专辑封面） */
+  @media (max-width: 1023.98px) {
+    .lyr__cover {
+      display: none;
+    }
+    .lyr__scrim {
+      /* 纯黑打底 + 歌词区一点点提亮，避免整块死黑，也给中段一点聚焦感 */
+      background:
+        radial-gradient(135% 44% at 50% 40%, #12141b 0%, #0a0b10 54%, #07080c 100%),
+        linear-gradient(to bottom, #0a0b10, #07080c 34%, #07080c 76%, #050609);
+    }
+  }
+
   .lyr__panel {
     position: relative;
     display: flex;
@@ -637,6 +650,13 @@
       width: 60px;
       height: 60px;
       background: var(--gbc-red-deep, #c60000);
+    }
+  }
+
+  /* 手机端背景是深色，歌词不需要那么重的描边阴影（放在最后才盖得住上面的规则） */
+  @media (max-width: 1023.98px) {
+    .lyr__line {
+      text-shadow: 0 1px 6px rgb(0 0 0 / 0.45);
     }
   }
 
