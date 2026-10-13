@@ -183,67 +183,46 @@ export function initPlayer(): void {
 
   nextBtn?.addEventListener("click", () => step(1));
 
-  /* ---------- 音频驱动的封面红刺环 ----------
-     沿「方形」封面周界采样，每个采样点沿径向位移，再用 Catmull-Rom
-     转三次贝塞尔连成一条平滑闭合路径：
-       · 位移为 0 时整条路径正好是封面方框，又垫在封面下层 → 完全看不见
-       · 位移量由实时频谱驱动：低频定整体强度，中高频（人声）给每个
-         采样点各自的起伏，声越大刺越长
-       · 频谱按相位取样 + 正弦包络随时间平移 → 刺围着封面流动
+  /* ---------- 音频驱动的专辑环形频谱 ----------
+     正方形封面的四条边上长出 64 根独立的尖刺（每边 16 根）：
+       · 刺根贴在封面边线上，位移为 0 时整圈藏在封面下层，完全看不见
+       · 刺尖沿所在边的外法线向外指（顶边朝上、右边朝右…），轮廓永远
+         是「正方形在长刺」，不会糊成一团圆
+       · 64 根刺 = 64 个频谱 bin，镜像布局：环的两端是低频、中点是高频，
+         闭环无缝 —— 底鼓只在自己那段边上爆刺，人声、镲片各有地段，
+         整张专辑就是这台环形频谱仪
      只在「正在播放的那张封面」上跑 rAF，暂停时衰减收回再停帧。 */
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const RING_N = 192; // 周界采样点数（越高越平滑）
-  const RING_HALF = 50; // 封面半边长：SVG 铺 124% ⇒ 1 单位 = 封面的 1%
+  const RING_HALF = 50; // 封面半边长：SVG 铺 132% ⇒ 1 单位 = 封面的 1%
   const RING_MAX = 13; // 刺最长伸出量（封面边长的 13%，约 20px）
-  const RING_LOBES = 21; // 环形波瓣数：越多牙越窄，21 是「窄而分明」那一档
-
-  // 预计算周界采样点 + 外法线。基座是「圆角方框」而不是尖角方框：
-  // 尖角处外扩后曲线要在极短弧长内拐 90°，必然出现尖点（实测 74°）；
-  // 圆角半径 12 的方框，外扩 11 后转角半径变 23，整圈平滑。
-  // 圆角完全落在封面尖角内侧，静止时被封面挡住，看不出来。
-  const RING = (() => {
-    const H = RING_HALF;
-    const r = 12; // 圆角半径
-    const line = 2 * H - 2 * r; // 直线段长 76
-    const arc = (Math.PI / 2) * r; // 每段圆角弧长
-    const segs: { len: number; at: (t: number) => { x: number; y: number; nx: number; ny: number } }[] = [
-      { len: line, at: (t) => ({ x: -H + r + line * t, y: -H, nx: 0, ny: -1 }) },
-      { len: arc, at: (t) => { const a = -Math.PI / 2 + (Math.PI / 2) * t; return { x: H - r + r * Math.cos(a), y: -H + r + r * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a) }; } },
-      { len: line, at: (t) => ({ x: H, y: -H + r + line * t, nx: 1, ny: 0 }) },
-      { len: arc, at: (t) => { const a = (Math.PI / 2) * t; return { x: H - r + r * Math.cos(a), y: H - r + r * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a) }; } },
-      { len: line, at: (t) => ({ x: H - r - line * t, y: H, nx: 0, ny: 1 }) },
-      { len: arc, at: (t) => { const a = Math.PI / 2 + (Math.PI / 2) * t; return { x: -H + r + r * Math.cos(a), y: H - r + r * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a) }; } },
-      { len: line, at: (t) => ({ x: -H, y: H - r - line * t, nx: -1, ny: 0 }) },
-      { len: arc, at: (t) => { const a = Math.PI + (Math.PI / 2) * t; return { x: -H + r + r * Math.cos(a), y: -H + r + r * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a) }; } },
-    ];
-    const total = segs.reduce((s, g) => s + g.len, 0);
-    const out: { x: number; y: number; nx: number; ny: number; edge: number }[] = [];
-    for (let i = 0; i < RING_N; i++) {
-      let s = (i / RING_N) * total;
-      let g = segs[0];
-      for (const seg of segs) {
-        if (s <= seg.len) {
-          g = seg;
-          break;
-        }
-        s -= seg.len;
-        g = seg;
+  const RAY_PER_SIDE = 8; // 每边 8 根 → 整圈 32 根：少而清楚，不拥挤
+  const RAY_COUNT = RAY_PER_SIDE * 4;
+  /* 每根刺的轮廓：谷底 0 → 两侧 0.62 → 顶部 0.97（略带平顶）。
+     点列里谷底与相邻刺共用，所以没有重复点；过样条后是一枚圆顶牙齿，
+     不是一根针 —— 这是"圆滑"的关键 */
+  const DOME = [0.62, 0.97, 0.97, 0.62];
+  const DOME_OFFSET = [-0.34, -0.12, 0.12, 0.34];
+  const RING: { x: number; y: number; nx: number; ny: number; ray: number; w: number }[] = [];
+  for (let s = 0; s < 4; s++) {
+    for (let j = 0; j < RAY_PER_SIDE; j++) {
+      const ray = s * RAY_PER_SIDE + j;
+      const at = (t: number): { x: number; y: number; nx: number; ny: number } => {
+        if (s === 0) return { x: -RING_HALF + 2 * RING_HALF * t, y: -RING_HALF, nx: 0, ny: -1 };
+        if (s === 1) return { x: RING_HALF, y: -RING_HALF + 2 * RING_HALF * t, nx: 1, ny: 0 };
+        if (s === 2) return { x: RING_HALF - 2 * RING_HALF * t, y: RING_HALF, nx: 0, ny: 1 };
+        return { x: -RING_HALF, y: RING_HALF - 2 * RING_HALF * t, nx: -1, ny: 0 };
+      };
+      RING.push({ ...at(j / RAY_PER_SIDE), ray: -1, w: 0 }); // 谷底（贴着封面边线）
+      for (let d = 0; d < DOME.length; d++) {
+        RING.push({
+          ...at((j + 0.5 + DOME_OFFSET[d]) / RAY_PER_SIDE),
+          ray,
+          w: DOME[d],
+        });
       }
-      const p = g.at(Math.min(1, s / g.len));
-      /* 下边缘（曲名那侧）几乎不长刺：按法线 y 的 0.8 次方衰减，底边只留
-         一条细红边（15% 高度）把环闭合，刺集中在顶边与两侧 —— 曲名区域
-         始终干净，符合「刺只能在封面边缘」 */
-      const nyPos = Math.max(0, p.ny);
-      out.push({
-        x: p.x,
-        y: p.y,
-        nx: p.nx,
-        ny: p.ny,
-        edge: 0.15 + 0.85 * (1 - Math.pow(nyPos, 0.8)),
-      });
     }
-    return out;
-  })();
+  }
+  const RING_N = RING.length; // 32 根 × 5 点 = 160
 
   let analyser: AnalyserNode | null = null;
   let audioCtx: AudioContext | null = null;
@@ -303,29 +282,97 @@ export function initPlayer(): void {
     return `${d}Z`;
   };
 
-  // 频谱 → 频段平均能量
-  const level = (lo: number, hi: number): number => {
-    if (!analyser || !freqData) return 0;
-    let sum = 0;
-    const a = Math.floor(lo * freqData.length);
-    const b = Math.max(a + 1, Math.floor(hi * freqData.length));
-    for (let i = a; i < b; i++) sum += freqData[i];
-    return sum / ((b - a) * 255);
+  const FLAT = smoothClosed(RING.flatMap((r) => [r.x, r.y]));
+
+  const SPECTRUM_BINS = 64;
+  /* 每条边各自只保留最强的 3 根：四条边都保证有戏（环得住整张专辑），
+     整圈最多 12 根同时在场（不拥挤）。按全局排名卡会让低频或高频
+     整段被挤掉，按边分配名额才稳 */
+  const PER_SIDE_MAX = 3;
+  const H_MAX = 13.2; // 刺尖伸出上限：再多就越出 SVG 画布被裁掉
+  const SPECTRUM_MAX = 0.72; // 只取 0~17.3kHz 的音乐主体，避开极高频噪声
+  const spectrum = new Float32Array(SPECTRUM_BINS);
+  const burst = new Float32Array(SPECTRUM_BINS);
+  const fluxFloor = new Float32Array(SPECTRUM_BINS).fill(0.004);
+  const prevSpec = new Uint8Array(128);
+  let amp = 0; // 全体电平均值：只用来判断"该不该收干净"和流光速度
+  let phase = 0; // 流光相位（只调制亮度，不移动频率归属）
+
+  /* 每根刺 ↔ 频谱 bin 的镜像映射：整体旋转 0.375，使低频落在底边中点、
+     高频落在顶边中点 —— 底矮顶高，符合"低频刺低、高频刺高"的读法；
+     镜像布局让左右两半对称，闭环处（低频）无缝衔接 */
+  const BIN_OF_RAY = (() => {
+    const map = new Uint8Array(RAY_COUNT);
+    for (let k = 0; k < RAY_COUNT; k++) {
+      const u = ((k + 0.5) / RAY_COUNT + 0.375) % 1;
+      const f = u <= 0.5 ? u * 2 : (1 - u) * 2;
+      map[k] = Math.min(SPECTRUM_BINS - 1, Math.floor(f * SPECTRUM_BINS));
+    }
+    return map;
+  })();
+  /* 刺高随频率递增：底边低频只有约 45%，顶部高频顶到 100% */
+  const RAY_SCORE = new Float32Array(RAY_COUNT); // 每帧每根刺的响度分
+  const RAY_LEVEL = new Float32Array(RAY_COUNT); // 边内归一化后的相对强弱
+  const RAY_SMOOTH = new Float32Array(RAY_COUNT); // 平滑后的实际高度系数
+  const FREQ_OF_RAY = (() => {
+    const map = new Float32Array(RAY_COUNT);
+    for (let k = 0; k < RAY_COUNT; k++) {
+      map[k] = ((BIN_OF_RAY[k] + 0.5) / SPECTRUM_BINS) * SPECTRUM_MAX;
+    }
+    return map;
+  })();
+  /* 低频短、高频高：底边（f≈0~0.22）只有 20%~48%，顶边（f≈0.75）到 95%，
+     差 4 倍左右，一眼看得出"底下矮、顶上高"的走向 */
+  const heightForFrequency = (f: number): number =>
+    Math.min(1.15, 0.2 + 0.95 * Math.pow(f, 0.8));
+  const ABS_FLOOR = 0.06; // 绝对底噪：低于此值就是"没声音"，不参与
+  /* 相对门限：平时各频段 rel≈1（等于自己的常态）就不冒头；某频段冲到自己
+     常态的 1.12 倍以上才开始冒头，1.62 倍长满 —— "等那个声音到了才冒头" */
+
+  /* 分频段增益：人声所在的 0.045~0.24 刻意提高，镲片段压低防噪刺 */
+  const gainForFrequency = (f: number): number => {
+    if (f < 0.045) return 1.08; // 底鼓 / 贝斯
+    if (f < 0.24) return 1.26; // 人声基频与共振峰
+    if (f < 0.42) return 1.08; // 钢琴、吉他、军鼓主体
+    return 0.9; // 镲片与空气感
   };
 
-  const FLAT = smoothClosed(RING.flatMap((r) => [r.x, r.y]));
-  let amp = 0; // 快起慢落包络（像音量表）
-
-  let burst = 0; // 爆发量：冲过均值就炸一次，然后衰减
-  let phase = 0; // 流动相位
-  /* 逐点能量。必须平滑后再用：频谱相邻 bin 差异极大，直接当位移
-     会得到一圈锯齿（之前"太刺、不平滑"就是这个）。
-     smooth[i] = 空间 3 抽头 + 时间低通，得到连续起伏 */
-  const smooth = new Float32Array(RING_N);
-  /* 频谱通量用的上一帧频谱：现代混音整体能量几乎恒定，靠能量均值
-     检测不到鼓点，得看"频谱形状的突变"（onset） */
-  const prevSpec = new Uint8Array(128);
-  let fluxAvg = 0.04;
+  const updateSpectrum = (bins: number, decaying: boolean): void => {
+    if (bins && !decaying && freqData) {
+      const usable = Math.max(1, Math.floor(bins * SPECTRUM_MAX));
+      for (let b = 0; b < SPECTRUM_BINS; b++) {
+        const a = Math.floor((b / SPECTRUM_BINS) * usable);
+        const e = Math.max(a + 1, Math.floor(((b + 1) / SPECTRUM_BINS) * usable));
+        let sum = 0;
+        let flux = 0;
+        for (let i = a; i < e; i++) {
+          sum += freqData[i];
+          const delta = freqData[i] - prevSpec[i];
+          if (delta > 0) flux += delta;
+        }
+        const width = (e - a) * 255;
+        const f = ((b + 0.5) / SPECTRUM_BINS) * SPECTRUM_MAX;
+        const level = Math.min(1, (sum / width) * gainForFrequency(f));
+        const onset = flux / width;
+        fluxFloor[b] += (onset - fluxFloor[b]) * 0.05;
+        burst[b] = Math.max(
+          Math.min(1, Math.max(0, onset - fluxFloor[b]) * 90),
+          burst[b] * 0.6, // onset 衰减快：重音一响那段刺炸长，随即收回
+        );
+        spectrum[b] += (level - spectrum[b]) * (level > spectrum[b] ? 0.82 : 0.62);
+      }
+      prevSpec.set(freqData.subarray(0, prevSpec.length));
+    } else {
+      // 暂停/无分析器：整体回落，直到收干净
+      for (let b = 0; b < SPECTRUM_BINS; b++) {
+        spectrum[b] *= 0.62;
+        burst[b] *= 0.58;
+      }
+    }
+    let sum = 0;
+    for (let b = 0; b < SPECTRUM_BINS; b++) sum += spectrum[b];
+    amp = sum / SPECTRUM_BINS;
+  };
 
   const tick = (): void => {
     rafId = 0;
@@ -334,63 +381,75 @@ export function initPlayer(): void {
     if (!card || !path) return;
     const decaying = audio.paused;
     if (analyser && !decaying) analyser.getByteFrequencyData(freqData!);
+    updateSpectrum(freqData ? freqData.length : 0, decaying);
+    phase = (phase + 0.001 + amp * 0.004) % 1;
 
-    /* 频段按 128 bin / 48kHz 折算（每 bin ≈187Hz）：
-       bass  0~0.02    = 0~375Hz      底鼓、贝斯
-       voice 0.035~0.22 = 0.8~5.3kHz  人声基频与共振峰，人声主要落这里 */
-    const bass = decaying ? 0 : level(0, 0.02);
-    const voice = decaying ? 0 : level(0.035, 0.22);
-    // 人声权重最高：人声一起来刺立刻长
-    const energy = Math.min(1, bass * 0.45 + voice * 1.15);
-    // 起落都快：声音一落刺立刻收，实时跟着唱（落 0.5 / 起 0.85）
-    amp += (energy - amp) * (energy > amp ? 0.85 : 0.68);
+    /* 第一步：每根刺的响度分。高频乘一个温和的补偿 —— 音乐能量天然往
+       低频堆，不补一点的话高频段永远争不过低频段 */
+    for (let k = 0; k < RAY_COUNT; k++) {
+      const lv = spectrum[BIN_OF_RAY[k]];
+      RAY_SCORE[k] = lv < ABS_FLOOR ? 0 : lv * (1 + 0.5 * FREQ_OF_RAY[k]);
+    }
 
-    /* onset 检测：频谱通量（只看正向增量）比能量均值灵敏得多，
-       压缩过的混音里底鼓/军鼓一打，频谱形状就会突变。
-       只统计 0.02~0.35：鼓与人声的起音都在这一段 */
-    let flux = 0;
-    if (freqData && !decaying) {
-      const a = Math.floor(freqData.length * 0.02);
-      const nb = Math.max(1, Math.floor(freqData.length * 0.35) - a);
-      for (let i = a; i < a + nb; i++) {
-        const d = freqData[i] - prevSpec[i];
-        if (d > 0) flux += d;
+    /* 第二步：每条边内部排名，只留最强的 PER_SIDE_MAX 根，并用"该边最强
+       的那根"归一化。关键在"边内排名"：每条边跟自己比，低频段就不会被
+       高频段挤掉名额，四条边都保证有刺；而最后的频率权重再把低频压矮、
+       把高频拔高 —— 底矮顶高，同时整圈最多 12 根，不拥挤 */
+    for (let side = 0; side < 4; side++) {
+      let t1 = -1;
+      let t2 = -1;
+      let t3 = -1;
+      const from = side * RAY_PER_SIDE;
+      for (let j = 0; j < RAY_PER_SIDE; j++) {
+        const v = RAY_SCORE[from + j];
+        if (v > t1) {
+          t3 = t2;
+          t2 = t1;
+          t1 = v;
+        } else if (v > t2) {
+          t3 = t2;
+          t2 = v;
+        } else if (v > t3) {
+          t3 = v;
+        }
       }
-      prevSpec.set(freqData.subarray(0, prevSpec.length));
-      flux /= nb * 255;
+      const sideMax = Math.max(t1, 1e-4);
+      let kept = 0;
+      for (let j = 0; j < RAY_PER_SIDE; j++) {
+        const i = from + j;
+        /* 并列时按索引先到先得：不会出现"并列导致谁都过不了门"的死局。
+           留不下的（或本边压根没声音的）直接置 0，完全缩回封面里 */
+        if (RAY_SCORE[i] >= t3 && kept < PER_SIDE_MAX && t1 > ABS_FLOOR) {
+          kept++;
+          RAY_LEVEL[i] = RAY_SCORE[i] / sideMax;
+        } else {
+          RAY_LEVEL[i] = 0;
+        }
+      }
     }
-    fluxAvg += (flux - fluxAvg) * 0.05; // 自适应底噪
-    /* 增益按实测标的：本曲 flux 常年 0.007、鼓点峰值 0.025，
-       ×75 后常态≈0、重音≈1 */
-    const onset = decaying ? 0 : Math.min(1, Math.max(0, flux - fluxAvg) * 75);
-    // 重音权重拉高：常态只到 60%，onset 直接顶满
-    burst = Math.max(onset, burst * 0.6); // 衰减快 = 收得干脆
-    const drive = Math.min(1, amp * 0.6 + burst);
-    phase = (phase + 0.0012 + amp * 0.003 + burst * 0.01) % 1;
 
-    const bins = freqData ? freqData.length : 0;
-    // 1) 取频谱 + 时间低通（上冲比回落快，保住瞬态）；
-    //    采样区间挪到 0.03~0.45，避开超低频与最高频，贴人声与乐器基音
-    for (let i = 0; i < RING_N; i++) {
-      const u = i / RING_N;
-      const bin = bins ? Math.floor((0.03 + ((u + phase) % 1) * 0.42) * bins) : 0;
-      const raw = bins && freqData ? freqData[bin] / 255 : 0;
-      smooth[i] += (raw - smooth[i]) * (raw > smooth[i] ? 0.75 : 0.68);
-    }
-    // 2) 空间 3 抽头平滑（环状，首尾相接）
+    /* 刺根位移恒 0（贴在封面边线上，被封面挡住），刺尖位移 =
+       该刺负责频段的电平 × 频率高度权重 × 它自己的 onset 重音 */
     const xy: number[] = [];
     for (let i = 0; i < RING_N; i++) {
       const r = RING[i];
-      const u = i / RING_N;
-      const lv =
-        (smooth[(i - 1 + RING_N) % RING_N] + 2 * smooth[i] + smooth[(i + 1) % RING_N]) / 4;
-      /* 只取正弦的正半周再抬到 2.6 次方：牙齿又窄又分明、谷底压平，相邻
-         牙齿之间留一条细红边。指数 >1 保证接合处导数为 0（谷底不出尖点），
-         指数越大牙越窄 —— 2.6 出来是细牙而不是圆包 */
-      const s = Math.sin(2 * Math.PI * (RING_LOBES * u - phase * 3));
-      const wave = s > 0 ? Math.pow(s, 2.6) : 0;
-      /* lv 抬到 1.5 次方：安静处几乎贴边、重音处顶满，拉开动态范围 */
-      const h = RING_MAX * drive * r.edge * (0.22 + 0.78 * Math.pow(lv, 1.5)) * (0.1 + 0.9 * wave);
+      let h = 0;
+      if (r.ray >= 0) {
+        const u = (r.ray + 0.5) / RAY_COUNT;
+        /* onset 只负责把已经冒头的刺推得更高，绝不参与"谁能冒头" ——
+           否则没入场的声音也会被 onset 顶出一点点，整圈又变挤 */
+        // 进出都平滑：排名换位时不会"啪"地弹出来
+        const target = RAY_LEVEL[r.ray];
+        const cur = RAY_SMOOTH[r.ray];
+        RAY_SMOOTH[r.ray] = cur + (target - cur) * (target > cur ? 0.45 : 0.22);
+        const gated = RAY_SMOOTH[r.ray] * (1 + burst[BIN_OF_RAY[r.ray]] * 0.6);
+        // 轻微流光：整圈像有光在转，但不改变"哪根刺管哪个频率"
+        const shimmer = 0.94 + 0.06 * Math.sin(2 * Math.PI * (u * 8 - phase * 2));
+        h = Math.min(
+          H_MAX,
+          RING_MAX * heightForFrequency(FREQ_OF_RAY[r.ray]) * gated * shimmer,
+        ) * r.w; // 圆顶轮廓：谷底 0 → 顶 0.97
+      }
       xy.push(r.x + r.nx * h, r.y + r.ny * h);
     }
     path.setAttribute("d", smoothClosed(xy));
@@ -398,9 +457,12 @@ export function initPlayer(): void {
     if (!decaying || amp > 0.006) rafId = requestAnimationFrame(tick);
     else {
       amp = 0;
-      burst = 0;
-      smooth.fill(0);
-      path.setAttribute("d", FLAT); // 收干净，路径回到方框（藏在封面后）
+      spectrum.fill(0);
+      burst.fill(0);
+      RAY_SMOOTH.fill(0);
+      fluxFloor.fill(0.004);
+      prevSpec.fill(0);
+      path.setAttribute("d", FLAT);
     }
   };
 

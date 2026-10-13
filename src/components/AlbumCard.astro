@@ -88,8 +88,8 @@ const label = playable
                 <stop offset="0.96" stop-color="#2b0000" />
               </radialGradient>
             </defs>
-            <g class="ac__spikes-g" fill={`url(#${gid})`}>
-              <path data-spike-path d="" />
+            <g class="ac__spikes-g">
+              <path data-spike-path d="" fill={`url(#${gid})`} />
             </g>
           </svg>
         )
@@ -141,8 +141,9 @@ const label = playable
   /* ---- 音频驱动的红刺环 ----
      player.ts 沿方框周界采样后重写 <path> 的 d。关键布局：SVG 铺到封面的
      132%（viewBox ±66 ⇒ 封面对应 ±50、刺尖最长 63），垫在封面(z-index:1)之下 ——
-     静止时路径正好是封面方框、完全藏在封面后面，声音越强刺沿方框边缘
-     向外长，只在封面四周的窄环里出现，不侵入画面也不压到曲名 */
+     静止时路径正好是封面方框、完全藏在封面后面。路径是一整圈频谱轮廓：
+     环上不同位置读取不同频段，低频、人声、钢琴/吉他、镲片各自抬起，
+     整张专辑就是这台“环形频谱仪”本体 */
   /* 封面 + 刺环的定位容器：高度正好等于封面（frame 是 1:1 且撑满宽度），
      这样刺环用百分比定位才是以「封面」为基准。
      注意不能直接相对 .ac__link 定位 —— 那里面还有标题，百分比高度会按
@@ -233,7 +234,9 @@ const label = playable
   }
 
   .ac__body {
-    padding-top: var(--sp-3);
+    position: relative;
+    z-index: 1;
+    padding-top: var(--sp-4);
   }
 
   .ac__title {
