@@ -197,11 +197,12 @@ export function initPlayer(): void {
   const RING_MAX = 13; // 刺最长伸出量（封面边长的 13%，约 20px）
   const RAY_PER_SIDE = 8; // 每边 8 根 → 整圈 32 根：少而清楚，不拥挤
   const RAY_COUNT = RAY_PER_SIDE * 4;
-  /* 每根刺的轮廓：谷底 0 → 两侧 0.62 → 顶部 0.97（略带平顶）。
-     点列里谷底与相邻刺共用，所以没有重复点；过样条后是一枚圆顶牙齿，
-     不是一根针 —— 这是"圆滑"的关键 */
-  const DOME = [0.62, 0.97, 0.97, 0.62];
-  const DOME_OFFSET = [-0.34, -0.12, 0.12, 0.34];
+  /* 每根刺的轮廓（单位：槽宽的比例）。刺占槽宽约一半，两侧留空 ——
+     这样才是一根根分明的刺，而不是连成一片的波浪。
+     收尖但顶端留一点圆：0.30 → 0.70 → 0.92 → 0.70 → 0.30，
+     过 Catmull-Rom 之后是"尖头微圆"的刺，既不是针也不是圆包 */
+  const DOME = [0.3, 0.7, 0.92, 0.7, 0.3];
+  const DOME_OFFSET = [-0.26, -0.11, 0, 0.11, 0.26];
   const RING: { x: number; y: number; nx: number; ny: number; ray: number; w: number }[] = [];
   for (let s = 0; s < 4; s++) {
     for (let j = 0; j < RAY_PER_SIDE; j++) {
@@ -285,10 +286,11 @@ export function initPlayer(): void {
   const FLAT = smoothClosed(RING.flatMap((r) => [r.x, r.y]));
 
   const SPECTRUM_BINS = 64;
-  /* 每条边各自只保留最强的 3 根：四条边都保证有戏（环得住整张专辑），
-     整圈最多 12 根同时在场（不拥挤）。按全局排名卡会让低频或高频
-     整段被挤掉，按边分配名额才稳 */
-  const PER_SIDE_MAX = 3;
+  /* 每条边最多 4 根，而且不是"取最高的 4 根"——那 4 根必然彼此接近，
+     看着一样高。改成先卡一条门限（明显高于本边平均值才算一个峰），
+     高度再按"超出多少"给：刚过线的矮、冲到峰值的高，同一条边上
+     自然一高一低 */
+  const PER_SIDE_MAX = 4;
   const H_MAX = 13.2; // 刺尖伸出上限：再多就越出 SVG 画布被裁掉
   const SPECTRUM_MAX = 0.72; // 只取 0~17.3kHz 的音乐主体，避开极高频噪声
   const spectrum = new Float32Array(SPECTRUM_BINS);
@@ -314,6 +316,12 @@ export function initPlayer(): void {
   const RAY_SCORE = new Float32Array(RAY_COUNT); // 每帧每根刺的响度分
   const RAY_LEVEL = new Float32Array(RAY_COUNT); // 边内归一化后的相对强弱
   const RAY_SMOOTH = new Float32Array(RAY_COUNT); // 平滑后的实际高度系数
+  /* 每条边"最近峰值"的慢参考（约 1 秒半衰）。用它而不是"本帧最强"来
+     归一化：本帧最强会让每秒都强行有一根顶格、其余跟在后面，一圈看
+     下来全都差不多高；用慢参考，响的段落整体拔高、安静段落整体回落，
+     同一条边上三根也能真正拉开高低 */
+  const SIDE_REF = new Float32Array(4).fill(0.15);
+  const SIDE_SCRATCH = new Float32Array(RAY_PER_SIDE); // 取前几名用的排序副本
   const FREQ_OF_RAY = (() => {
     const map = new Float32Array(RAY_COUNT);
     for (let k = 0; k < RAY_COUNT; k++) {
@@ -396,36 +404,45 @@ export function initPlayer(): void {
        高频段挤掉名额，四条边都保证有刺；而最后的频率权重再把低频压矮、
        把高频拔高 —— 底矮顶高，同时整圈最多 12 根，不拥挤 */
     for (let side = 0; side < 4; side++) {
-      let t1 = -1;
-      let t2 = -1;
-      let t3 = -1;
       const from = side * RAY_PER_SIDE;
+      let hi = -1;
+      let lo = 1e9;
       for (let j = 0; j < RAY_PER_SIDE; j++) {
         const v = RAY_SCORE[from + j];
-        if (v > t1) {
-          t3 = t2;
-          t2 = t1;
-          t1 = v;
-        } else if (v > t2) {
-          t3 = t2;
-          t2 = v;
-        } else if (v > t3) {
-          t3 = v;
-        }
+        if (v > hi) hi = v;
+        if (v < lo) lo = v;
       }
-      const sideMax = Math.max(t1, 1e-4);
+      SIDE_REF[side] = Math.max(hi, SIDE_REF[side] * 0.985);
+      const ref = Math.max(SIDE_REF[side], ABS_FLOOR);
+      /* 把这条边自己的动态范围拉满：本边最弱→0、最强→1。
+         这一步是"有高有低"的关键 —— 若按"取最高的 4 根"来选，这 4 根
+         天然彼此接近，看着就一样高；拉满范围之后，同一条边上的刺会
+         铺开在 0~1 之间，明显一高一低。
+         0.06 是护栏：本边频谱本来就很平时不要做除法放大噪声 */
+      const span = Math.max(hi - lo, 0.06);
+      for (let j = 0; j < RAY_PER_SIDE; j++) {
+        const i = from + j;
+        RAY_LEVEL[i] = Math.min(1, Math.max(0, (RAY_SCORE[i] - lo) / span));
+      }
+      // 再挑出本边最高的 4 根，且弱的（<0.2）直接缩回，不出场
+      for (let j = 0; j < RAY_PER_SIDE; j++) SIDE_SCRATCH[j] = RAY_LEVEL[from + j];
+      SIDE_SCRATCH.sort(); // 升序，末尾即最强
+      const c4 = SIDE_SCRATCH[RAY_PER_SIDE - PER_SIDE_MAX];
       let kept = 0;
       for (let j = 0; j < RAY_PER_SIDE; j++) {
         const i = from + j;
-        /* 并列时按索引先到先得：不会出现"并列导致谁都过不了门"的死局。
-           留不下的（或本边压根没声音的）直接置 0，完全缩回封面里 */
-        if (RAY_SCORE[i] >= t3 && kept < PER_SIDE_MAX && t1 > ABS_FLOOR) {
+        if (
+          RAY_LEVEL[i] > 0.2 &&
+          RAY_LEVEL[i] >= c4 - 1e-6 &&
+          kept < PER_SIDE_MAX &&
+          hi > ABS_FLOOR
+        ) {
           kept++;
-          RAY_LEVEL[i] = RAY_SCORE[i] / sideMax;
         } else {
           RAY_LEVEL[i] = 0;
         }
       }
+      void ref;
     }
 
     /* 刺根位移恒 0（贴在封面边线上，被封面挡住），刺尖位移 =
@@ -442,7 +459,8 @@ export function initPlayer(): void {
         const target = RAY_LEVEL[r.ray];
         const cur = RAY_SMOOTH[r.ray];
         RAY_SMOOTH[r.ray] = cur + (target - cur) * (target > cur ? 0.45 : 0.22);
-        const gated = RAY_SMOOTH[r.ray] * (1 + burst[BIN_OF_RAY[r.ray]] * 0.6);
+        /* 重音把命中的那根明显推高（×1.9 上限），段落之间就有起伏 */
+        const gated = RAY_SMOOTH[r.ray] * (1 + burst[BIN_OF_RAY[r.ray]] * 1.1);
         // 轻微流光：整圈像有光在转，但不改变"哪根刺管哪个频率"
         const shimmer = 0.94 + 0.06 * Math.sin(2 * Math.PI * (u * 8 - phase * 2));
         h = Math.min(
@@ -460,6 +478,7 @@ export function initPlayer(): void {
       spectrum.fill(0);
       burst.fill(0);
       RAY_SMOOTH.fill(0);
+      SIDE_REF.fill(0.15);
       fluxFloor.fill(0.004);
       prevSpec.fill(0);
       path.setAttribute("d", FLAT);
