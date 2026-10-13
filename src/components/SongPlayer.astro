@@ -43,8 +43,16 @@ const mmss = (sec: number): string =>
           </svg>
           播放全部
         </button>
-        <button class="pl__repeat" type="button" data-repeat aria-pressed="true" title="循环模式">
-          <svg viewBox="0 0 16 16" aria-hidden="true" width="13" height="13">
+        <button
+          class="pl__mode"
+          type="button"
+          data-playmode
+          data-mode="list"
+          aria-label="播放模式：列表循环（点击切换）"
+          title="播放模式：列表循环（点击切换）"
+        >
+          <!-- 列表循环 -->
+          <svg data-mode-icon="list" viewBox="0 0 16 16" aria-hidden="true" width="15" height="15">
             <path
               d="M3 6.5A3.5 3.5 0 016.5 3h5M11 1.5L13 3l-2 1.5M13 9.5A3.5 3.5 0 019.5 13h-5M5 14.5L3 13l2-1.5"
               fill="none"
@@ -53,10 +61,39 @@ const mmss = (sec: number): string =>
               stroke-linecap="round"
               stroke-linejoin="round"></path>
           </svg>
-          <span data-repeat-label>列表循环</span>
-        </button>
-        <button class="pl__shuffle" type="button" data-shuffle aria-pressed="false">
-          <svg viewBox="0 0 16 16" aria-hidden="true" width="13" height="13">
+          <!-- 单曲循环：同一个环，中间加一个 1 -->
+          <svg
+            data-mode-icon="one"
+            class="is-off"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            width="15"
+            height="15"
+          >
+            <path
+              d="M3 6.5A3.5 3.5 0 016.5 3h5M11 1.5L13 3l-2 1.5M13 9.5A3.5 3.5 0 019.5 13h-5M5 14.5L3 13l2-1.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+            <path
+              d="M7.2 6.4l1.6-1.1v5.4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+          <!-- 随机播放：交叉箭头 -->
+          <svg
+            data-mode-icon="shuffle"
+            class="is-off"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            width="15"
+            height="15"
+          >
             <path
               d="M2 4h2.6l1.8 2.4M2 12h2.6l5-6.6H14M11.4 3l2 2.4-2 2.4M11.4 8.6l2 2.4-2 2.4"
               fill="none"
@@ -65,7 +102,24 @@ const mmss = (sec: number): string =>
               stroke-linecap="round"
               stroke-linejoin="round"></path>
           </svg>
-          随机
+          <!-- 顺序播放（不循环）：直箭头 -->
+          <svg
+            data-mode-icon="off"
+            class="is-off"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            width="15"
+            height="15"
+          >
+            <path
+              d="M2.5 8h9M9 5.2L12 8l-3 2.8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+          <span data-playmode-label>列表循环</span>
         </button>
       </div>
 
@@ -168,8 +222,7 @@ const mmss = (sec: number): string =>
   }
 
   .pl__all,
-  .pl__shuffle,
-  .pl__repeat {
+  .pl__mode {
     display: inline-flex;
     align-items: center;
     gap: var(--sp-2);
@@ -193,33 +246,39 @@ const mmss = (sec: number): string =>
     color: var(--ink-000);
   }
 
-  .pl__shuffle[aria-pressed="true"] {
-    border-color: var(--neon-cyan);
-    color: var(--neon-cyan);
-  }
-
-  /* 循环按钮：三种状态用颜色区分（列表循环=青、单曲循环=红、不循环=灰） */
-  .pl__repeat {
+  /* 播放模式按钮：随机已并进来，一个按钮轮换
+     列表循环 → 单曲循环 → 随机播放 → 顺序播放。
+     每种模式有自己的图标（单曲循环是环里带一个 1），
+     颜色只是辅助，不再只靠颜色区分 */
+  .pl__mode {
     margin-left: auto;
   }
 
-  .pl__repeat[data-mode="list"] {
+  .pl__mode svg.is-off {
+    display: none;
+  }
+
+  .pl__mode[data-mode="list"] {
     border-color: var(--neon-cyan);
     color: var(--neon-cyan);
   }
 
-  .pl__repeat[data-mode="one"] {
+  .pl__mode[data-mode="one"] {
     border-color: var(--accent);
     color: var(--accent);
   }
 
-  .pl__repeat[data-mode="off"] {
+  .pl__mode[data-mode="shuffle"] {
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+  }
+
+  .pl__mode[data-mode="off"] {
     color: var(--ink-400);
   }
 
   .pl__all:hover,
-  .pl__shuffle:hover,
-  .pl__repeat:hover {
+  .pl__mode:hover {
     opacity: var(--opacity-hover);
   }
 
@@ -234,8 +293,7 @@ const mmss = (sec: number): string =>
     }
 
     .pl__all,
-    .pl__shuffle,
-    .pl__repeat {
+    .pl__mode {
       padding: 0 10px;
       font-size: var(--fs-xs);
       white-space: nowrap;

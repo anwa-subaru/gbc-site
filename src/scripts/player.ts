@@ -5,7 +5,8 @@
  *  - 曲目数据由播放条内联的 JSON 提供：在没有曲目表的页面上同样能算下一首
  *  - 队列模型：从曲目表点歌 → 整个曲目表为队列；从专辑卡点歌 → 该专辑的
  *    曲目为队列，于是"一张专辑里好几首歌"会在卡面上依次轮播
- *  - 循环模式：列表循环 / 单曲循环 / 不循环（音乐页列表条上的按钮切换）
+ *  - 播放模式：列表循环 / 单曲循环 / 随机播放 / 顺序播放，一个按钮轮换
+    （音乐页列表条右侧，每种模式有自己的图标）
  *  - Media Session：手机锁屏与通知栏可控制
  *  - 幂等：重复调用（astro:page-load）只绑定一次；页面级的曲目表与专辑卡
  *    每次导航后重新绑定（它们会被视图过渡替换掉）
@@ -32,12 +33,14 @@ const fmt = (sec: number): string => {
   return `${m}:${String(s).padStart(2, "0")}`;
 };
 
-type RepeatMode = "list" | "one" | "off";
-const REPEAT_ORDER: RepeatMode[] = ["list", "one", "off"];
-const REPEAT_LABEL: Record<RepeatMode, string> = {
+/* 播放模式：随机已并进这一个按钮里，四种模式轮换，各有各的图标 */
+type PlayMode = "list" | "one" | "shuffle" | "off";
+const MODE_ORDER: PlayMode[] = ["list", "one", "shuffle", "off"];
+const MODE_LABEL: Record<PlayMode, string> = {
   list: "列表循环",
   one: "单曲循环",
-  off: "不循环",
+  shuffle: "随机播放",
+  off: "顺序播放",
 };
 
 /* 视图过渡时模块可能被重新执行，把实例挂在 window 上保证只有一份，
@@ -95,8 +98,7 @@ function createCore(bar: HTMLElement): Core {
 
   let current: number | null = null; // 当前曲目号（songs.json 的 n）
   let queue: number[] = []; // 播放队列（曲目号）
-  let repeat: RepeatMode = "list";
-  let shuffle = false;
+  let mode: PlayMode = "list";
 
   /* ---------- 音量持久化 ---------- */
   // 注意：localStorage 无记录时 getItem 返回 null，Number(null) === 0，
@@ -244,7 +246,7 @@ function createCore(bar: HTMLElement): Core {
   /** 用给定队列播放其中某一首（随机开启时把这首放在队首、其余打乱） */
   const playQueue = (list: number[], start: number): void => {
     if (!list.length || !byN.has(start)) return;
-    queue = shuffle ? shuffledFrom(list, start) : [...list];
+    queue = mode === "shuffle" ? shuffledFrom(list, start) : [...list];
     load(start, true);
   };
 
@@ -255,8 +257,9 @@ function createCore(bar: HTMLElement): Core {
     }
     const at = queue.indexOf(current);
     let next = at + dir;
-    if (next >= queue.length) next = repeat === "list" ? 0 : queue.length - 1;
-    if (next < 0) next = repeat === "list" ? queue.length - 1 : 0;
+    const wrap = mode !== "off"; // 只有"顺序播放"到头就停，其余都会绕回去
+    if (next >= queue.length) next = wrap ? 0 : queue.length - 1;
+    if (next < 0) next = wrap ? queue.length - 1 : 0;
     if (next === at) {
       // 队列里只有一首且不循环：重头再放
       audio.currentTime = 0;
@@ -659,30 +662,30 @@ function createCore(bar: HTMLElement): Core {
   audio.addEventListener("pause", startSpikes); // 进衰减模式把刺收回
 
   /* ---------- 循环 / 随机 ---------- */
-  const paintRepeat = (): void => {
-    const btn = document.querySelector<HTMLElement>("[data-repeat]");
+  const paintMode = (): void => {
+    const btn = document.querySelector<HTMLElement>("[data-playmode]");
     if (!btn) return;
-    btn.dataset.mode = repeat;
-    btn.setAttribute("aria-pressed", String(repeat !== "off"));
-    const label = btn.querySelector<HTMLElement>("[data-repeat-label]");
-    if (label) label.textContent = REPEAT_LABEL[repeat];
-    btn.setAttribute("title", `循环模式：${REPEAT_LABEL[repeat]}（点击切换）`);
+    btn.dataset.mode = mode;
+    // 四个图标叠在同一个按钮里，只显示当前模式那个
+    btn.querySelectorAll<SVGElement>("[data-mode-icon]").forEach((ic) => {
+      ic.classList.toggle("is-off", ic.dataset.modeIcon !== mode);
+    });
+    const label = btn.querySelector<HTMLElement>("[data-playmode-label]");
+    if (label) label.textContent = MODE_LABEL[mode];
+    const tip = `播放模式：${MODE_LABEL[mode]}（点击切换）`;
+    btn.setAttribute("title", tip);
+    btn.setAttribute("aria-label", tip);
   };
 
-  const cycleRepeat = (): void => {
-    const at = REPEAT_ORDER.indexOf(repeat);
-    repeat = REPEAT_ORDER[(at + 1) % REPEAT_ORDER.length];
-    paintRepeat();
-  };
-
-  const toggleShuffle = (): void => {
-    shuffle = !shuffle;
-    const btn = document.querySelector<HTMLElement>("[data-shuffle]");
-    btn?.setAttribute("aria-pressed", String(shuffle));
-    // 保持当前这首在前，其余重新排
+  const cycleMode = (): void => {
+    const at = MODE_ORDER.indexOf(mode);
+    mode = MODE_ORDER[(at + 1) % MODE_ORDER.length];
+    /* 切到随机就重排成乱序，切回其它模式恢复原顺序
+       （队列是曲目表的子集时，升序即原本的专辑顺序） */
     if (current != null && queue.length) {
-      queue = shuffle ? shuffledFrom(queue, current) : [...queue].sort((a, b) => a - b);
+      queue = mode === "shuffle" ? shuffledFrom(queue, current) : [...queue].sort((a, b) => a - b);
     }
+    paintMode();
   };
 
   /* ---------- 双击播放（鼠标与触摸同一条路径） ---------- */
@@ -764,7 +767,7 @@ function createCore(bar: HTMLElement): Core {
 
   /* 放完一首：单曲循环就重来，否则按队列往后走 */
   audio.addEventListener("ended", () => {
-    if (repeat === "one" && current != null) {
+    if (mode === "one" && current != null) {
       audio.currentTime = 0;
       void audio.play();
       return;
@@ -774,7 +777,7 @@ function createCore(bar: HTMLElement): Core {
       load(queue[at + 1], true);
       return;
     }
-    if (repeat === "list" && queue.length) {
+    if (mode !== "off" && queue.length) {
       load(queue[0], true);
       return;
     }
@@ -824,7 +827,7 @@ function createCore(bar: HTMLElement): Core {
 
   const refresh = (): void => {
     paintFold();
-    paintRepeat();
+    paintMode();
     /* 卡片是新的 DOM，刺环的 <path> 缓存要作废（旧节点已经不在文档里） */
     spikePaths.clear();
     paintCards();
@@ -843,10 +846,10 @@ function createCore(bar: HTMLElement): Core {
         if (Number.isFinite(n)) playRow(n);
       });
     });
-    bindOnce(document.querySelector<HTMLElement>("[data-repeat]"), cycleRepeat);
-    bindOnce(document.querySelector<HTMLElement>("[data-shuffle]"), toggleShuffle);
+    bindOnce(document.querySelector<HTMLElement>("[data-playmode]"), cycleMode);
     bindOnce(document.querySelector<HTMLElement>("[data-play-all]"), () => {
-      if (allN.length) playQueue(allN, shuffle ? allN[Math.floor(Math.random() * allN.length)] : allN[0]);
+      if (allN.length)
+        playQueue(allN, mode === "shuffle" ? allN[Math.floor(Math.random() * allN.length)] : allN[0]);
     });
   };
 
