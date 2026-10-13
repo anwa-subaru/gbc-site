@@ -613,9 +613,12 @@ function createCore(bar: HTMLElement): Core {
     if (reduceMotion.matches) return;
     ensureAnalyser();
     measureAmp();
-    window.addEventListener("resize", measureAmp, { passive: true });
     if (!rafId) rafId = requestAnimationFrame(tick);
   };
+
+  /* resize 只绑一次：startSpikes 每次 play/pause 都会被调用，
+     监听写在里面会越叠越多 */
+  window.addEventListener("resize", measureAmp, { passive: true });
 
   audio.addEventListener("play", startSpikes);
   audio.addEventListener("pause", startSpikes); // 进衰减模式把刺收回
@@ -787,8 +790,16 @@ function createCore(bar: HTMLElement): Core {
   const refresh = (): void => {
     document.body.classList.toggle("has-plbar", bar.dataset.live === "1");
     paintRepeat();
+    /* 卡片是新的 DOM，刺环的 <path> 缓存要作废（旧节点已经不在文档里） */
+    spikePaths.clear();
     paintCards();
     paintList();
+    /* 切页回来要重新点火：离开音乐页时没有 .ac.is-playing，
+       tick 会自己停帧（rafId 归零），而 audio 一直在放、不会再触发 play 事件，
+       所以必须在这里主动把循环拉起来，否则刺环要等下次播放才出现 */
+    if (bar.dataset.live === "1" && !reduceMotion.matches && document.querySelector(".ac.is-playing")) {
+      startSpikes();
+    }
     document.querySelectorAll<HTMLButtonElement>(".pl__row").forEach((row) => {
       if (row.dataset.bound === "1") return;
       row.dataset.bound = "1";

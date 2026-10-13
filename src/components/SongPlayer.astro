@@ -156,8 +156,15 @@ const mmss = (sec: number): string =>
   /* ---------- 列表 ---------- */
   .pl__listbar {
     display: flex;
+    flex-wrap: nowrap;
     gap: var(--sp-2);
     margin-bottom: var(--sp-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .pl__listbar::-webkit-scrollbar {
+    display: none;
   }
 
   .pl__all,
@@ -214,6 +221,25 @@ const mmss = (sec: number): string =>
   .pl__shuffle:hover,
   .pl__repeat:hover {
     opacity: var(--opacity-hover);
+  }
+
+  /* 小屏：三个胶囊按钮（播放全部 / 循环 / 随机）在 360~414px 下放不下，
+     收窄内边距并降一档字号，一行刚好放下。
+     必须放在上面所有按钮基础规则之后 —— 同优先级时靠后的才生效
+     （之前放在前面，被基础规则的 padding/font-size 覆盖，等于没写）
+     再窄就横向滚动，绝不折行 */
+  @media (max-width: 639px) {
+    .pl__listbar {
+      gap: 6px;
+    }
+
+    .pl__all,
+    .pl__shuffle,
+    .pl__repeat {
+      padding: 0 10px;
+      font-size: var(--fs-xs);
+      white-space: nowrap;
+    }
   }
 
   .pl__list {
