@@ -914,7 +914,16 @@ function createCore(bar: HTMLElement): Core {
       return;
     }
     const doc = LYRICS.get(String(song.n)) as
-      | { title: string; artist: string; lyricist: string; composer: string; use?: string; source?: string; lines: string[] }
+      | {
+          title: string;
+          artist: string;
+          lyricist: string;
+          composer: string;
+          use?: string;
+          source?: string;
+          lines: string[];
+          times?: number[];
+        }
       | undefined;
     lyrTitle!.textContent = song.t;
     if (lyrArtist) lyrArtist.textContent = song.a;
@@ -960,15 +969,25 @@ function createCore(bar: HTMLElement): Core {
     }
     lyrList.innerHTML = "";
     lyrList.appendChild(frag);
-    // 等距时间轴：每行起止时间
+    /* 时间轴：优先用官方 LRC 的真实逐行时间戳（doc.times，来自
+       src/data/lyrics/*.json）；缺失时才退回等距估算。
+       真实时间轴能对上前奏——例如 碧いif 首句其实在 13.5s，
+       等距估算会从 0s 就开始高亮。 */
     const dur = song.dur || audio.duration || 180;
     const per = dur / doc.lines.length;
-    lyrLines = [...lyrList.children].map((el, i) => ({
-      el: el as HTMLLIElement,
-      top: i * per,
-      dur: per,
-      chars: (el as HTMLLIElement & { __chars?: HTMLSpanElement[] }).__chars ?? [],
-    }));
+    const ts = Array.isArray((doc as { times?: number[] }).times)
+      ? (doc as { times?: number[] }).times!
+      : null;
+    lyrLines = [...lyrList.children].map((el, i) => {
+      const top = ts && Number.isFinite(ts[i]) ? ts[i] : i * per;
+      const next = ts ? (Number.isFinite(ts[i + 1]) ? ts[i + 1] : dur) : (i + 1) * per;
+      return {
+        el: el as HTMLLIElement,
+        top,
+        dur: Math.max(0.5, next - top),
+        chars: (el as HTMLLIElement & { __chars?: HTMLSpanElement[] }).__chars ?? [],
+      };
+    });
     // 点击行 → seek 到那一句（双向交互）
     lyrLines.forEach((ln, i) => {
       ln.el.addEventListener("click", () => {
@@ -1020,7 +1039,7 @@ function createCore(bar: HTMLElement): Core {
     if (at >= 0) {
       const ln = lyrLines[at];
       const sweep = ln.chars.length
-        ? Math.min(ln.dur * 0.6, Math.max(0.9, ln.chars.length * 0.17))
+        ? Math.min(ln.dur * 0.85, Math.max(0.9, ln.chars.length * 0.17))
         : 1;
       const n = ln.chars.length
         ? Math.round(Math.max(0, Math.min(1, (pos - ln.top) / sweep)) * ln.chars.length)
