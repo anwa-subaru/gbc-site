@@ -64,8 +64,9 @@ const { variant = "nav", class: cls = "" } = Astro.props;
     letter-spacing: 0;
     cursor: pointer;
     transition:
-      color var(--dur-fast) var(--ease-out-cubic),
-      background-color var(--dur-fast) var(--ease-out-cubic);
+      color 240ms var(--ease-out-cubic),
+      background-color 240ms var(--ease-out-cubic),
+      transform 240ms var(--ease-out-cubic);
   }
 
   .lang__btn:hover {
@@ -75,6 +76,7 @@ const { variant = "nav", class: cls = "" } = Astro.props;
   .lang__btn.is-on {
     background: var(--accent);
     color: #fff;
+    transform: scale(1.06);
   }
 
   .lang--drawer .lang__btn {

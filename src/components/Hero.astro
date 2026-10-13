@@ -6,6 +6,7 @@
  *  - 自动轮播 6s；悬停/聚焦/切后台暂停；← → 键盘可切；圆点为 button
  *  - prefers-reduced-motion：不自动轮播、不做位移动画
  */
+import { t } from "../i18n";
 import {
   assetUrl,
   characterPrimary,
@@ -35,13 +36,8 @@ interface Props {
 }
 
 // 每名成员一屏。part 取 manifest 官方定位，tagline 为角色印象短句。
-const TAGLINES: Record<string, string> = {
-  nina: "怒りも、悲しみも、全部ぶつけろ",
-  momoka: "音楽への嘘は、つかない",
-  subaru: "頑張るあなたの、隣に",
-  tomo: "私の歌で、届けたい",
-  rupa: "心のままに、刻もう",
-};
+/* 五句角色标语已进词典（hero.tagline.<slug>，三语），这里只取中文做 SSR 兜底 */
+const taglineOf = (slug: string): string => t(`hero.tagline.${slug}`);
 const ORDER = ["nina", "momoka", "subaru", "tomo", "rupa"];
 
 /**
@@ -64,7 +60,7 @@ const defaultSlides: Slide[] = ORDER.map((slug) => {
     nameJa: meta?.ja ?? slug,
     nameEn: meta?.romaji ?? meta?.en ?? "",
     part: meta?.part ?? "",
-    tagline: TAGLINES[slug] ?? "",
+    tagline: taglineOf(slug),
     href: `/characters#${slug}`,
     cta: `认识${meta?.ja ?? slug}`,
   };
@@ -111,7 +107,7 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
                 <span class="hero__name-en">{s.nameEn}</span>
               </p>
             )}
-            <p class="hero__tagline">{s.tagline}</p>
+            <p class="hero__tagline" data-i18n={`hero.tagline.${s.slug}`}>{s.tagline}</p>
             <a class="btn btn--primary hero__cta" href={url(s.href)}>
               <span data-i18n="hero.cta.prefix">认识</span>{s.nameJa}
             </a>

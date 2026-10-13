@@ -670,21 +670,38 @@ p {
   }
 }
 
-/* ---- 全站语言切换过场（src/scripts/i18n.ts 加/去 html.lang-swap） ----
-   只淡正文与页脚：导航和播放条常驻，跟着闪会显得整页在抖。 */
-main,
-.footer {
-  transition: opacity 150ms var(--ease-out-cubic);
+/* ---- 全站语言切换过场（src/scripts/i18n.ts 加/去 html.lang-swap）----
+   之前只淡 main/footer，导航与播放条是"啪"地直接换字，看着像只做了一半。
+   现在整页一起过场：所有顶层区块同时淡出 → 换字 → 错开淡入（导航先、正文
+   其次、页脚与播放条最后），像翻页而不是局部抽搐。
+   只动 opacity、不动 transform：播放条/歌词面板是 fixed，加 transform 会让
+   它们的定位基准变成父元素，容易出怪问题。 */
+body > * {
+  transition: opacity 320ms var(--ease-out-cubic);
 }
 
-html.lang-swap main,
-html.lang-swap .footer {
-  opacity: 0.25;
+/* 淡入的错开（只在"去掉 .lang-swap"那一程生效） */
+body > .nav {
+  transition-delay: 0ms;
+}
+body > main {
+  transition-delay: 45ms;
+}
+body > .footer,
+body > .plbar {
+  transition-delay: 85ms;
+}
+
+/* 淡出：不等待、更短，避免整页空屏太久 */
+html.lang-swap body > * {
+  opacity: 0;
+  transition: opacity 180ms ease-in;
+  transition-delay: 0ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  main,
-  .footer {
+  body > *,
+  html.lang-swap body > * {
     transition: none;
   }
 }
