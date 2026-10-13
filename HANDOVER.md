@@ -341,6 +341,8 @@ python3 scripts/lyrics-translations.py --refresh # 忽略缓存重新抓
 **实现（客户端换字，不做路由）**：
 
 - 词典 `src/i18n/{zh,en,ja}.json`，各 **230 键**，三语 key 集合必须完全一致
+  （`content/i18n-frag/*.json` 是当初按区块分给子代理翻译的 14 个碎片，**只是存档**，
+  运行时不读；要改文案请直接改 `src/i18n/*.json`）
   - 键按 `区块.元素[.子项]` 命名，如 `playerbar.empty.title`、`gallery.item.zoom`
   - 值可带占位符 `{name}`；带逗号的参数要用 `key:value,key2:value2` 形式（正则按 `,` 切但要求 `名字:` 前缀）
 - `src/i18n/index.ts`：`LANGS` / `DICTS` / `t()` / `isLang()` / `HTML_LANG` / `DEFAULT_LANG="zh"`
