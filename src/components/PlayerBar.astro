@@ -111,6 +111,25 @@ const first = payload[0];
       />
     </div>
 
+    <button
+      class="plbar__fold"
+      type="button"
+      data-fold
+      aria-expanded="true"
+      aria-label="收起播放器"
+      title="收起播放器"
+    >
+      <svg viewBox="0 0 20 20" aria-hidden="true" width="16" height="16">
+        <path
+          d="M5 7.5l5 5 5-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+    </button>
+
     <audio data-audio preload="none"></audio>
   </div>
 
@@ -126,10 +145,10 @@ const first = payload[0];
     bottom: 0;
     z-index: 40;
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-columns: 40px minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "art info ctrl"
-      "seek seek seek";
+      "art info ctrl ctrl"
+      "seek seek seek fold";
     align-items: center;
     gap: var(--sp-1) var(--sp-3);
     padding: var(--sp-1) var(--sp-2) calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
@@ -154,6 +173,11 @@ const first = payload[0];
   /* 固定底栏会盖住页面末尾：由脚本给 body 加 has-plbar 后留出等高空白 */
   :global(body.has-plbar) {
     padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* 折叠后条子矮一半，页面留白同步收窄，能多看一截内容 */
+  :global(body.has-plbar-folded) {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   }
 
   .pl__seekline {
@@ -364,11 +388,59 @@ const first = payload[0];
     display: none;
   }
 
+  /* ---------- 折叠 ---------- */
+  /* 折叠按钮：手机在进度行右端，电脑在条子最右端，都是 44×44 的触摸目标 */
+  .plbar__fold {
+    grid-area: fold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--ink-400);
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease-out-cubic),
+      background-color var(--dur-fast) var(--ease-out-cubic);
+  }
+
+  .plbar__fold:hover {
+    color: var(--fg);
+    background: var(--bg-raised);
+  }
+
+  .plbar__fold svg {
+    transition: transform var(--dur-base) var(--ease-out-cubic);
+  }
+
+  /* 收起后箭头翻过来 = "再点一下就展开" */
+  .plbar[data-folded] .plbar__fold svg {
+    transform: rotate(180deg);
+  }
+
+  /* 折叠态：只留封面 / 曲名 / 播放键，进度条、切歌、音量都收起，
+     条子从两行变一行，尽量不挡内容；进度仍有顶部那条细线在跑 */
+  .plbar[data-folded] .pl__now {
+    grid-template-columns: 40px minmax(0, 1fr) auto auto;
+    grid-template-areas: "art info ctrl fold";
+  }
+
+  .plbar[data-folded] .pl__seek,
+  .plbar[data-folded] .pl__vol,
+  .plbar[data-folded] .pl__ctrl [data-prev],
+  .plbar[data-folded] .pl__ctrl [data-next] {
+    display: none;
+  }
+
   /* ---------- 桌面：同一条底栏，改成横向一行 ---------- */
   @media (min-width: 1024px) {
     .pl__now {
-      grid-template-columns: 56px minmax(0, 1fr) minmax(200px, 1.15fr) auto auto;
-      grid-template-areas: "art info seek ctrl vol";
+      grid-template-columns: 56px minmax(0, 1fr) minmax(200px, 1.15fr) auto auto 44px;
+      grid-template-areas: "art info seek ctrl vol fold";
       gap: var(--sp-2) var(--sp-5);
       padding: var(--sp-2) var(--sp-5) calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
     }
@@ -405,6 +477,43 @@ const first = payload[0];
     .pl__range--vol {
       flex: 0 0 90px;
       width: 90px;
+    }
+
+    /* 桌面折叠：不是压扁而是一条横向的条子，缩成右下角的小药丸，
+       真正把画面让出来；留白也跟着收到最小 */
+    .plbar[data-folded] .pl__now {
+      left: auto;
+      right: var(--sp-5);
+      bottom: var(--sp-4);
+      width: max-content;
+      max-width: min(520px, calc(100vw - 2 * var(--sp-5)));
+      padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: 0 14px 36px rgb(0 0 0 / 0.6);
+      gap: var(--sp-2) var(--sp-3);
+      grid-template-columns: 40px minmax(0, 1fr) auto 44px;
+      grid-template-areas: "art info ctrl fold";
+    }
+
+    .plbar[data-folded] .pl__art {
+      width: 40px;
+      height: 40px;
+    }
+
+    .plbar[data-folded] .pl__nowtitle {
+      font-size: var(--fs-sm);
+      max-width: 260px;
+    }
+
+    /* 药丸里只留曲名，歌手名与顶部进度线都收掉（圆角上横一条线很脏） */
+    .plbar[data-folded] .pl__nowartist,
+    .plbar[data-folded] .pl__seekline {
+      display: none;
+    }
+
+    :global(body.has-plbar.has-plbar-folded) {
+      padding-bottom: calc(var(--sp-5) + env(safe-area-inset-bottom, 0px));
     }
   }
 </style>

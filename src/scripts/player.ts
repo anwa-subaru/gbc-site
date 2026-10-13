@@ -89,6 +89,7 @@ function createCore(bar: HTMLElement): Core {
   const nextBtn = bar.querySelector<HTMLButtonElement>("[data-next]");
   const iconPlay = bar.querySelector<SVGElement>("[data-icon-play]");
   const iconPause = bar.querySelector<SVGElement>("[data-icon-pause]");
+  const foldBtn = bar.querySelector<HTMLButtonElement>("[data-fold]");
 
   let current: number | null = null; // 当前曲目号（songs.json 的 n）
   let queue: number[] = []; // 播放队列（曲目号）
@@ -106,6 +107,30 @@ function createCore(bar: HTMLElement): Core {
   } else {
     audio.volume = 0.9;
   }
+
+  /* ---------- 折叠 ----------
+     收起后条子只剩封面 / 曲名 / 播放键一行，尽量不挡内容；点箭头再展开。
+     状态存 localStorage，切页与刷新都保持 */
+  let folded = localStorage.getItem("gbc.plbar") === "1";
+
+  const paintFold = (): void => {
+    if (folded) bar.dataset.folded = "1";
+    else delete bar.dataset.folded;
+    const label = folded ? "展开播放器" : "收起播放器";
+    foldBtn?.setAttribute("aria-expanded", String(!folded));
+    foldBtn?.setAttribute("aria-label", label);
+    foldBtn?.setAttribute("title", label);
+    // 折叠后条子矮一截，页面留白跟着换（否则底部会空一大块）
+    const live = bar.dataset.live === "1";
+    document.body.classList.toggle("has-plbar", live);
+    document.body.classList.toggle("has-plbar-folded", live && folded);
+  };
+
+  foldBtn?.addEventListener("click", () => {
+    folded = !folded;
+    localStorage.setItem("gbc.plbar", folded ? "1" : "0");
+    paintFold();
+  });
 
   const paint = (el: HTMLInputElement | null, pct: number): void => {
     if (el) el.style.setProperty("--p", `${pct}%`);
@@ -181,7 +206,7 @@ function createCore(bar: HTMLElement): Core {
   /* ---------- 播放控制 ---------- */
   const markLive = (): void => {
     bar.dataset.live = "1";
-    document.body.classList.add("has-plbar");
+    paintFold();
   };
 
   const load = (n: number, play = true): void => {
@@ -788,7 +813,7 @@ function createCore(bar: HTMLElement): Core {
   };
 
   const refresh = (): void => {
-    document.body.classList.toggle("has-plbar", bar.dataset.live === "1");
+    paintFold();
     paintRepeat();
     /* 卡片是新的 DOM，刺环的 <path> 缓存要作废（旧节点已经不在文档里） */
     spikePaths.clear();
