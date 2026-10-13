@@ -37,6 +37,11 @@
           <span class="num" data-lyr-dur>0:00</span>
         </p>
       </div>
+      <div class="lyr__lang" role="group" aria-label="翻译语言">
+        <button class="lyr__langbtn" type="button" data-lyr-lang="off" title="只显示日文原文">日</button>
+        <button class="lyr__langbtn is-on" type="button" data-lyr-lang="zh" title="日文原文 + 中文翻译">中</button>
+        <button class="lyr__langbtn" type="button" data-lyr-lang="en" title="日文原文 + English">英</button>
+      </div>
     </header>
 
     <div class="lyr__body" data-lyr-body>
@@ -165,7 +170,9 @@
 
   .lyr__head {
     flex: 0 0 auto;
-    display: flex;
+    /* 三列 1fr auto 1fr：歌名在整屏正中，右侧语言切换不会把标题挤歪 */
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: var(--sp-2);
     width: 100%;
@@ -175,7 +182,7 @@
   }
 
   .lyr__down {
-    flex: 0 0 auto;
+    justify-self: start;
     display: grid;
     place-items: center;
     width: 44px;
@@ -193,18 +200,45 @@
     color: var(--fg);
   }
 
-  /* 左侧收起键占 36px 流宽，右侧镜像补一个等宽占位，
-     歌名才是真正的视口居中（否则整块被挤右 22px） */
-  .lyr__head::after {
-    content: "";
-    flex: 0 0 auto;
-    width: 36px;
-    height: 44px;
+  /* 语言切换：日（只原文）/ 中（原文+中文）/ 英（原文+英文） */
+  .lyr__lang {
+    justify-self: end;
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.07);
+  }
+
+  .lyr__langbtn {
+    min-width: 32px;
+    height: 28px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--ink-300);
+    font-family: var(--font-lyric);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease-out-cubic),
+      background-color var(--dur-fast) var(--ease-out-cubic);
+  }
+
+  .lyr__langbtn:hover {
+    color: var(--fg);
+  }
+
+  .lyr__langbtn.is-on {
+    background: var(--accent);
+    color: #fff;
   }
 
   .lyr__meta {
     min-width: 0;
-    flex: 1;
     text-align: center;
   }
 
@@ -281,25 +315,24 @@
     text-align: center;
   }
 
+  /* 歌词行。
+     两条硬规则（都是踩坑换来的）：
+     1) 不能用 display:grid —— 每个逐字 span 会变成独立网格项，变成"一个字一行"
+     2) 字号绝不能加 transition —— 会让整列逐帧重排，换句时"卡一下"
+     非当前句统一一种中灰，不做按距离的亮度渐变：
+     渐变会让上下几行糊成一片，参考 QQ 音乐歌词页的读法更清爽。 */
   .lyr__line {
-    /* 注意：这里不能用 display:grid —— 每个逐字 span 会变成独立网格项，
-       变成"一个字一行"。用固定 line-height 做行盒，
-       当前句字号变大也不会把后面的行顶来顶去 */
     display: block;
-    padding: 0;
-    font-size: 18px;
+    padding: 9px 0;
+    font-size: 19px;
     font-weight: 500;
     font-family: var(--font-lyric);
-    line-height: 52px;
+    line-height: 1.5;
     letter-spacing: 0.02em;
-    /* 兜底：不支持 color-mix 的浏览器也保证是白字 */
     color: var(--ink-300);
-    color: color-mix(in srgb, var(--ink-300) calc(42% + (1 - var(--d, 1)) * 46%), #07080c);
     background: none;
     border: 0;
     cursor: pointer;
-    /* 只过渡颜色。字号绝不能过渡：过渡字号会让整列逐帧重排，
-       换句时就会"卡一下" */
     transition: color var(--dur-base) var(--ease-out-cubic);
   }
 
@@ -307,14 +340,16 @@
     color: var(--ink-200);
   }
 
-  /* 当前句：整句白字，唱到哪个字哪个字变红 */
+  /* 当前句：整句白字，唱到哪个字哪个字变红。
+     字号与其它行一致（不再放大）——忽大忽小反而难看，也省掉换句时的重排 */
   .lyr__line.is-cur {
-    font-size: 24px;
     font-weight: 900;
-    line-height: 52px;
     color: var(--ink-000, #fff);
     letter-spacing: 0;
-    text-wrap: balance;
+  }
+
+  .lyr__orig {
+    display: block;
   }
 
   .lyr__ch {
@@ -324,6 +359,28 @@
   .lyr__ch.is-on {
     color: var(--accent);
     text-shadow: 0 0 14px rgb(244 0 0 / 0.45);
+  }
+
+  /* 译文行：比原文小一档、暗一档，只在 .lyr[data-lang] 选中的语言下显示。
+     两种语言的 span 都常驻 DOM，切语言只改一个属性，不重建列表
+     （重建会丢掉滚动位置和当前句状态） */
+  .lyr__tr {
+    display: none;
+    margin-top: 5px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.45;
+    letter-spacing: 0;
+    color: rgb(154 161 174 / 0.62);
+  }
+
+  .lyr__line.is-cur .lyr__tr {
+    color: var(--ink-300);
+  }
+
+  .lyr[data-lang="zh"] .lyr__tr--zh,
+  .lyr[data-lang="en"] .lyr__tr--en {
+    display: block;
   }
 
   .lyr__empty {
@@ -481,19 +538,14 @@
       max-width: 720px;
     }
 
-    .lyr__lines {
-      gap: var(--sp-5);
-    }
-
     .lyr__line {
-      font-size: 22px;
-      line-height: 68px;
+      padding: 11px 0;
+      font-size: 25px;
     }
 
-    /* 宽屏上当前句要撑得住场面，否则只占屏宽 20% 显得像放大的卡片 */
-    .lyr__line.is-cur {
-      font-size: 36px;
-      line-height: 68px;
+    .lyr__tr {
+      margin-top: 6px;
+      font-size: 16px;
     }
 
     .lyr__title {

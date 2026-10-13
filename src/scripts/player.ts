@@ -881,6 +881,8 @@ function createCore(bar: HTMLElement): Core {
   const lyrIconPlay = bar.querySelector<SVGElement>("[data-lyr-icon-play]");
   const lyrIconPause = bar.querySelector<SVGElement>("[data-lyr-icon-pause]");
   const lyrEntries = bar.querySelectorAll<HTMLElement>("[data-lyrics-open]");
+  /* 语言切换：日（只原文）/ 中（原文 + 中文）/ 英（原文 + English） */
+  const lyrLangBtns = bar.querySelectorAll<HTMLButtonElement>("[data-lyr-lang]");
 
   interface LyricLine {
     el: HTMLLIElement;
@@ -896,6 +898,39 @@ function createCore(bar: HTMLElement): Core {
   /** 逐字扫红：当前已点亮到第几个字（-1 = 需要重算） */
   let lyrOn = -1;
   let lyrOnLine = -1;
+  type LyrLang = "off" | "zh" | "en";
+  let lyrLang: LyrLang = "zh";
+  try {
+    const saved = localStorage.getItem("gbc.lyrlang");
+    if (saved === "off" || saved === "zh" || saved === "en") lyrLang = saved;
+  } catch {
+    /* 隐私模式下 localStorage 会抛异常，用默认值即可 */
+  }
+
+  /** 把当前语言写到 dialog 上（CSS 靠 [data-lang] 决定显示哪种译文），
+      并同步按钮态。切语言不重建列表，滚动位置与当前句都不受影响。 */
+  const applyLyrLang = (): void => {
+    if (lyrDoc) lyrDoc.dataset.lang = lyrLang;
+    lyrLangBtns.forEach((b) => {
+      const on = b.dataset.lyrLang === lyrLang;
+      b.classList.toggle("is-on", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
+    /* 署名要跟着语言走：切到英文时不能还挂着"中文译词" */
+    if (lyrCred) {
+      const from =
+        lyrLang === "zh" && lyrCredZh
+          ? "中文译词：网易云音乐"
+          : lyrLang === "en" && lyrCredEn
+            ? "英文译词：本站翻译"
+            : "";
+      lyrCred.textContent = from ? `${lyrCredBase}　·　${from}` : lyrCredBase;
+    }
+  };
+  /** 署名行：作詞・作曲 基串 + 是否有中日/英文译文（renderLyrics 里算） */
+  let lyrCredBase = "";
+  let lyrCredZh = false;
+  let lyrCredEn = false;
 
   /** 打开面板时按当前曲目渲染歌词（等距时间轴：纯文本歌词没有时间标签，
       按行数均分曲目时长；以后拿到带时间的 LRC 直接换数据源即可） */
@@ -923,6 +958,8 @@ function createCore(bar: HTMLElement): Core {
           source?: string;
           lines: string[];
           times?: number[];
+          zh?: string[];
+          en?: string[];
         }
       | undefined;
     lyrTitle!.textContent = song.t;
@@ -940,20 +977,32 @@ function createCore(bar: HTMLElement): Core {
       return;
     }
     lyrEmpty.hidden = true;
-    if (lyrCred) {
+    /* 译文数组要在这里先取：下面署名行与渲染循环都要用，
+       放到渲染循环前声明会踩 TDZ（ReferenceError: Cannot access 'zhArr'） */
+    const zhArr = Array.isArray(doc.zh) ? doc.zh : [];
+    const enArr = Array.isArray(doc.en) ? doc.en : [];
+    {
       const li = doc.lyricist?.trim();
       const co = doc.composer?.trim();
-      lyrCred.textContent =
+      const base =
         li && co
           ? li === co
             ? `作詞・作曲 ${li}`
             : `作詞 ${li}　作曲 ${co}`
           : `作詞・作曲 ${li || co || ""}`.trim();
+      /* 译文来源分开标注：中文是网易云译者投稿，英文是本站翻译 */
+      lyrCredBase = base;
+      lyrCredZh = zhArr.some(Boolean);
+      lyrCredEn = enArr.some(Boolean);
     }
     const frag = document.createDocumentFragment();
-    for (const text of doc.lines) {
+    doc.lines.forEach((text, i) => {
       const li = document.createElement("li");
       li.className = "lyr__line";
+      /* 原文单独包一层：译文是块级元素，必须另起一行，
+         不能让逐字 span 和译文混在同一个行盒里 */
+      const orig = document.createElement("span");
+      orig.className = "lyr__orig";
       /* 逐字拆 span：这样"唱到哪个字，哪个字变红"才有落脚点
          （歌词文件没有逐字时间轴，按行时长线性推进） */
       const chars: HTMLSpanElement[] = [];
@@ -962,11 +1011,21 @@ function createCore(bar: HTMLElement): Core {
         sp.className = "lyr__ch";
         sp.textContent = ch;
         chars.push(sp);
+        orig.appendChild(sp);
+      }
+      li.appendChild(orig);
+      /* 两种译文都常驻 DOM，切语言只改 dialog 上的 data-lang（见 CSS） */
+      for (const [lang, arr] of [["zh", zhArr], ["en", enArr]] as const) {
+        const tr = arr[i];
+        if (!tr) continue;
+        const sp = document.createElement("span");
+        sp.className = `lyr__tr lyr__tr--${lang}`;
+        sp.textContent = tr;
         li.appendChild(sp);
       }
       (li as HTMLLIElement & { __chars?: HTMLSpanElement[] }).__chars = chars;
       frag.appendChild(li);
-    }
+    });
     lyrList.innerHTML = "";
     lyrList.appendChild(frag);
     /* 时间轴：优先用官方 LRC 的真实逐行时间戳（doc.times，来自
@@ -1023,12 +1082,10 @@ function createCore(bar: HTMLElement): Core {
       lyrCur = at;
       /* 锚点取 42% 而不是正中间：歌词视觉重心略偏上更耐看 */
       const center = lyrBody.clientHeight * 0.42;
+      /* 不再按距离做亮度渐变：所有非当前句统一一种中灰，
+         只靠"当前句白字 + 逐字变红"区分，和参考的歌词页一致 */
       lyrLines.forEach((ln, i) => {
-        const d = Math.abs(i - at);
         ln.el.classList.toggle("is-cur", i === at);
-        /* 亮度按距离线性衰减：邻句最亮，6 句外几乎沉底，
-           上下对称（上一句和下一句一样亮，视线有来路） */
-        ln.el.style.setProperty("--d", String(Math.min(1, d / 7)));
       });
       if (at >= 0) {
         const y = lyrLines[at].el.offsetTop - center + lyrLines[at].el.offsetHeight / 2;
@@ -1053,10 +1110,27 @@ function createCore(bar: HTMLElement): Core {
     }
   };
 
+  lyrLangBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const v = btn.dataset.lyrLang;
+      if (v !== "off" && v !== "zh" && v !== "en") return;
+      lyrLang = v;
+      try {
+        localStorage.setItem("gbc.lyrlang", v);
+      } catch {
+        /* 存不了就算了，不影响本次切换 */
+      }
+      applyLyrLang();
+      /* 译文行出现/消失会改变行高，重新定位一次当前句 */
+      requestAnimationFrame(() => paintLyric(true));
+    });
+  });
+
   const openLyrics = (): void => {
     if (!lyrDoc || lyrDoc.open) return;
     lyrOpen = true;
     renderLyrics();
+    applyLyrLang();
     syncLyricBar(true);
     lyrDoc.showModal();
     /* 必须等 dialog 显示后再定位：隐藏时 clientHeight 为 0，
