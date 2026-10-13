@@ -272,7 +272,7 @@
   .lyr__lines {
     display: flex;
     flex-direction: column;
-    gap: var(--sp-4);
+    gap: 0;
     margin: 0;
     /* 34vh 起步：第一句也有足够余量被居中，
        否则开头 scrollTop 被钳在 0，当前句会比中段低 47px */
@@ -282,35 +282,48 @@
   }
 
   .lyr__line {
+    /* 注意：这里不能用 display:grid —— 每个逐字 span 会变成独立网格项，
+       变成"一个字一行"。用固定 line-height 做行盒，
+       当前句字号变大也不会把后面的行顶来顶去 */
+    display: block;
     padding: 0;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 500;
     font-family: var(--font-lyric);
-    line-height: 1.85;
+    line-height: 52px;
     letter-spacing: 0.02em;
-    /* 40% 是地板：远处歌词淡但始终看得见，不会变成"占位空行" */
-    color: color-mix(in srgb, var(--ink-300) calc(40% + (1 - var(--d, 1)) * 45%), #07080c);
+    /* 兜底：不支持 color-mix 的浏览器也保证是白字 */
+    color: var(--ink-300);
+    color: color-mix(in srgb, var(--ink-300) calc(42% + (1 - var(--d, 1)) * 46%), #07080c);
     background: none;
     border: 0;
     cursor: pointer;
-    transition:
-      color var(--dur-base) var(--ease-out-cubic),
-      font-size 260ms var(--ease-out-cubic),
-      opacity var(--dur-base) var(--ease-out-cubic);
+    /* 只过渡颜色。字号绝不能过渡：过渡字号会让整列逐帧重排，
+       换句时就会"卡一下" */
+    transition: color var(--dur-base) var(--ease-out-cubic);
   }
 
   .lyr__line:hover {
     color: var(--ink-200);
   }
 
+  /* 当前句：整句白字，唱到哪个字哪个字变红 */
   .lyr__line.is-cur {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 900;
-    line-height: 1.5;
-    color: var(--accent);
+    line-height: 52px;
+    color: var(--ink-000, #fff);
     letter-spacing: 0;
     text-wrap: balance;
-    text-shadow: 0 0 14px rgb(244 0 0 / 0.42);
+  }
+
+  .lyr__ch {
+    transition: color 160ms linear;
+  }
+
+  .lyr__ch.is-on {
+    color: var(--accent);
+    text-shadow: 0 0 14px rgb(244 0 0 / 0.45);
   }
 
   .lyr__empty {
@@ -474,11 +487,13 @@
 
     .lyr__line {
       font-size: 22px;
+      line-height: 68px;
     }
 
     /* 宽屏上当前句要撑得住场面，否则只占屏宽 20% 显得像放大的卡片 */
     .lyr__line.is-cur {
-      font-size: 42px;
+      font-size: 36px;
+      line-height: 68px;
     }
 
     .lyr__title {

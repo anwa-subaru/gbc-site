@@ -885,11 +885,17 @@ function createCore(bar: HTMLElement): Core {
   interface LyricLine {
     el: HTMLLIElement;
     top: number;
+    /** 这一句的时长（等距估算），用于逐字扫红 */
+    dur: number;
+    chars: HTMLSpanElement[];
   }
   let lyrOpen = false;
   let lyrLines: LyricLine[] = [];
   let lyrCur = -1;
   let lyrTimer = 0;
+  /** 逐字扫红：当前已点亮到第几个字（-1 = 需要重算） */
+  let lyrOn = -1;
+  let lyrOnLine = -1;
 
   /** 打开面板时按当前曲目渲染歌词（等距时间轴：纯文本歌词没有时间标签，
       按行数均分曲目时长；以后拿到带时间的 LRC 直接换数据源即可） */
@@ -939,7 +945,17 @@ function createCore(bar: HTMLElement): Core {
     for (const text of doc.lines) {
       const li = document.createElement("li");
       li.className = "lyr__line";
-      li.textContent = text;
+      /* 逐字拆 span：这样"唱到哪个字，哪个字变红"才有落脚点
+         （歌词文件没有逐字时间轴，按行时长线性推进） */
+      const chars: HTMLSpanElement[] = [];
+      for (const ch of text) {
+        const sp = document.createElement("span");
+        sp.className = "lyr__ch";
+        sp.textContent = ch;
+        chars.push(sp);
+        li.appendChild(sp);
+      }
+      (li as HTMLLIElement & { __chars?: HTMLSpanElement[] }).__chars = chars;
       frag.appendChild(li);
     }
     lyrList.innerHTML = "";
@@ -950,12 +966,15 @@ function createCore(bar: HTMLElement): Core {
     lyrLines = [...lyrList.children].map((el, i) => ({
       el: el as HTMLLIElement,
       top: i * per,
+      dur: per,
+      chars: (el as HTMLLIElement & { __chars?: HTMLSpanElement[] }).__chars ?? [],
     }));
     // 点击行 → seek 到那一句（双向交互）
     lyrLines.forEach((ln, i) => {
       ln.el.addEventListener("click", () => {
         if (current == null) return;
         audio.currentTime = Math.min(ln.top + 0.01, Math.max(0, (song.dur || audio.duration) - 0.5));
+        lyrOn = -1;
         paintLyric(true);
       });
     });
@@ -974,20 +993,44 @@ function createCore(bar: HTMLElement): Core {
       const mid = (lo + hi) >> 1;
       if (lyrLines[mid].top <= pos) { at = mid; lo = mid + 1; } else hi = mid - 1;
     }
-    if (at === lyrCur && !force) return;
-    lyrCur = at;
-    /* 锚点取 42% 而不是正中间：歌词视觉重心略偏上更耐看 */
-    const center = lyrBody.clientHeight * 0.42;
-    lyrLines.forEach((ln, i) => {
-      const d = Math.abs(i - at);
-      ln.el.classList.toggle("is-cur", i === at);
-      /* 亮度按距离线性衰减：邻句最亮，6 句外几乎沉底，
-         上下对称（上一句和下一句一样亮，视线有来路） */
-      ln.el.style.setProperty("--d", String(Math.min(1, d / 7)));
-    });
+    const lineChanged = at !== lyrCur || force;
+    if (lineChanged) {
+      /* 换行时先把上一句残留的红色收回去 */
+      if (lyrOnLine >= 0 && lyrLines[lyrOnLine]) {
+        for (const c of lyrLines[lyrOnLine].chars) c.classList.remove("is-on");
+      }
+      lyrOnLine = at;
+      lyrOn = -1;
+      lyrCur = at;
+      /* 锚点取 42% 而不是正中间：歌词视觉重心略偏上更耐看 */
+      const center = lyrBody.clientHeight * 0.42;
+      lyrLines.forEach((ln, i) => {
+        const d = Math.abs(i - at);
+        ln.el.classList.toggle("is-cur", i === at);
+        /* 亮度按距离线性衰减：邻句最亮，6 句外几乎沉底，
+           上下对称（上一句和下一句一样亮，视线有来路） */
+        ln.el.style.setProperty("--d", String(Math.min(1, d / 7)));
+      });
+      if (at >= 0) {
+        const y = lyrLines[at].el.offsetTop - center + lyrLines[at].el.offsetHeight / 2;
+        lyrBody.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+      }
+    }
+    /* 逐字扫红：唱到哪，哪个字变红（只在字数变化时写 DOM，不逐帧重排） */
     if (at >= 0) {
-      const y = lyrLines[at].el.offsetTop - center + lyrLines[at].el.offsetHeight / 2;
-      lyrBody.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+      const ln = lyrLines[at];
+      const sweep = ln.chars.length
+        ? Math.min(ln.dur * 0.6, Math.max(0.9, ln.chars.length * 0.17))
+        : 1;
+      const n = ln.chars.length
+        ? Math.round(Math.max(0, Math.min(1, (pos - ln.top) / sweep)) * ln.chars.length)
+        : 0;
+      if (n !== lyrOn || force) {
+        lyrOn = n;
+        for (let i = 0; i < ln.chars.length; i++) {
+          ln.chars[i].classList.toggle("is-on", i < n);
+        }
+      }
     }
   };
 
