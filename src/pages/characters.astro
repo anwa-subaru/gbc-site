@@ -10,6 +10,8 @@ import path from "node:path";
 import Layout from "../layouts/Layout.astro";
 import {
   assetUrl,
+  contentSizes,
+  srcset,
   url,
   category,
   characterSlugs,
@@ -183,6 +185,8 @@ if (missing.length) {
         <div class="member__art">
           <img
             src={assetUrl(m.hero!.path)}
+            srcset={srcset(m.hero!.path)}
+            sizes={contentSizes(m.hero!, [247, 412], [400, 666])}
             width={m.hero!.width}
             height={m.hero!.height}
             alt={`${m.meta.ja}（${m.meta.en}）立绘`}
@@ -261,6 +265,8 @@ if (missing.length) {
                 .map((e) => (
                   <img
                     src={assetUrl(e.path)}
+                    srcset={srcset(e.path)}
+                    sizes={contentSizes(e, [132, 190], [150, 220])}
                     width={e.width}
                     height={e.height}
                     alt={`${m.meta.ja} ${e.label ?? "立绘"}`}

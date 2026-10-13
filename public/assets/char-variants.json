@@ -1,0 +1,3670 @@
+{
+ "generated_by": "scripts/char-variants.py",
+ "widths": [
+  240,
+  480,
+  800
+ ],
+ "quality": 80,
+ "note": "由 optimize-assets.py 的 manifest 反查源图生成；模板用 <img srcset> 消费",
+ "variants": {
+  "assets/characters/_archive/hazete-saku/01-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_archive/hazete-saku/01-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 619
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_archive/hazete-saku/01-hazete-saku@480w.webp",
+    "width": 480,
+    "height": 1238
+   }
+  ],
+  "assets/characters/_archive/hazete-saku/02-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_archive/hazete-saku/02-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 453
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_archive/hazete-saku/02-hazete-saku@480w.webp",
+    "width": 480,
+    "height": 905
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_archive/hazete-saku/02-hazete-saku@800w.webp",
+    "width": 800,
+    "height": 1509
+   }
+  ],
+  "assets/characters/_archive/hazete-saku/03-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_archive/hazete-saku/03-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 814
+   }
+  ],
+  "assets/characters/_archive/hazete-saku/04-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_archive/hazete-saku/04-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 447
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_archive/hazete-saku/04-hazete-saku@480w.webp",
+    "width": 480,
+    "height": 895
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_archive/hazete-saku/04-hazete-saku@800w.webp",
+    "width": 800,
+    "height": 1491
+   }
+  ],
+  "assets/characters/_archive/hazete-saku/05-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_archive/hazete-saku/05-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 807
+   }
+  ],
+  "assets/characters/_bd/01.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_bd/01@240w.webp",
+    "width": 240,
+    "height": 335
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_bd/01@480w.webp",
+    "width": 480,
+    "height": 671
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_bd/01@800w.webp",
+    "width": 800,
+    "height": 1118
+   }
+  ],
+  "assets/characters/_bd/02.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_bd/02@240w.webp",
+    "width": 240,
+    "height": 364
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_bd/02@480w.webp",
+    "width": 480,
+    "height": 728
+   }
+  ],
+  "assets/characters/_bd/03.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_bd/03@240w.webp",
+    "width": 240,
+    "height": 314
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_bd/03@480w.webp",
+    "width": 480,
+    "height": 628
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_bd/03@800w.webp",
+    "width": 800,
+    "height": 1047
+   }
+  ],
+  "assets/characters/_bd/04.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_bd/04@240w.webp",
+    "width": 240,
+    "height": 325
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_bd/04@480w.webp",
+    "width": 480,
+    "height": 650
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_bd/04@800w.webp",
+    "width": 800,
+    "height": 1083
+   }
+  ],
+  "assets/characters/_bd/05.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_bd/05@240w.webp",
+    "width": 240,
+    "height": 325
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_bd/05@480w.webp",
+    "width": 480,
+    "height": 650
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_bd/05@800w.webp",
+    "width": 800,
+    "height": 1083
+   }
+  ],
+  "assets/characters/_diamond-dust/ai/01.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/ai/01@240w.webp",
+    "width": 240,
+    "height": 648
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/ai/01@480w.webp",
+    "width": 480,
+    "height": 1297
+   }
+  ],
+  "assets/characters/_diamond-dust/ai/02.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/ai/02@240w.webp",
+    "width": 240,
+    "height": 564
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/ai/02@480w.webp",
+    "width": 480,
+    "height": 1129
+   }
+  ],
+  "assets/characters/_diamond-dust/ai/03-sanrio.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/ai/03-sanrio@240w.webp",
+    "width": 240,
+    "height": 659
+   }
+  ],
+  "assets/characters/_diamond-dust/ai/04-rpg.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/ai/04-rpg@240w.webp",
+    "width": 240,
+    "height": 298
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/ai/04-rpg@480w.webp",
+    "width": 480,
+    "height": 597
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_diamond-dust/ai/04-rpg@800w.webp",
+    "width": 800,
+    "height": 994
+   }
+  ],
+  "assets/characters/_diamond-dust/diamond-dust-png/01.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/diamond-dust-png/01@240w.webp",
+    "width": 240,
+    "height": 257
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/diamond-dust-png/01@480w.webp",
+    "width": 480,
+    "height": 514
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_diamond-dust/diamond-dust-png/01@800w.webp",
+    "width": 800,
+    "height": 857
+   }
+  ],
+  "assets/characters/_diamond-dust/hina/01.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/hina/01@240w.webp",
+    "width": 240,
+    "height": 670
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/hina/01@480w.webp",
+    "width": 480,
+    "height": 1340
+   }
+  ],
+  "assets/characters/_diamond-dust/hina/02.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/hina/02@240w.webp",
+    "width": 240,
+    "height": 713
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/hina/02@480w.webp",
+    "width": 480,
+    "height": 1425
+   }
+  ],
+  "assets/characters/_diamond-dust/hina/03-sanrio.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/hina/03-sanrio@240w.webp",
+    "width": 240,
+    "height": 702
+   }
+  ],
+  "assets/characters/_diamond-dust/hina/04-rpg.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/hina/04-rpg@240w.webp",
+    "width": 240,
+    "height": 444
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/hina/04-rpg@480w.webp",
+    "width": 480,
+    "height": 889
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_diamond-dust/hina/04-rpg@800w.webp",
+    "width": 800,
+    "height": 1482
+   }
+  ],
+  "assets/characters/_diamond-dust/nana/01.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/nana/01@240w.webp",
+    "width": 240,
+    "height": 423
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/nana/01@480w.webp",
+    "width": 480,
+    "height": 846
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_diamond-dust/nana/01@800w.webp",
+    "width": 800,
+    "height": 1411
+   }
+  ],
+  "assets/characters/_diamond-dust/nana/02.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/nana/02@240w.webp",
+    "width": 240,
+    "height": 560
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/nana/02@480w.webp",
+    "width": 480,
+    "height": 1119
+   }
+  ],
+  "assets/characters/_diamond-dust/nana/03-sanrio.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/nana/03-sanrio@240w.webp",
+    "width": 240,
+    "height": 589
+   }
+  ],
+  "assets/characters/_diamond-dust/nana/04-rpg.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/nana/04-rpg@240w.webp",
+    "width": 240,
+    "height": 512
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/nana/04-rpg@480w.webp",
+    "width": 480,
+    "height": 1025
+   }
+  ],
+  "assets/characters/_diamond-dust/rin/01.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/rin/01@240w.webp",
+    "width": 240,
+    "height": 522
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/rin/01@480w.webp",
+    "width": 480,
+    "height": 1043
+   }
+  ],
+  "assets/characters/_diamond-dust/rin/02.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/rin/02@240w.webp",
+    "width": 240,
+    "height": 720
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/rin/02@480w.webp",
+    "width": 480,
+    "height": 1440
+   }
+  ],
+  "assets/characters/_diamond-dust/rin/03-sanrio.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/rin/03-sanrio@240w.webp",
+    "width": 240,
+    "height": 589
+   }
+  ],
+  "assets/characters/_diamond-dust/rin/04-rpg.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_diamond-dust/rin/04-rpg@240w.webp",
+    "width": 240,
+    "height": 409
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_diamond-dust/rin/04-rpg@480w.webp",
+    "width": 480,
+    "height": 819
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_diamond-dust/rin/04-rpg@800w.webp",
+    "width": 800,
+    "height": 1365
+   }
+  ],
+  "assets/characters/_group/01-avatar.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/01-avatar@240w.webp",
+    "width": 240,
+    "height": 180
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/01-avatar@480w.webp",
+    "width": 480,
+    "height": 360
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/01-avatar@800w.webp",
+    "width": 800,
+    "height": 600
+   }
+  ],
+  "assets/characters/_group/02-winter.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/02-winter@240w.webp",
+    "width": 240,
+    "height": 180
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/02-winter@480w.webp",
+    "width": 480,
+    "height": 360
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/02-winter@800w.webp",
+    "width": 800,
+    "height": 600
+   }
+  ],
+  "assets/characters/_group/03-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/03-summer@240w.webp",
+    "width": 240,
+    "height": 135
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/03-summer@480w.webp",
+    "width": 480,
+    "height": 270
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/03-summer@800w.webp",
+    "width": 800,
+    "height": 450
+   }
+  ],
+  "assets/characters/_group/04-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/04-summer@240w.webp",
+    "width": 240,
+    "height": 180
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/04-summer@480w.webp",
+    "width": 480,
+    "height": 360
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/04-summer@800w.webp",
+    "width": 800,
+    "height": 600
+   }
+  ],
+  "assets/characters/_group/05-jellyfish.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/05-jellyfish@240w.webp",
+    "width": 240,
+    "height": 99
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/05-jellyfish@480w.webp",
+    "width": 480,
+    "height": 198
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/05-jellyfish@800w.webp",
+    "width": 800,
+    "height": 330
+   }
+  ],
+  "assets/characters/_group/06-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/06-catharsis@240w.webp",
+    "width": 240,
+    "height": 186
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/06-catharsis@480w.webp",
+    "width": 480,
+    "height": 371
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/06-catharsis@800w.webp",
+    "width": 800,
+    "height": 619
+   }
+  ],
+  "assets/characters/_group/07-tapping.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/07-tapping@240w.webp",
+    "width": 240,
+    "height": 131
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/07-tapping@480w.webp",
+    "width": 480,
+    "height": 262
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/07-tapping@800w.webp",
+    "width": 800,
+    "height": 436
+   }
+  ],
+  "assets/characters/_group/08-tapping.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/08-tapping@240w.webp",
+    "width": 240,
+    "height": 141
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/08-tapping@480w.webp",
+    "width": 480,
+    "height": 282
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/08-tapping@800w.webp",
+    "width": 800,
+    "height": 470
+   }
+  ],
+  "assets/characters/_group/09.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/09@240w.webp",
+    "width": 240,
+    "height": 271
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/09@480w.webp",
+    "width": 480,
+    "height": 542
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/09@800w.webp",
+    "width": 800,
+    "height": 904
+   }
+  ],
+  "assets/characters/_group/10-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/10-pop-up@240w.webp",
+    "width": 240,
+    "height": 139
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/10-pop-up@480w.webp",
+    "width": 480,
+    "height": 277
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/10-pop-up@800w.webp",
+    "width": 800,
+    "height": 462
+   }
+  ],
+  "assets/characters/_group/11.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/11@240w.webp",
+    "width": 240,
+    "height": 123
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/11@480w.webp",
+    "width": 480,
+    "height": 246
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/11@800w.webp",
+    "width": 800,
+    "height": 410
+   }
+  ],
+  "assets/characters/_group/12-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/12-pop-up@240w.webp",
+    "width": 240,
+    "height": 127
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/12-pop-up@480w.webp",
+    "width": 480,
+    "height": 254
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/12-pop-up@800w.webp",
+    "width": 800,
+    "height": 424
+   }
+  ],
+  "assets/characters/_group/13-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/_group/13-pop-up@240w.webp",
+    "width": 240,
+    "height": 130
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/_group/13-pop-up@480w.webp",
+    "width": 480,
+    "height": 261
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/_group/13-pop-up@800w.webp",
+    "width": 800,
+    "height": 434
+   }
+  ],
+  "assets/characters/momoka/01-sanrio.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/01-sanrio@240w.webp",
+    "width": 240,
+    "height": 707
+   }
+  ],
+  "assets/characters/momoka/02-spring.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/02-spring@240w.webp",
+    "width": 240,
+    "height": 623
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/02-spring@480w.webp",
+    "width": 480,
+    "height": 1247
+   }
+  ],
+  "assets/characters/momoka/03-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/03-pop-up@240w.webp",
+    "width": 240,
+    "height": 656
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/03-pop-up@480w.webp",
+    "width": 480,
+    "height": 1313
+   }
+  ],
+  "assets/characters/momoka/04.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/04@240w.webp",
+    "width": 240,
+    "height": 519
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/04@480w.webp",
+    "width": 480,
+    "height": 1038
+   }
+  ],
+  "assets/characters/momoka/05.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/05@240w.webp",
+    "width": 240,
+    "height": 433
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/05@480w.webp",
+    "width": 480,
+    "height": 866
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/05@800w.webp",
+    "width": 800,
+    "height": 1443
+   }
+  ],
+  "assets/characters/momoka/06-for-you.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/06-for-you@240w.webp",
+    "width": 240,
+    "height": 567
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/06-for-you@480w.webp",
+    "width": 480,
+    "height": 1135
+   }
+  ],
+  "assets/characters/momoka/07-galkura-exhibit.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/07-galkura-exhibit@240w.webp",
+    "width": 240,
+    "height": 526
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/07-galkura-exhibit@480w.webp",
+    "width": 480,
+    "height": 1052
+   }
+  ],
+  "assets/characters/momoka/08-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/08-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 453
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/08-hazete-saku@480w.webp",
+    "width": 480,
+    "height": 905
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/08-hazete-saku@800w.webp",
+    "width": 800,
+    "height": 1509
+   }
+  ],
+  "assets/characters/momoka/09.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/09@240w.webp",
+    "width": 240,
+    "height": 601
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/09@480w.webp",
+    "width": 480,
+    "height": 1203
+   }
+  ],
+  "assets/characters/momoka/10.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/10@240w.webp",
+    "width": 240,
+    "height": 442
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/10@480w.webp",
+    "width": 480,
+    "height": 883
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/10@800w.webp",
+    "width": 800,
+    "height": 1472
+   }
+  ],
+  "assets/characters/momoka/11.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/11@240w.webp",
+    "width": 240,
+    "height": 570
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/11@480w.webp",
+    "width": 480,
+    "height": 1140
+   }
+  ],
+  "assets/characters/momoka/12-cry-rose.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/12-cry-rose@240w.webp",
+    "width": 240,
+    "height": 617
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/12-cry-rose@480w.webp",
+    "width": 480,
+    "height": 1233
+   }
+  ],
+  "assets/characters/momoka/13-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/13-summer@240w.webp",
+    "width": 240,
+    "height": 634
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/13-summer@480w.webp",
+    "width": 480,
+    "height": 1269
+   }
+  ],
+  "assets/characters/momoka/14-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/14-pop-up@240w.webp",
+    "width": 240,
+    "height": 506
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/14-pop-up@480w.webp",
+    "width": 480,
+    "height": 1012
+   }
+  ],
+  "assets/characters/momoka/15-hmv.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/15-hmv@240w.webp",
+    "width": 240,
+    "height": 547
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/15-hmv@480w.webp",
+    "width": 480,
+    "height": 1095
+   }
+  ],
+  "assets/characters/momoka/16-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/16-pop-up@240w.webp",
+    "width": 240,
+    "height": 443
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/16-pop-up@480w.webp",
+    "width": 480,
+    "height": 886
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/16-pop-up@800w.webp",
+    "width": 800,
+    "height": 1476
+   }
+  ],
+  "assets/characters/momoka/17.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/17@240w.webp",
+    "width": 240,
+    "height": 469
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/17@480w.webp",
+    "width": 480,
+    "height": 938
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/17@800w.webp",
+    "width": 800,
+    "height": 1563
+   }
+  ],
+  "assets/characters/momoka/18-headphones.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/18-headphones@240w.webp",
+    "width": 240,
+    "height": 843
+   }
+  ],
+  "assets/characters/momoka/19-flower.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/19-flower@240w.webp",
+    "width": 240,
+    "height": 384
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/19-flower@480w.webp",
+    "width": 480,
+    "height": 768
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/19-flower@800w.webp",
+    "width": 800,
+    "height": 1280
+   }
+  ],
+  "assets/characters/momoka/20-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/20-koyubi@240w.webp",
+    "width": 240,
+    "height": 474
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/20-koyubi@480w.webp",
+    "width": 480,
+    "height": 948
+   }
+  ],
+  "assets/characters/momoka/21-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/21-koyubi@240w.webp",
+    "width": 240,
+    "height": 935
+   }
+  ],
+  "assets/characters/momoka/22.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/22@240w.webp",
+    "width": 240,
+    "height": 559
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/22@480w.webp",
+    "width": 480,
+    "height": 1117
+   }
+  ],
+  "assets/characters/momoka/23-heisei-gyaru.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/23-heisei-gyaru@240w.webp",
+    "width": 240,
+    "height": 556
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/23-heisei-gyaru@480w.webp",
+    "width": 480,
+    "height": 1111
+   }
+  ],
+  "assets/characters/momoka/24-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/24-summer@240w.webp",
+    "width": 240,
+    "height": 349
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/24-summer@480w.webp",
+    "width": 480,
+    "height": 699
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/24-summer@800w.webp",
+    "width": 800,
+    "height": 1164
+   }
+  ],
+  "assets/characters/momoka/25.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/25@240w.webp",
+    "width": 240,
+    "height": 629
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/25@480w.webp",
+    "width": 480,
+    "height": 1258
+   }
+  ],
+  "assets/characters/momoka/26.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/26@240w.webp",
+    "width": 240,
+    "height": 780
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/26@480w.webp",
+    "width": 480,
+    "height": 1559
+   }
+  ],
+  "assets/characters/momoka/27-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/27-pop-up@240w.webp",
+    "width": 240,
+    "height": 433
+   }
+  ],
+  "assets/characters/momoka/28-zepp.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/28-zepp@240w.webp",
+    "width": 240,
+    "height": 902
+   }
+  ],
+  "assets/characters/momoka/29.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/29@240w.webp",
+    "width": 240,
+    "height": 744
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/29@480w.webp",
+    "width": 480,
+    "height": 1488
+   }
+  ],
+  "assets/characters/momoka/30-zozotown.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/30-zozotown@240w.webp",
+    "width": 240,
+    "height": 767
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/30-zozotown@480w.webp",
+    "width": 480,
+    "height": 1535
+   }
+  ],
+  "assets/characters/momoka/31.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/31@240w.webp",
+    "width": 240,
+    "height": 478
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/31@480w.webp",
+    "width": 480,
+    "height": 955
+   }
+  ],
+  "assets/characters/momoka/32.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/32@240w.webp",
+    "width": 240,
+    "height": 305
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/32@480w.webp",
+    "width": 480,
+    "height": 609
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/32@800w.webp",
+    "width": 800,
+    "height": 1015
+   }
+  ],
+  "assets/characters/momoka/33.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/33@240w.webp",
+    "width": 240,
+    "height": 831
+   }
+  ],
+  "assets/characters/momoka/34-rpg.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/34-rpg@240w.webp",
+    "width": 240,
+    "height": 464
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/34-rpg@480w.webp",
+    "width": 480,
+    "height": 928
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/34-rpg@800w.webp",
+    "width": 800,
+    "height": 1547
+   }
+  ],
+  "assets/characters/momoka/35.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/35@240w.webp",
+    "width": 240,
+    "height": 333
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/35@480w.webp",
+    "width": 480,
+    "height": 666
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/35@800w.webp",
+    "width": 800,
+    "height": 1110
+   }
+  ],
+  "assets/characters/momoka/36-winter.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/36-winter@240w.webp",
+    "width": 240,
+    "height": 933
+   }
+  ],
+  "assets/characters/momoka/37-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/37-catharsis@240w.webp",
+    "width": 240,
+    "height": 382
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/37-catharsis@480w.webp",
+    "width": 480,
+    "height": 764
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/37-catharsis@800w.webp",
+    "width": 800,
+    "height": 1273
+   }
+  ],
+  "assets/characters/momoka/38-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/38-catharsis@240w.webp",
+    "width": 240,
+    "height": 360
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/38-catharsis@480w.webp",
+    "width": 480,
+    "height": 720
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/38-catharsis@800w.webp",
+    "width": 800,
+    "height": 1200
+   }
+  ],
+  "assets/characters/momoka/39-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/39-pop-up@240w.webp",
+    "width": 240,
+    "height": 507
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/39-pop-up@480w.webp",
+    "width": 480,
+    "height": 1015
+   }
+  ],
+  "assets/characters/momoka/40-tapping.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/40-tapping@240w.webp",
+    "width": 240,
+    "height": 537
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/40-tapping@480w.webp",
+    "width": 480,
+    "height": 1074
+   }
+  ],
+  "assets/characters/momoka/41-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/momoka/41-catharsis@240w.webp",
+    "width": 240,
+    "height": 392
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/momoka/41-catharsis@480w.webp",
+    "width": 480,
+    "height": 783
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/momoka/41-catharsis@800w.webp",
+    "width": 800,
+    "height": 1306
+   }
+  ],
+  "assets/characters/nina/01-sanrio.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/01-sanrio@240w.webp",
+    "width": 240,
+    "height": 624
+   }
+  ],
+  "assets/characters/nina/02-spring.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/02-spring@240w.webp",
+    "width": 240,
+    "height": 623
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/02-spring@480w.webp",
+    "width": 480,
+    "height": 1247
+   }
+  ],
+  "assets/characters/nina/03-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/03-catharsis@240w.webp",
+    "width": 240,
+    "height": 666
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/03-catharsis@480w.webp",
+    "width": 480,
+    "height": 1331
+   }
+  ],
+  "assets/characters/nina/04-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/04-pop-up@240w.webp",
+    "width": 240,
+    "height": 418
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/04-pop-up@480w.webp",
+    "width": 480,
+    "height": 835
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/04-pop-up@800w.webp",
+    "width": 800,
+    "height": 1392
+   }
+  ],
+  "assets/characters/nina/05.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/05@240w.webp",
+    "width": 240,
+    "height": 625
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/05@480w.webp",
+    "width": 480,
+    "height": 1250
+   }
+  ],
+  "assets/characters/nina/06-for-you.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/06-for-you@240w.webp",
+    "width": 240,
+    "height": 801
+   }
+  ],
+  "assets/characters/nina/07-galkura-exhibit.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/07-galkura-exhibit@240w.webp",
+    "width": 240,
+    "height": 689
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/07-galkura-exhibit@480w.webp",
+    "width": 480,
+    "height": 1377
+   }
+  ],
+  "assets/characters/nina/08-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/08-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 814
+   }
+  ],
+  "assets/characters/nina/09.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/09@240w.webp",
+    "width": 240,
+    "height": 526
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/09@480w.webp",
+    "width": 480,
+    "height": 1052
+   }
+  ],
+  "assets/characters/nina/10.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/10@240w.webp",
+    "width": 240,
+    "height": 573
+   }
+  ],
+  "assets/characters/nina/11-cover.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/11-cover@240w.webp",
+    "width": 240,
+    "height": 322
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/11-cover@480w.webp",
+    "width": 480,
+    "height": 643
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/11-cover@800w.webp",
+    "width": 800,
+    "height": 1072
+   }
+  ],
+  "assets/characters/nina/12.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/12@240w.webp",
+    "width": 240,
+    "height": 377
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/12@480w.webp",
+    "width": 480,
+    "height": 755
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/12@800w.webp",
+    "width": 800,
+    "height": 1258
+   }
+  ],
+  "assets/characters/nina/13-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/13-summer@240w.webp",
+    "width": 240,
+    "height": 751
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/13-summer@480w.webp",
+    "width": 480,
+    "height": 1503
+   }
+  ],
+  "assets/characters/nina/14.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/14@240w.webp",
+    "width": 240,
+    "height": 904
+   }
+  ],
+  "assets/characters/nina/15-cry-rose.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/15-cry-rose@240w.webp",
+    "width": 240,
+    "height": 941
+   }
+  ],
+  "assets/characters/nina/16-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/16-pop-up@240w.webp",
+    "width": 240,
+    "height": 473
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/16-pop-up@480w.webp",
+    "width": 480,
+    "height": 946
+   }
+  ],
+  "assets/characters/nina/17-hmv.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/17-hmv@240w.webp",
+    "width": 240,
+    "height": 591
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/17-hmv@480w.webp",
+    "width": 480,
+    "height": 1182
+   }
+  ],
+  "assets/characters/nina/18-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/18-pop-up@240w.webp",
+    "width": 240,
+    "height": 762
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/18-pop-up@480w.webp",
+    "width": 480,
+    "height": 1525
+   }
+  ],
+  "assets/characters/nina/19-headphones.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/19-headphones@240w.webp",
+    "width": 240,
+    "height": 587
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/19-headphones@480w.webp",
+    "width": 480,
+    "height": 1174
+   }
+  ],
+  "assets/characters/nina/20-flower.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/20-flower@240w.webp",
+    "width": 240,
+    "height": 633
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/20-flower@480w.webp",
+    "width": 480,
+    "height": 1266
+   }
+  ],
+  "assets/characters/nina/21.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/21@240w.webp",
+    "width": 240,
+    "height": 436
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/21@480w.webp",
+    "width": 480,
+    "height": 873
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/21@800w.webp",
+    "width": 800,
+    "height": 1454
+   }
+  ],
+  "assets/characters/nina/22-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/22-koyubi@240w.webp",
+    "width": 240,
+    "height": 399
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/22-koyubi@480w.webp",
+    "width": 480,
+    "height": 799
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/22-koyubi@800w.webp",
+    "width": 800,
+    "height": 1332
+   }
+  ],
+  "assets/characters/nina/23-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/23-koyubi@240w.webp",
+    "width": 240,
+    "height": 819
+   }
+  ],
+  "assets/characters/nina/24-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/24-summer@240w.webp",
+    "width": 240,
+    "height": 698
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/24-summer@480w.webp",
+    "width": 480,
+    "height": 1396
+   }
+  ],
+  "assets/characters/nina/25.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/25@240w.webp",
+    "width": 240,
+    "height": 468
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/25@480w.webp",
+    "width": 480,
+    "height": 936
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/25@800w.webp",
+    "width": 800,
+    "height": 1559
+   }
+  ],
+  "assets/characters/nina/26-heisei-gyaru.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/26-heisei-gyaru@240w.webp",
+    "width": 240,
+    "height": 544
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/26-heisei-gyaru@480w.webp",
+    "width": 480,
+    "height": 1088
+   }
+  ],
+  "assets/characters/nina/27.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/27@240w.webp",
+    "width": 240,
+    "height": 628
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/27@480w.webp",
+    "width": 480,
+    "height": 1257
+   }
+  ],
+  "assets/characters/nina/28.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/28@240w.webp",
+    "width": 240,
+    "height": 765
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/28@480w.webp",
+    "width": 480,
+    "height": 1530
+   }
+  ],
+  "assets/characters/nina/29-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/29-pop-up@240w.webp",
+    "width": 240,
+    "height": 524
+   }
+  ],
+  "assets/characters/nina/30-zepp.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/30-zepp@240w.webp",
+    "width": 240,
+    "height": 685
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/30-zepp@480w.webp",
+    "width": 480,
+    "height": 1371
+   }
+  ],
+  "assets/characters/nina/31-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/31-pop-up@240w.webp",
+    "width": 240,
+    "height": 620
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/31-pop-up@480w.webp",
+    "width": 480,
+    "height": 1239
+   }
+  ],
+  "assets/characters/nina/32.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/32@240w.webp",
+    "width": 240,
+    "height": 401
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/32@480w.webp",
+    "width": 480,
+    "height": 802
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/32@800w.webp",
+    "width": 800,
+    "height": 1337
+   }
+  ],
+  "assets/characters/nina/34-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/34-pop-up@240w.webp",
+    "width": 240,
+    "height": 495
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/34-pop-up@480w.webp",
+    "width": 480,
+    "height": 990
+   }
+  ],
+  "assets/characters/nina/35.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/35@240w.webp",
+    "width": 240,
+    "height": 728
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/35@480w.webp",
+    "width": 480,
+    "height": 1456
+   }
+  ],
+  "assets/characters/nina/36.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/36@240w.webp",
+    "width": 240,
+    "height": 769
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/36@480w.webp",
+    "width": 480,
+    "height": 1539
+   }
+  ],
+  "assets/characters/nina/37-zozotown.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/37-zozotown@240w.webp",
+    "width": 240,
+    "height": 401
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/37-zozotown@480w.webp",
+    "width": 480,
+    "height": 803
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/37-zozotown@800w.webp",
+    "width": 800,
+    "height": 1338
+   }
+  ],
+  "assets/characters/nina/38.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/38@240w.webp",
+    "width": 240,
+    "height": 333
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/38@480w.webp",
+    "width": 480,
+    "height": 666
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/38@800w.webp",
+    "width": 800,
+    "height": 1110
+   }
+  ],
+  "assets/characters/nina/39-rpg.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/39-rpg@240w.webp",
+    "width": 240,
+    "height": 333
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/39-rpg@480w.webp",
+    "width": 480,
+    "height": 666
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/39-rpg@800w.webp",
+    "width": 800,
+    "height": 1109
+   }
+  ],
+  "assets/characters/nina/40.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/40@240w.webp",
+    "width": 240,
+    "height": 589
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/40@480w.webp",
+    "width": 480,
+    "height": 1177
+   }
+  ],
+  "assets/characters/nina/41-winter.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/41-winter@240w.webp",
+    "width": 240,
+    "height": 509
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/41-winter@480w.webp",
+    "width": 480,
+    "height": 1018
+   }
+  ],
+  "assets/characters/nina/42-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/42-catharsis@240w.webp",
+    "width": 240,
+    "height": 655
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/42-catharsis@480w.webp",
+    "width": 480,
+    "height": 1309
+   }
+  ],
+  "assets/characters/nina/43-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/43-pop-up@240w.webp",
+    "width": 240,
+    "height": 360
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/43-pop-up@480w.webp",
+    "width": 480,
+    "height": 720
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/nina/43-pop-up@800w.webp",
+    "width": 800,
+    "height": 1200
+   }
+  ],
+  "assets/characters/nina/44-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/44-pop-up@240w.webp",
+    "width": 240,
+    "height": 544
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/44-pop-up@480w.webp",
+    "width": 480,
+    "height": 1087
+   }
+  ],
+  "assets/characters/nina/45-tapping.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/nina/45-tapping@240w.webp",
+    "width": 240,
+    "height": 655
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/nina/45-tapping@480w.webp",
+    "width": 480,
+    "height": 1310
+   }
+  ],
+  "assets/characters/rupa/01-spring.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/01-spring@240w.webp",
+    "width": 240,
+    "height": 623
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/01-spring@480w.webp",
+    "width": 480,
+    "height": 1247
+   }
+  ],
+  "assets/characters/rupa/02-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/02-pop-up@240w.webp",
+    "width": 240,
+    "height": 503
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/02-pop-up@480w.webp",
+    "width": 480,
+    "height": 1007
+   }
+  ],
+  "assets/characters/rupa/03.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/03@240w.webp",
+    "width": 240,
+    "height": 420
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/03@480w.webp",
+    "width": 480,
+    "height": 840
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/03@800w.webp",
+    "width": 800,
+    "height": 1401
+   }
+  ],
+  "assets/characters/rupa/04-for-you.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/04-for-you@240w.webp",
+    "width": 240,
+    "height": 534
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/04-for-you@480w.webp",
+    "width": 480,
+    "height": 1068
+   }
+  ],
+  "assets/characters/rupa/05-galkura-exhibit.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/05-galkura-exhibit@240w.webp",
+    "width": 240,
+    "height": 842
+   }
+  ],
+  "assets/characters/rupa/06-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/06-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 447
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/06-hazete-saku@480w.webp",
+    "width": 480,
+    "height": 895
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/06-hazete-saku@800w.webp",
+    "width": 800,
+    "height": 1491
+   }
+  ],
+  "assets/characters/rupa/07.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/07@240w.webp",
+    "width": 240,
+    "height": 710
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/07@480w.webp",
+    "width": 480,
+    "height": 1421
+   }
+  ],
+  "assets/characters/rupa/08-cry-rose.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/08-cry-rose@240w.webp",
+    "width": 240,
+    "height": 984
+   }
+  ],
+  "assets/characters/rupa/09-sanrio.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/09-sanrio@240w.webp",
+    "width": 240,
+    "height": 517
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/09-sanrio@480w.webp",
+    "width": 480,
+    "height": 1034
+   }
+  ],
+  "assets/characters/rupa/10-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/10-pop-up@240w.webp",
+    "width": 240,
+    "height": 424
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/10-pop-up@480w.webp",
+    "width": 480,
+    "height": 847
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/10-pop-up@800w.webp",
+    "width": 800,
+    "height": 1412
+   }
+  ],
+  "assets/characters/rupa/11-hmv.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/11-hmv@240w.webp",
+    "width": 240,
+    "height": 728
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/11-hmv@480w.webp",
+    "width": 480,
+    "height": 1456
+   }
+  ],
+  "assets/characters/rupa/12-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/12-summer@240w.webp",
+    "width": 240,
+    "height": 638
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/12-summer@480w.webp",
+    "width": 480,
+    "height": 1275
+   }
+  ],
+  "assets/characters/rupa/13-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/13-pop-up@240w.webp",
+    "width": 240,
+    "height": 482
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/13-pop-up@480w.webp",
+    "width": 480,
+    "height": 964
+   }
+  ],
+  "assets/characters/rupa/14-headphones.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/14-headphones@240w.webp",
+    "width": 240,
+    "height": 771
+   }
+  ],
+  "assets/characters/rupa/15-flower.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/15-flower@240w.webp",
+    "width": 240,
+    "height": 359
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/15-flower@480w.webp",
+    "width": 480,
+    "height": 719
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/15-flower@800w.webp",
+    "width": 800,
+    "height": 1198
+   }
+  ],
+  "assets/characters/rupa/16.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/16@240w.webp",
+    "width": 240,
+    "height": 467
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/16@480w.webp",
+    "width": 480,
+    "height": 935
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/16@800w.webp",
+    "width": 800,
+    "height": 1558
+   }
+  ],
+  "assets/characters/rupa/17-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/17-koyubi@240w.webp",
+    "width": 240,
+    "height": 340
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/17-koyubi@480w.webp",
+    "width": 480,
+    "height": 681
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/17-koyubi@800w.webp",
+    "width": 800,
+    "height": 1134
+   }
+  ],
+  "assets/characters/rupa/18-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/18-koyubi@240w.webp",
+    "width": 240,
+    "height": 720
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/18-koyubi@480w.webp",
+    "width": 480,
+    "height": 1440
+   }
+  ],
+  "assets/characters/rupa/19.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/19@240w.webp",
+    "width": 240,
+    "height": 491
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/19@480w.webp",
+    "width": 480,
+    "height": 982
+   }
+  ],
+  "assets/characters/rupa/20-heisei-gyaru.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/20-heisei-gyaru@240w.webp",
+    "width": 240,
+    "height": 600
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/20-heisei-gyaru@480w.webp",
+    "width": 480,
+    "height": 1200
+   }
+  ],
+  "assets/characters/rupa/21.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/21@240w.webp",
+    "width": 240,
+    "height": 852
+   }
+  ],
+  "assets/characters/rupa/22.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/22@240w.webp",
+    "width": 240,
+    "height": 960
+   }
+  ],
+  "assets/characters/rupa/23.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/23@240w.webp",
+    "width": 240,
+    "height": 719
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/23@480w.webp",
+    "width": 480,
+    "height": 1437
+   }
+  ],
+  "assets/characters/rupa/24-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/24-summer@240w.webp",
+    "width": 240,
+    "height": 498
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/24-summer@480w.webp",
+    "width": 480,
+    "height": 997
+   }
+  ],
+  "assets/characters/rupa/25-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/25-pop-up@240w.webp",
+    "width": 240,
+    "height": 498
+   }
+  ],
+  "assets/characters/rupa/26-zepp.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/26-zepp@240w.webp",
+    "width": 240,
+    "height": 1075
+   }
+  ],
+  "assets/characters/rupa/28-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/28-pop-up@240w.webp",
+    "width": 240,
+    "height": 683
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/28-pop-up@480w.webp",
+    "width": 480,
+    "height": 1366
+   }
+  ],
+  "assets/characters/rupa/29.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/29@240w.webp",
+    "width": 240,
+    "height": 818
+   }
+  ],
+  "assets/characters/rupa/30-zozotown.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/30-zozotown@240w.webp",
+    "width": 240,
+    "height": 570
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/30-zozotown@480w.webp",
+    "width": 480,
+    "height": 1140
+   }
+  ],
+  "assets/characters/rupa/31.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/31@240w.webp",
+    "width": 240,
+    "height": 347
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/31@480w.webp",
+    "width": 480,
+    "height": 693
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/31@800w.webp",
+    "width": 800,
+    "height": 1155
+   }
+  ],
+  "assets/characters/rupa/32-rpg.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/32-rpg@240w.webp",
+    "width": 240,
+    "height": 408
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/32-rpg@480w.webp",
+    "width": 480,
+    "height": 815
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/32-rpg@800w.webp",
+    "width": 800,
+    "height": 1359
+   }
+  ],
+  "assets/characters/rupa/33.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/33@240w.webp",
+    "width": 240,
+    "height": 434
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/33@480w.webp",
+    "width": 480,
+    "height": 867
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/33@800w.webp",
+    "width": 800,
+    "height": 1445
+   }
+  ],
+  "assets/characters/rupa/34.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/34@240w.webp",
+    "width": 240,
+    "height": 766
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/34@480w.webp",
+    "width": 480,
+    "height": 1532
+   }
+  ],
+  "assets/characters/rupa/35-winter.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/35-winter@240w.webp",
+    "width": 240,
+    "height": 847
+   }
+  ],
+  "assets/characters/rupa/36-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/36-catharsis@240w.webp",
+    "width": 240,
+    "height": 360
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/36-catharsis@480w.webp",
+    "width": 480,
+    "height": 720
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/36-catharsis@800w.webp",
+    "width": 800,
+    "height": 1200
+   }
+  ],
+  "assets/characters/rupa/37-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/37-pop-up@240w.webp",
+    "width": 240,
+    "height": 383
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/37-pop-up@480w.webp",
+    "width": 480,
+    "height": 765
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/37-pop-up@800w.webp",
+    "width": 800,
+    "height": 1275
+   }
+  ],
+  "assets/characters/rupa/38-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/38-pop-up@240w.webp",
+    "width": 240,
+    "height": 534
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/38-pop-up@480w.webp",
+    "width": 480,
+    "height": 1068
+   }
+  ],
+  "assets/characters/rupa/39-tapping.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/39-tapping@240w.webp",
+    "width": 240,
+    "height": 499
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/39-tapping@480w.webp",
+    "width": 480,
+    "height": 998
+   }
+  ],
+  "assets/characters/rupa/40-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/rupa/40-catharsis@240w.webp",
+    "width": 240,
+    "height": 439
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/rupa/40-catharsis@480w.webp",
+    "width": 480,
+    "height": 877
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/rupa/40-catharsis@800w.webp",
+    "width": 800,
+    "height": 1462
+   }
+  ],
+  "assets/characters/subaru/01-spring.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/01-spring@240w.webp",
+    "width": 240,
+    "height": 623
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/01-spring@480w.webp",
+    "width": 480,
+    "height": 1247
+   }
+  ],
+  "assets/characters/subaru/02-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/02-pop-up@240w.webp",
+    "width": 240,
+    "height": 553
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/02-pop-up@480w.webp",
+    "width": 480,
+    "height": 1105
+   }
+  ],
+  "assets/characters/subaru/03.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/03@240w.webp",
+    "width": 240,
+    "height": 355
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/03@480w.webp",
+    "width": 480,
+    "height": 710
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/03@800w.webp",
+    "width": 800,
+    "height": 1184
+   }
+  ],
+  "assets/characters/subaru/04.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/04@240w.webp",
+    "width": 240,
+    "height": 540
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/04@480w.webp",
+    "width": 480,
+    "height": 1081
+   }
+  ],
+  "assets/characters/subaru/05-for-you.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/05-for-you@240w.webp",
+    "width": 240,
+    "height": 600
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/05-for-you@480w.webp",
+    "width": 480,
+    "height": 1200
+   }
+  ],
+  "assets/characters/subaru/06-galkura-exhibit.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/06-galkura-exhibit@240w.webp",
+    "width": 240,
+    "height": 622
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/06-galkura-exhibit@480w.webp",
+    "width": 480,
+    "height": 1243
+   }
+  ],
+  "assets/characters/subaru/07-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/07-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 619
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/07-hazete-saku@480w.webp",
+    "width": 480,
+    "height": 1238
+   }
+  ],
+  "assets/characters/subaru/08.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/08@240w.webp",
+    "width": 240,
+    "height": 502
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/08@480w.webp",
+    "width": 480,
+    "height": 1004
+   }
+  ],
+  "assets/characters/subaru/09.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/09@240w.webp",
+    "width": 240,
+    "height": 651
+   }
+  ],
+  "assets/characters/subaru/10-cry-rose.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/10-cry-rose@240w.webp",
+    "width": 240,
+    "height": 222
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/10-cry-rose@480w.webp",
+    "width": 480,
+    "height": 443
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/10-cry-rose@800w.webp",
+    "width": 800,
+    "height": 739
+   }
+  ],
+  "assets/characters/subaru/11-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/11-pop-up@240w.webp",
+    "width": 240,
+    "height": 493
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/11-pop-up@480w.webp",
+    "width": 480,
+    "height": 986
+   }
+  ],
+  "assets/characters/subaru/12-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/12-summer@240w.webp",
+    "width": 240,
+    "height": 585
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/12-summer@480w.webp",
+    "width": 480,
+    "height": 1170
+   }
+  ],
+  "assets/characters/subaru/13-sanrio.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/13-sanrio@240w.webp",
+    "width": 240,
+    "height": 464
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/13-sanrio@480w.webp",
+    "width": 480,
+    "height": 928
+   }
+  ],
+  "assets/characters/subaru/14-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/14-pop-up@240w.webp",
+    "width": 240,
+    "height": 329
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/14-pop-up@480w.webp",
+    "width": 480,
+    "height": 658
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/14-pop-up@800w.webp",
+    "width": 800,
+    "height": 1096
+   }
+  ],
+  "assets/characters/subaru/15-hmv.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/15-hmv@240w.webp",
+    "width": 240,
+    "height": 581
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/15-hmv@480w.webp",
+    "width": 480,
+    "height": 1161
+   }
+  ],
+  "assets/characters/subaru/16-headphones.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/16-headphones@240w.webp",
+    "width": 240,
+    "height": 811
+   }
+  ],
+  "assets/characters/subaru/17-flower.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/17-flower@240w.webp",
+    "width": 240,
+    "height": 516
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/17-flower@480w.webp",
+    "width": 480,
+    "height": 1032
+   }
+  ],
+  "assets/characters/subaru/18.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/18@240w.webp",
+    "width": 240,
+    "height": 403
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/18@480w.webp",
+    "width": 480,
+    "height": 806
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/18@800w.webp",
+    "width": 800,
+    "height": 1343
+   }
+  ],
+  "assets/characters/subaru/19-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/19-koyubi@240w.webp",
+    "width": 240,
+    "height": 425
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/19-koyubi@480w.webp",
+    "width": 480,
+    "height": 850
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/19-koyubi@800w.webp",
+    "width": 800,
+    "height": 1417
+   }
+  ],
+  "assets/characters/subaru/20-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/20-koyubi@240w.webp",
+    "width": 240,
+    "height": 710
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/20-koyubi@480w.webp",
+    "width": 480,
+    "height": 1420
+   }
+  ],
+  "assets/characters/subaru/21.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/21@240w.webp",
+    "width": 240,
+    "height": 609
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/21@480w.webp",
+    "width": 480,
+    "height": 1218
+   }
+  ],
+  "assets/characters/subaru/22-heisei-gyaru.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/22-heisei-gyaru@240w.webp",
+    "width": 240,
+    "height": 546
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/22-heisei-gyaru@480w.webp",
+    "width": 480,
+    "height": 1093
+   }
+  ],
+  "assets/characters/subaru/23.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/23@240w.webp",
+    "width": 240,
+    "height": 694
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/23@480w.webp",
+    "width": 480,
+    "height": 1387
+   }
+  ],
+  "assets/characters/subaru/24-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/24-summer@240w.webp",
+    "width": 240,
+    "height": 288
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/24-summer@480w.webp",
+    "width": 480,
+    "height": 577
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/24-summer@800w.webp",
+    "width": 800,
+    "height": 961
+   }
+  ],
+  "assets/characters/subaru/25.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/25@240w.webp",
+    "width": 240,
+    "height": 632
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/25@480w.webp",
+    "width": 480,
+    "height": 1264
+   }
+  ],
+  "assets/characters/subaru/26-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/26-pop-up@240w.webp",
+    "width": 240,
+    "height": 526
+   }
+  ],
+  "assets/characters/subaru/27-zepp.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/27-zepp@240w.webp",
+    "width": 240,
+    "height": 580
+   }
+  ],
+  "assets/characters/subaru/29-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/29-pop-up@240w.webp",
+    "width": 240,
+    "height": 449
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/29-pop-up@480w.webp",
+    "width": 480,
+    "height": 898
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/29-pop-up@800w.webp",
+    "width": 800,
+    "height": 1497
+   }
+  ],
+  "assets/characters/subaru/30.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/30@240w.webp",
+    "width": 240,
+    "height": 656
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/30@480w.webp",
+    "width": 480,
+    "height": 1313
+   }
+  ],
+  "assets/characters/subaru/31.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/31@240w.webp",
+    "width": 240,
+    "height": 477
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/31@480w.webp",
+    "width": 480,
+    "height": 954
+   }
+  ],
+  "assets/characters/subaru/32-zozotown.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/32-zozotown@240w.webp",
+    "width": 240,
+    "height": 745
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/32-zozotown@480w.webp",
+    "width": 480,
+    "height": 1490
+   }
+  ],
+  "assets/characters/subaru/33-rpg.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/33-rpg@240w.webp",
+    "width": 240,
+    "height": 458
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/33-rpg@480w.webp",
+    "width": 480,
+    "height": 916
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/33-rpg@800w.webp",
+    "width": 800,
+    "height": 1527
+   }
+  ],
+  "assets/characters/subaru/34.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/34@240w.webp",
+    "width": 240,
+    "height": 434
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/34@480w.webp",
+    "width": 480,
+    "height": 867
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/34@800w.webp",
+    "width": 800,
+    "height": 1446
+   }
+  ],
+  "assets/characters/subaru/35.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/35@240w.webp",
+    "width": 240,
+    "height": 732
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/35@480w.webp",
+    "width": 480,
+    "height": 1465
+   }
+  ],
+  "assets/characters/subaru/36-winter.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/36-winter@240w.webp",
+    "width": 240,
+    "height": 614
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/36-winter@480w.webp",
+    "width": 480,
+    "height": 1227
+   }
+  ],
+  "assets/characters/subaru/37-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/37-catharsis@240w.webp",
+    "width": 240,
+    "height": 334
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/37-catharsis@480w.webp",
+    "width": 480,
+    "height": 669
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/37-catharsis@800w.webp",
+    "width": 800,
+    "height": 1114
+   }
+  ],
+  "assets/characters/subaru/38-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/38-catharsis@240w.webp",
+    "width": 240,
+    "height": 360
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/38-catharsis@480w.webp",
+    "width": 480,
+    "height": 720
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/38-catharsis@800w.webp",
+    "width": 800,
+    "height": 1200
+   }
+  ],
+  "assets/characters/subaru/39-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/39-pop-up@240w.webp",
+    "width": 240,
+    "height": 652
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/39-pop-up@480w.webp",
+    "width": 480,
+    "height": 1304
+   }
+  ],
+  "assets/characters/subaru/40-tapping.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/40-tapping@240w.webp",
+    "width": 240,
+    "height": 432
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/40-tapping@480w.webp",
+    "width": 480,
+    "height": 865
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/subaru/40-tapping@800w.webp",
+    "width": 800,
+    "height": 1441
+   }
+  ],
+  "assets/characters/subaru/41-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/subaru/41-catharsis@240w.webp",
+    "width": 240,
+    "height": 769
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/subaru/41-catharsis@480w.webp",
+    "width": 480,
+    "height": 1538
+   }
+  ],
+  "assets/characters/tomo/01-spring.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/01-spring@240w.webp",
+    "width": 240,
+    "height": 623
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/01-spring@480w.webp",
+    "width": 480,
+    "height": 1247
+   }
+  ],
+  "assets/characters/tomo/02-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/02-pop-up@240w.webp",
+    "width": 240,
+    "height": 693
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/02-pop-up@480w.webp",
+    "width": 480,
+    "height": 1385
+   }
+  ],
+  "assets/characters/tomo/03.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/03@240w.webp",
+    "width": 240,
+    "height": 292
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/03@480w.webp",
+    "width": 480,
+    "height": 584
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/03@800w.webp",
+    "width": 800,
+    "height": 973
+   }
+  ],
+  "assets/characters/tomo/04-for-you.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/04-for-you@240w.webp",
+    "width": 240,
+    "height": 864
+   }
+  ],
+  "assets/characters/tomo/05-galkura-exhibit.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/05-galkura-exhibit@240w.webp",
+    "width": 240,
+    "height": 634
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/05-galkura-exhibit@480w.webp",
+    "width": 480,
+    "height": 1269
+   }
+  ],
+  "assets/characters/tomo/06-galkura-exhibit.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/06-galkura-exhibit@240w.webp",
+    "width": 240,
+    "height": 634
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/06-galkura-exhibit@480w.webp",
+    "width": 480,
+    "height": 1269
+   }
+  ],
+  "assets/characters/tomo/07-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/07-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 807
+   }
+  ],
+  "assets/characters/tomo/08-hazete-saku.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/08-hazete-saku@240w.webp",
+    "width": 240,
+    "height": 576
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/08-hazete-saku@480w.webp",
+    "width": 480,
+    "height": 1151
+   }
+  ],
+  "assets/characters/tomo/09.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/09@240w.webp",
+    "width": 240,
+    "height": 586
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/09@480w.webp",
+    "width": 480,
+    "height": 1172
+   }
+  ],
+  "assets/characters/tomo/10-cry-rose.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/10-cry-rose@240w.webp",
+    "width": 240,
+    "height": 356
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/10-cry-rose@480w.webp",
+    "width": 480,
+    "height": 713
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/10-cry-rose@800w.webp",
+    "width": 800,
+    "height": 1188
+   }
+  ],
+  "assets/characters/tomo/11-sanrio.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/11-sanrio@240w.webp",
+    "width": 240,
+    "height": 539
+   }
+  ],
+  "assets/characters/tomo/12-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/12-pop-up@240w.webp",
+    "width": 240,
+    "height": 609
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/12-pop-up@480w.webp",
+    "width": 480,
+    "height": 1217
+   }
+  ],
+  "assets/characters/tomo/13-hmv.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/13-hmv@240w.webp",
+    "width": 240,
+    "height": 701
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/13-hmv@480w.webp",
+    "width": 480,
+    "height": 1402
+   }
+  ],
+  "assets/characters/tomo/14-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/14-summer@240w.webp",
+    "width": 240,
+    "height": 707
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/14-summer@480w.webp",
+    "width": 480,
+    "height": 1413
+   }
+  ],
+  "assets/characters/tomo/15-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/15-pop-up@240w.webp",
+    "width": 240,
+    "height": 262
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/15-pop-up@480w.webp",
+    "width": 480,
+    "height": 523
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/15-pop-up@800w.webp",
+    "width": 800,
+    "height": 872
+   }
+  ],
+  "assets/characters/tomo/16-headphones.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/16-headphones@240w.webp",
+    "width": 240,
+    "height": 716
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/16-headphones@480w.webp",
+    "width": 480,
+    "height": 1431
+   }
+  ],
+  "assets/characters/tomo/17-flower.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/17-flower@240w.webp",
+    "width": 240,
+    "height": 608
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/17-flower@480w.webp",
+    "width": 480,
+    "height": 1217
+   }
+  ],
+  "assets/characters/tomo/18.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/18@240w.webp",
+    "width": 240,
+    "height": 378
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/18@480w.webp",
+    "width": 480,
+    "height": 755
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/18@800w.webp",
+    "width": 800,
+    "height": 1259
+   }
+  ],
+  "assets/characters/tomo/19-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/19-koyubi@240w.webp",
+    "width": 240,
+    "height": 477
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/19-koyubi@480w.webp",
+    "width": 480,
+    "height": 953
+   }
+  ],
+  "assets/characters/tomo/20-koyubi.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/20-koyubi@240w.webp",
+    "width": 240,
+    "height": 875
+   }
+  ],
+  "assets/characters/tomo/21.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/21@240w.webp",
+    "width": 240,
+    "height": 351
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/21@480w.webp",
+    "width": 480,
+    "height": 702
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/21@800w.webp",
+    "width": 800,
+    "height": 1170
+   }
+  ],
+  "assets/characters/tomo/22-heisei-gyaru.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/22-heisei-gyaru@240w.webp",
+    "width": 240,
+    "height": 641
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/22-heisei-gyaru@480w.webp",
+    "width": 480,
+    "height": 1282
+   }
+  ],
+  "assets/characters/tomo/23.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/23@240w.webp",
+    "width": 240,
+    "height": 622
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/23@480w.webp",
+    "width": 480,
+    "height": 1244
+   }
+  ],
+  "assets/characters/tomo/24.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/24@240w.webp",
+    "width": 240,
+    "height": 825
+   }
+  ],
+  "assets/characters/tomo/25.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/25@240w.webp",
+    "width": 240,
+    "height": 662
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/25@480w.webp",
+    "width": 480,
+    "height": 1324
+   }
+  ],
+  "assets/characters/tomo/26-summer.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/26-summer@240w.webp",
+    "width": 240,
+    "height": 456
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/26-summer@480w.webp",
+    "width": 480,
+    "height": 912
+   }
+  ],
+  "assets/characters/tomo/27-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/27-pop-up@240w.webp",
+    "width": 240,
+    "height": 581
+   }
+  ],
+  "assets/characters/tomo/28-zepp.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/28-zepp@240w.webp",
+    "width": 240,
+    "height": 907
+   }
+  ],
+  "assets/characters/tomo/30-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/30-pop-up@240w.webp",
+    "width": 240,
+    "height": 376
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/30-pop-up@480w.webp",
+    "width": 480,
+    "height": 752
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/30-pop-up@800w.webp",
+    "width": 800,
+    "height": 1254
+   }
+  ],
+  "assets/characters/tomo/31.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/31@240w.webp",
+    "width": 240,
+    "height": 500
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/31@480w.webp",
+    "width": 480,
+    "height": 1000
+   }
+  ],
+  "assets/characters/tomo/32-zozotown.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/32-zozotown@240w.webp",
+    "width": 240,
+    "height": 892
+   }
+  ],
+  "assets/characters/tomo/33.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/33@240w.webp",
+    "width": 240,
+    "height": 568
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/33@480w.webp",
+    "width": 480,
+    "height": 1137
+   }
+  ],
+  "assets/characters/tomo/34.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/34@240w.webp",
+    "width": 240,
+    "height": 359
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/34@480w.webp",
+    "width": 480,
+    "height": 717
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/34@800w.webp",
+    "width": 800,
+    "height": 1196
+   }
+  ],
+  "assets/characters/tomo/35.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/35@240w.webp",
+    "width": 240,
+    "height": 670
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/35@480w.webp",
+    "width": 480,
+    "height": 1339
+   }
+  ],
+  "assets/characters/tomo/36-winter.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/36-winter@240w.webp",
+    "width": 240,
+    "height": 967
+   }
+  ],
+  "assets/characters/tomo/37-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/37-catharsis@240w.webp",
+    "width": 240,
+    "height": 701
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/37-catharsis@480w.webp",
+    "width": 480,
+    "height": 1402
+   }
+  ],
+  "assets/characters/tomo/38-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/38-catharsis@240w.webp",
+    "width": 240,
+    "height": 360
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/38-catharsis@480w.webp",
+    "width": 480,
+    "height": 720
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/38-catharsis@800w.webp",
+    "width": 800,
+    "height": 1200
+   }
+  ],
+  "assets/characters/tomo/39-pop-up.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/39-pop-up@240w.webp",
+    "width": 240,
+    "height": 439
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/39-pop-up@480w.webp",
+    "width": 480,
+    "height": 878
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/39-pop-up@800w.webp",
+    "width": 800,
+    "height": 1463
+   }
+  ],
+  "assets/characters/tomo/40-tapping.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/40-tapping@240w.webp",
+    "width": 240,
+    "height": 403
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/40-tapping@480w.webp",
+    "width": 480,
+    "height": 807
+   },
+   {
+    "target": 800,
+    "path": "assets/characters/tomo/40-tapping@800w.webp",
+    "width": 800,
+    "height": 1345
+   }
+  ],
+  "assets/characters/tomo/41-catharsis.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/41-catharsis@240w.webp",
+    "width": 240,
+    "height": 841
+   }
+  ],
+  "assets/characters/tomo/42-rpg.webp": [
+   {
+    "target": 240,
+    "path": "assets/characters/tomo/42-rpg@240w.webp",
+    "width": 240,
+    "height": 519
+   },
+   {
+    "target": 480,
+    "path": "assets/characters/tomo/42-rpg@480w.webp",
+    "width": 480,
+    "height": 1038
+   }
+  ]
+ }
+}

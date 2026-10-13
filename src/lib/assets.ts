@@ -78,6 +78,90 @@ export function assetUrl(p: string): string {
   return BASE + p.replace(/^\/+/, "");
 }
 
+/* ---------------------------------------------------------------------------
+ * 立绘多尺寸（<img srcset>）
+ *
+ * 背景：角色页一条缩略图带 5 人共 209 张立绘，原图长边 1600px 而实际显示只有
+ * 132~150 CSS px。实测预生成 400px 小图比把 1600px 丢给浏览器降采样**更清晰**
+ * （与理想参考的 RMSE 19.65 → 16.78）且单张 74.8K → 12K。
+ *
+ * 变体由 scripts/char-variants.py 从**源 PNG** 生成（不是拿现有 webp 再压，
+ * 避免二次有损），尺寸索引写在 public/assets/char-variants.json。
+ * 索引不存在时 srcset() 返回 undefined，模板自动退回单图，构建不会失败。
+ * ------------------------------------------------------------------------- */
+
+interface Variant {
+  edge: number;
+  path: string;
+  width: number;
+  height: number;
+}
+
+const VARIANTS_PATH = path.resolve(
+  process.cwd(),
+  "public/assets/char-variants.json",
+);
+
+function loadVariants(): Record<string, Variant[]> {
+  if (!fs.existsSync(VARIANTS_PATH)) return {};
+  try {
+    const raw = JSON.parse(fs.readFileSync(VARIANTS_PATH, "utf-8"));
+    return (raw.variants ?? {}) as Record<string, Variant[]>;
+  } catch {
+    return {};
+  }
+}
+
+const VARIANTS = loadVariants();
+
+/** 原始文件宽高索引（srcset 里的最大档），来自 manifest。 */
+const ORIGINAL_SIZE: Record<string, { width: number; height: number }> = {};
+for (const list of Object.values(manifest.categories)) {
+  for (const e of list) {
+    if (e.width && e.height) {
+      ORIGINAL_SIZE[e.path] = { width: e.width, height: e.height };
+    }
+  }
+}
+
+/**
+ * 拼 `srcset`。没有变体数据时返回 undefined（此时 <img> 上不写 srcset 属性）。
+ * @param p manifest 路径
+ */
+export function srcset(p: string): string | undefined {
+  const variants = VARIANTS[p];
+  if (!variants?.length) return undefined;
+  const all: { path: string; width: number }[] = [...variants];
+  const orig = ORIGINAL_SIZE[p];
+  if (orig) all.push({ path: p, width: orig.width });
+  return all
+    .sort((a, b) => a.width - b.width)
+    .map((v) => `${assetUrl(v.path)} ${v.width}w`)
+    .join(", ");
+}
+
+/**
+ * `sizes` 属性：图片在 `object-fit: contain` 容器里**内容实际占用的 CSS 宽度**。
+ *
+ * 不能直接写容器宽度——249 张立绘里 158 张宽高比 <0.5（瘦高，中位 0.43），
+ * 瘦高图在 contain 下只占容器中间一条，若按容器宽度上报，浏览器会按
+ * `sizes × DPR` 选档，白白拉一张远超所需的大图（实测手机端就是这么退回原图的）。
+ *
+ * @param e          manifest 条目（需要 width/height）
+ * @param mobile     手机端容器 [宽, 高]（CSS px）
+ * @param desktop    桌面端容器 [宽, 高]（CSS px）
+ */
+export function contentSizes(
+  e: { width?: number; height?: number },
+  mobile: [number, number],
+  desktop: [number, number],
+): string {
+  const ar = (e.width ?? 1) / (e.height ?? 1);
+  const fit = ([bw, bh]: [number, number]): number =>
+    Math.round(Math.min(bw, bh * ar) * 100) / 100;
+  return `(max-width: 1023px) ${fit(mobile)}px, ${fit(desktop)}px`;
+}
+
 /**
  * 站内路由 → 带 base 前缀的 href。
  * 用法：url('/characters') → '/gbc-site/characters'（CI）或 '/characters'（本地）

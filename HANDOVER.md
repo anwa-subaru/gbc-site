@@ -191,6 +191,47 @@ category("covers") / characterArt("nina") / characterPrimary("nina") / groupShot
 
 > **禁止**在组件里手拼 `"/assets/..."`——manifest 里的 path 不带前导斜杠，手拼会在子路径部署时全部 404。
 
+### 5.1.1 立绘多尺寸 `scripts/char-variants.py` + `srcset`
+
+角色页每位角色下方是一整条立绘缩略图带（5 人共 **209 张 `<img>`**），原图长边
+1600px，而缩略图元素只有 132~150 CSS px。实测（拿源 PNG 用 LANCZOS 缩到显示
+尺寸当理想参考，用 Playwright 在 DPR 3 下渲染比对）：
+
+| 做法 | 与理想参考 RMSE | 单张体积 |
+|---|---|---|
+| 把 1600px 原图丢给浏览器降采样 | 19.65 | 74.8K |
+| 预生成合适尺寸的小图 | **16.78** | **12K** |
+
+也就是预生成小图**既更清晰又省 84%**。落地方式：
+
+- `scripts/char-variants.py` 读 `manifest.json` 反查源 PNG，按**图片宽度**生成
+  `@240w / @480w / @800w` 三档（`quality=80, method=5`，alpha 用 Pillow 默认的
+  `alpha_quality=100` 无损），索引写 `public/assets/char-variants.json`。
+- 模板侧 `srcset(path)` + `contentSizes(entry, 手机容器, 桌面容器)`（都在
+  `src/lib/assets.ts`）拼 `<img srcset sizes>`。
+- 索引文件缺失时 `srcset()` 返回 `undefined`，模板自动退回单图，构建不会失败。
+
+**两个必踩的坑（都实测过）**：
+
+1. **必须按宽度切，不能按长边切。** `srcset` 的 `w` 描述符比的是图片**宽度**，
+   而 249 张立绘里 **158 张宽高比 <0.5**（瘦高，中位 0.43）。按长边 400px 切的话
+   瘦高图只有 154px 宽，浏览器按 `sizes × DPR` 一算直接跳过它去拿原图——第一版
+   就是这么翻车的（手机端选档 @400w:0 原图:16）。
+2. **`sizes` 要写 contain 之后内容实际占的宽度，不能写容器宽度。** 容器 132×190
+   里，0.43 宽高比的立绘内容只有 73px 宽；写容器宽度会让浏览器按 132×DPR 选档，
+   白白拉大图。`contentSizes()` 就是干这个的。
+
+**收益（线上实测）**：手机端 `/characters/` 立绘 1.85 MB → **1.03 MB**；
+桌面端 2.34 MB → 1.13 MB；首页 hero 5 张 658.6K → 444.3K。
+（变体文件本身占仓库 26.5 MB / 528 个，不进 dist 之外的任何地方。）
+
+> 补充结论：**立绘保留 alpha 是对的**。508 个带 alpha 的 webp 里 507 个真在用
+> （立绘是抠图，40~73% 全透明）；alpha 是无损存的（与源 PNG 逐像素差异 0），
+> 透明区 RGB 虽然 216 黑 / 17 白 / 16 灰，但只存在于 `alpha=0` 的像素上，
+> 用无损 PNG 做对照实验确认浏览器渲染**逐像素完全相同**（0/640000），
+> 所以既不出白边也不影响画质。降 `alpha_quality` 到 80 只省 8.9% 且会轻微
+> 损失 alpha 精度，为了显示效果最好**没有采用**。
+
 ### 5.2 曲目数据 `src/data/songs.json`
 
 38 条，字段：`{ n, file, title, artist, dur, cover, album }`

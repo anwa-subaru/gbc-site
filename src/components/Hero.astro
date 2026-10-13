@@ -9,6 +9,8 @@
 import { t } from "../i18n";
 import {
   assetUrl,
+  contentSizes,
+  srcset,
   characterPrimary,
   charactersMeta,
   url,
@@ -117,6 +119,8 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
           <figure class="hero__art" data-mirror={s.mirror ? "" : undefined}>
             <img
               src={assetUrl(s.entry.path)}
+              srcset={srcset(s.entry.path)}
+              sizes={contentSizes(s.entry, [210, 305], [480, 666])}
               data-i18n-attr="alt:hero.art.alt"
               data-i18n-vars={`name:${s.nameJa}`}
               alt={`${s.nameJa} 立绘`}
