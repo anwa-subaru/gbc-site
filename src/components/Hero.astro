@@ -292,6 +292,15 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     word-break: keep-all;
   }
 
+  /* 手机端文案列只占左半边，立绘压在上面：标语宽度收到文案列内换行，
+     否则英文标语会伸到立绘底下被盖住（日文标语短，看不出来） */
+  @media (max-width: 1023.98px) {
+    .hero__tagline {
+      max-width: 47%;
+      text-wrap: balance;
+    }
+  }
+
   .hero__cta {
     margin-top: var(--sp-4);
     justify-self: start;
