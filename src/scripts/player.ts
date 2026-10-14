@@ -244,6 +244,14 @@ function createCore(bar: HTMLElement): Core {
     paintFold();
   };
 
+  /* 单曲循环用浏览器原生 loop，而不是"监听 ended 再 play()"：
+     网络慢的时候音频会卡在结尾（currentTime 逼近 duration 但 ended 迟迟不触发），
+     那条路径永远等不到，用户看到的就是"放完一首就停住/像暂停"。
+     原生 loop 由媒体引擎负责，卡缓冲也能续上，且不依赖 JS 事件。 */
+  const syncLoop = (): void => {
+    audio.loop = mode === "one";
+  };
+
   let load = (n: number, play = true): void => {
     const s = byN.get(n);
     if (!s) return;
@@ -251,6 +259,7 @@ function createCore(bar: HTMLElement): Core {
     current = n;
     audio.src = s.src;
     audio.currentTime = 0;
+    syncLoop();
     setNow(s, was !== null && was !== n);
     markLive();
     paintCards();
@@ -709,6 +718,7 @@ function createCore(bar: HTMLElement): Core {
     if (current != null && queue.length) {
       queue = mode === "shuffle" ? shuffledFrom(queue, current) : [...queue].sort((a, b) => a - b);
     }
+    syncLoop(); // 播放中切换模式也要立刻生效，否则切走单曲还会一直循环
     paintMode();
   };
 
@@ -792,11 +802,11 @@ function createCore(bar: HTMLElement): Core {
   audio.addEventListener("pause", () => { setPlayingUI(false); syncLyricBar(); });
   audio.addEventListener("error", () => setPlayingUI(false));
 
-  /* 放完一首：单曲循环就重来，否则按队列往后走 */
-  audio.addEventListener("ended", () => {
+  /* 放完一首：单曲循环正常走 audio.loop（这里是兜底），否则按队列往后走 */
+  const onTrackEnd = (): void => {
     if (mode === "one" && current != null) {
       audio.currentTime = 0;
-      void audio.play();
+      void audio.play().catch(() => setPlayingUI(false));
       return;
     }
     const at = current == null ? -1 : queue.indexOf(current);
@@ -811,6 +821,31 @@ function createCore(bar: HTMLElement): Core {
     // 不循环：放完就停住（显式 pause，别依赖浏览器自己停）
     audio.pause();
     setPlayingUI(false);
+  };
+
+  audio.addEventListener("ended", onTrackEnd);
+
+  /* 兜底：流式加载的 mp3 卡在结尾时 ended 可能永远不来，
+     表现为"播完了却停在那儿不动、也不切下一首"。
+     检测"没暂停 + 已在结尾 0.35s 内 + 播放位置连续 2 秒不前进"即当作播完。 */
+  let stuckAt = -1;
+  let stuckSince = 0;
+  audio.addEventListener("timeupdate", () => {
+    const d = audio.duration;
+    if (audio.paused || !Number.isFinite(d) || d <= 0 || audio.currentTime < d - 0.35) {
+      stuckAt = -1;
+      return;
+    }
+    const now = performance.now();
+    if (Math.abs(audio.currentTime - stuckAt) >= 0.01) {
+      stuckAt = audio.currentTime;
+      stuckSince = now;
+      return;
+    }
+    if (stuckAt >= 0 && now - stuckSince > 2000) {
+      stuckAt = -1;
+      onTrackEnd();
+    }
   });
 
   seek?.addEventListener("input", () => {
