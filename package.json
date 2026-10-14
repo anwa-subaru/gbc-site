@@ -13,12 +13,6 @@
   "dependencies": {
     "astro": "^5.18.2"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp"
-    ]
-  },
   "devDependencies": {
     "playwright": "^1.64.0"
   }
