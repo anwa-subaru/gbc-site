@@ -38,9 +38,9 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        # 不指定 version：读取仓库根 pnpm-workspace.yaml / package.json 的约定，
-        # 或退回 action 自带的最新 v10。本仓库 lockfile 为 9.0（pnpm 9/10 通用）。
-        # 若日后要锁死版本，在这里写 `version: 10` 即可。
+        # 不指定 version：读取 package.json 的 packageManager 字段（pnpm@12.6.0）。
+        # 之前这里没写 version、package.json 也没有 packageManager，
+        # 导致 "No pnpm version is specified" 直接失败，已在 package.json 里补上。
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -62,7 +62,7 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          BASE_PATH: /${{ github.event.repository.name }}
+          BASE_PATH: /${{ github.event.repository.name || 'gbc-site' }}
           SITE_URL: https://${{ github.repository_owner }}.github.io
           GITHUB_REPOSITORY: ${{ github.repository }}
 

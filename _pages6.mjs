@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const b = await chromium.connectOverCDP('http://127.0.0.1:9222');
+const p = b.contexts()[0].pages()[0];
+const save = p.getByRole('button', { name: /^Save$/ }).first();
+if (await save.count()) { await save.click(); await p.waitForTimeout(5000); console.log('已点 Save'); } else console.log('没有 Save 按钮（可能已保存）');
+await p.waitForTimeout(1500);
+await p.screenshot({ path: '/root/gh-login/37-pages-saved.png', fullPage: true });
+const t = (await p.locator('main').innerText()).replace(/\s+/g, ' ').trim();
+console.log('保存后:', t.slice(0, 300));
+console.log('提到工作流了吗:', /workflow|workflow_dispatch|main/i.test(t));
+process.exit(0);
