@@ -116,6 +116,51 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
         }
         sync();
         document.addEventListener("astro:after-swap", sync);
+
+        /* 懒加载图片淡入。要点：
+           · html.js 在这里就地加上（首屏绘制之前），CSS 才敢把 opacity 归零；
+             这段脚本万一没跑，图片就是普通显示，绝不会留白板。
+           · load / error 都不冒泡，必须用捕获阶段监听；而且**只能挂 document**：
+             实测 window 上的捕获收不到图片 load（0 次），document 能收到。
+           · 8 秒兜底全显形：宁可没有淡入，也不要留一块永远空着的洞。 */
+        document.documentElement.classList.add("js");
+        if (!window.__gbcLazy) {
+          window.__gbcLazy = 1;
+          var mark = function (img) {
+            if (img && img.classList) img.classList.add("is-loaded");
+          };
+          var sweep = function () {
+            var imgs = document.querySelectorAll('img[loading="lazy"]');
+            for (var i = 0; i < imgs.length; i++) {
+              if (imgs[i].complete) mark(imgs[i]);
+            }
+          };
+          document.addEventListener(
+            "load",
+            function (e) {
+              var t = e.target;
+              if (t && t.tagName === "IMG" && t.getAttribute("loading") === "lazy") mark(t);
+            },
+            true,
+          );
+          document.addEventListener(
+            "error",
+            function (e) {
+              var t = e.target;
+              if (t && t.tagName === "IMG") mark(t);
+            },
+            true,
+          );
+          document.addEventListener("DOMContentLoaded", sweep);
+          document.addEventListener("astro:after-swap", sweep);
+          document.addEventListener("astro:page-load", sweep);
+          if (document.readyState !== "loading") sweep();
+          setTimeout(sweep, 8000);
+          setTimeout(function () {
+            var imgs = document.querySelectorAll('img[loading="lazy"]');
+            for (var i = 0; i < imgs.length; i++) mark(imgs[i]);
+          }, 8000);
+        }
       })();
     </script>
 

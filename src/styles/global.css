@@ -624,6 +624,19 @@ p {
 /* --------------------------------------------------------------------------
    8. prefers-reduced-motion —— 直接呈现终态，而非加速
    -------------------------------------------------------------------------- */
+/* ---- 懒加载图片淡入 ----------------------------------------------------------
+   `loading="lazy"` 的图是"啪"地出现，滚画廊时 530 张一起闪很硬。
+   只在 html.js 下把 opacity 归零：这个类由 <head> 内联脚本加，脚本没跑就不隐藏。
+   is-loaded 由同一段脚本在 load / error / 8s 兜底时打上。 */
+html.js img[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 340ms var(--ease-out-cubic);
+}
+
+html.js img[loading="lazy"].is-loaded {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

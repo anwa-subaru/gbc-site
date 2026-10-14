@@ -523,6 +523,24 @@ Hero 在手机端是"文案列 + 立绘"叠在同一格（`.hero__copy` 占 62%�
 * **播放条折叠本来就是动画的**（`.pl__now` 320ms 滑出 + 悬浮按钮错峰长出）。
   之前误判成"没有动画"，是因为采样采了 `.plbar` 而真正动的是子元素 `.pl__now`。
 
+#### 5.8 懒加载图片淡入（含一个 Chrome 陷阱）
+
+`loading="lazy"` 的图是"啪"地出现，滚画廊时 525 张一起闪。做法：
+`<head>` 内联脚本先给 `<html>` 加 `js` 类（首屏绘制之前），CSS 才把
+`html.js img[loading="lazy"]` 的 opacity 归零，加载完加 `.is-loaded` 淡入。
+
+* **`load` / `error` 必须挂在 `document` 上，挂 `window` 收不到。**
+  实测：同一批图片，`window` 捕获收到 **0** 次，`document` 捕获收到 12/12。
+  这是本次踩到最费时间的坑（图片明明 `complete`、`naturalWidth` 也有，
+  就是一直 opacity:0）。
+* 三层兜底：DOMContentLoaded / astro:after-swap / astro:page-load 各扫一遍
+  `img.complete`，再加 8 秒定时全显形。宁可没有淡入，也不留空洞。
+* 没有 JS 时 `js` 类不存在 → 图片普通显示（实测 `javaScriptEnabled:false`
+  下 opacity = 1），绝不会白板。
+
+验收：桌面五页滚到底、手机画廊滚到底，视口内透明图 **0**；角色页 213 张
+立绘最终 213 张全部显形；淡入曲线 0 → 0.13 → 0.49 → 0.78 → 0.92 → 0.99。
+
 ## 6. 运行时架构
 
 ### 6.1 入口与初始化
