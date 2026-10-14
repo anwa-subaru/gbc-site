@@ -122,9 +122,31 @@ tar czf - -C dist . | sshpass -p "$GBC_SSH_PASS" ssh -o StrictHostKeyChecking=no
   'rm -rf /var/www/gbc/* && tar xzf - -C /var/www/gbc && echo DEPLOYED'
 ```
 
-> **敏感信息**：`$GBC_SSH_PASS` 是服务器 root 密码，当前会话里为 `[REDACTED]`。
-> 本文档与仓库**不得公开**（仓库当前没有配置 git remote，不要贸然 `git remote add` 后 push）。
-> 若将来要开源，先把这一节和任何明文凭据删掉，改用密钥登录。
+> **敏感信息**：`$GBC_SSH_PASS` 是服务器 root 密码，**只存在部署机的环境变量里，
+> 不写进本仓库、不写进本文档**（`export GBC_SSH_PASS=...`，或用 `~/.gbc-env` 且确保被 gitignore）。
+> 本仓库可以公开；历史里曾经有一版把密码写在本文档中的提交，已在开源前用
+> `git filter-branch` 抹掉（见 §4.3），并已轮换服务器密码。
+> 更稳的做法是改用 SSH 密钥登录、关掉 root 密码登录。
+
+### 4.1.1 开源前的凭据清理（已执行）
+
+本仓库准备推到 GitHub 时做了一次体检，发现 `HANDOVER.md` 里写过服务器 root 密码
+明文（只在 `36100c5` 这一个提交里）。处理：
+
+```bash
+# 全历史扫描，确认只有一处
+git grep -nI -e 'sshpass +-p +[^"$]' -e 'BEGIN.*PRIVATE KEY' -e 'ghp_' $(git rev-list --all)
+
+# 重写历史（无 remote，安全）
+git branch backup-before-purge            # 先留后路
+git filter-branch -f --index-filter '
+  if git ls-files --error-unmatch HANDOVER.md >/dev/null 2>&1; then
+    B=$(git show :HANDOVER.md | sed "s/<旧密码>/<已移除>/g" | git hash-object -w --stdin)
+    git update-index --cacheinfo 100644,$B,HANDOVER.md
+  fi' -- --all
+```
+
+**密码本身要轮换**：它进过 git 历史、也进过对话记录，删历史不等于没泄露。
 
 ### 4.2 服务器现状
 
