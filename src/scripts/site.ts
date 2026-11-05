@@ -231,6 +231,19 @@ function initLightbox(): void {
   let index = 0;
   let lastFocused: HTMLElement | null = null;
 
+  /* 预取前后各一张：翻页时图已在缓存里，点下一张不再等半天空白。
+     只在灯箱打开期间调用，避免把所有图都排队下载。 */
+  const preloadNeighbors = (): void => {
+    if (items.length < 2) return;
+    for (const d of [-1, 1]) {
+      const it = items[(index + d + items.length) % items.length];
+      if (!it?.src) continue;
+      const im = new Image();
+      im.decoding = "async";
+      im.src = it.src;
+    }
+  };
+
   const render = (animate = false): void => {
     const item = items[index];
     if (!item) return;
@@ -242,6 +255,7 @@ function initLightbox(): void {
       if (captionEl) captionEl.textContent = item.alt;
       if (counterEl)
         counterEl.textContent = t("lightbox.counter", { current: index + 1, total: items.length });
+      preloadNeighbors();
     };
     /* 翻页先淡出再换图：直接换 src 是"啪"地跳一张。等图片真的解码完再淡入，
        大图才不会有半截白；600ms 兜底，别因为一张图卡住整个灯箱。 */
@@ -264,7 +278,10 @@ function initLightbox(): void {
     render();
     root.toggleAttribute("data-open", true);
     document.body.classList.add("is-locked");
-    root.querySelector<HTMLElement>("[data-lightbox-close]")?.focus();
+    /* visibility 是带过渡的离散属性，接着 focus() 时浏览器还算 hidden，
+       焦点会留在触发按钮上；等一帧、样式生效后再移进来。 */
+    const closeBtn = root.querySelector<HTMLElement>("[data-lightbox-close]");
+    requestAnimationFrame(() => closeBtn?.focus());
   };
 
   const close = (): void => {
@@ -290,27 +307,86 @@ function initLightbox(): void {
     if (e.key === "Escape") close();
     else if (e.key === "ArrowLeft") step(-1);
     else if (e.key === "ArrowRight") step(1);
+    else if (e.key === "Tab") {
+      /* aria-modal 只是语义，Tab 还是会在遮罩后面的页面上跑。
+         把焦点锁在灯箱内：最后一个 Tab 回第一个，Shift+Tab 反之。 */
+      const focusables = Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.getClientRects().length > 0);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (!root.contains(active)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      } else if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
   });
 
-  // 任意 [data-lightbox-src] 触发（由 Gallery 组件渲染，带图集分组）
+  /* 手机滑动翻页。左右箭头只有 44px，630 张图一张张点太累；
+     只在横向位移明显大于纵向时触发，避免和纵向手势打架。 */
+  let touchX = 0;
+  let touchY = 0;
+  let tracking = false;
+  root.addEventListener(
+    "touchstart",
+    (e) => {
+      if (!root.hasAttribute("data-open")) return;
+      if ((e.target as HTMLElement).closest("button")) return;
+      const t0 = e.changedTouches[0];
+      touchX = t0.clientX;
+      touchY = t0.clientY;
+      tracking = true;
+    },
+    { passive: true },
+  );
+  root.addEventListener(
+    "touchend",
+    (e) => {
+      if (!tracking) return;
+      tracking = false;
+      const t1 = e.changedTouches[0];
+      const dx = t1.clientX - touchX;
+      const dy = t1.clientY - touchY;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        step(dx < 0 ? 1 : -1);
+      }
+    },
+    { passive: true },
+  );
+
+  // 任意 [data-lightbox-src] 触发（由 Gallery 组件渲染）
   document.addEventListener("click", (e) => {
     const trigger = (e.target as HTMLElement).closest<HTMLElement>(
       "[data-lightbox-src]",
     );
     if (!trigger) return;
     e.preventDefault();
-    const group = trigger.dataset.lightboxGroup || "default";
+    /* 用「当前可见」的所有项作为序列，而不是按 data-lightbox-group 取。
+       原因：默认「全部」视图里 530 张混排，但同组只有 30 张 —— 点开一张后
+       灯箱显示 1/30，按下一张会跳到几十张之外，与屏幕上看到的顺序不符。
+       筛选到某个分类时，其它项被 hidden，可见集自然只剩该分类。 */
     items = Array.from(
-      document.querySelectorAll<HTMLElement>(
-        `[data-lightbox-src][data-lightbox-group="${group}"]`,
-      ),
-    ).map((el) => ({
-      src: el.dataset.lightboxSrc || "",
-      alt: el.dataset.lightboxAlt || "",
-      w: Number(el.dataset.lightboxW || 0),
-      h: Number(el.dataset.lightboxH || 0),
-    }));
-    open(items.findIndex((it) => it.src === trigger.dataset.lightboxSrc));
+      document.querySelectorAll<HTMLElement>("[data-lightbox-src]"),
+    )
+      .filter((el) => !el.hidden)
+      .map((el) => ({
+        src: el.dataset.lightboxSrc || "",
+        alt: el.dataset.lightboxAlt || "",
+        w: Number(el.dataset.lightboxW || 0),
+        h: Number(el.dataset.lightboxH || 0),
+      }));
+    const at = items.findIndex((it) => it.src === trigger.dataset.lightboxSrc);
+    open(at < 0 ? 0 : at);
   });
 }
 
@@ -355,6 +431,38 @@ function applyGalleryLang(): void {
   }
 }
 
+/* 回到顶部：滚动位置只在这里判一次，按钮显隐交给 CSS。
+   用事件委托 + 单例监听，跨页导航换掉按钮节点也不用重复绑定。 */
+let backToTopBound = false;
+function initBackToTop(): void {
+  const update = (): void => {
+    const btn = document.querySelector<HTMLElement>("[data-to-top]");
+    if (!btn) return;
+    const footer = document.querySelector<HTMLElement>(".footer");
+    /* 页脚一进视口就收起来：手机上它会正好压住右对齐的版权行
+       （实测 390 宽按钮 330–374 与版权 24–366 重叠）。 */
+    const atFooter = footer ? footer.getBoundingClientRect().top < window.innerHeight : false;
+    btn.classList.toggle(
+      "is-on",
+      window.scrollY > window.innerHeight * 1.2 && !atFooter,
+    );
+  };
+  if (!backToTopBound) {
+    backToTopBound = true;
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    document.addEventListener("click", (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>("[data-to-top]");
+      if (!btn) return;
+      window.scrollTo({
+        top: 0,
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+      });
+    });
+  }
+  update();
+}
+
 function initAll(): void {
   initNav();
   initReveal();
@@ -362,6 +470,7 @@ function initAll(): void {
   initLightbox();
   applyGalleryLang();
   initPlayer();
+  initBackToTop();
 }
 
 document.addEventListener("astro:page-load", initAll);

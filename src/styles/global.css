@@ -724,3 +724,60 @@ html.lang-swap body > * {
 [data-i18n].is-i18n-empty {
   display: none;
 }
+
+/* ---- 回到顶部（长页辅助） ----
+   画廊 530 张约 4.5 万 px，滚到中段没有它只能一路滑回去。
+   固定在右下角、滚过 1.2 屏后才出现；播放条展开/折叠时自动抬高。 */
+.to-top {
+  position: fixed;
+  right: var(--sp-3);
+  bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--ink-850) 92%, transparent);
+  backdrop-filter: blur(12px);
+  color: var(--ink-300);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition:
+    opacity var(--dur-base) var(--ease-out-cubic),
+    transform var(--dur-base) var(--ease-out-cubic),
+    color var(--dur-fast) var(--ease-out-cubic),
+    border-color var(--dur-fast) var(--ease-out-cubic),
+    visibility 0s linear var(--dur-base);
+}
+
+.to-top.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.to-top:hover {
+  color: var(--fg);
+  border-color: var(--ink-400);
+}
+
+/* 播放条展开：条体实际约 109px（含进度行），留 24px 间距；
+   折叠后右下角是 48px 迷你按钮，再抬高一点 */
+body.has-plbar .to-top {
+  bottom: calc(96px + var(--sp-4) + env(safe-area-inset-bottom, 0px));
+}
+
+body.has-plbar-folded .to-top {
+  bottom: calc(48px + var(--sp-4) + env(safe-area-inset-bottom, 0px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .to-top {
+    transition: none;
+  }
+}

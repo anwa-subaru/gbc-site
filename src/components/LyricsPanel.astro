@@ -293,8 +293,8 @@
   }
 
   .lyr__langbtn {
-    min-width: 32px;
-    height: 28px;
+    min-width: 36px;
+    height: 32px;
     padding: 0 6px;
     border: 0;
     border-radius: 999px;
@@ -408,7 +408,10 @@
     text-shadow: 0 1px 10px rgb(0 0 0 / 0.55), 0 0 2px rgb(0 0 0 / 0.4);
     display: block;
     padding: 9px 0;
-    font-size: 19px;
+    /* 19px 是 390 宽下正好排满的尺寸；360/375 常见机型会多折一行，
+       把「手を伸ばして」这种长句折出孤零零一个「て」。
+       窄屏按视口收一点，保证一句一行；桌面另有 25px 覆盖。 */
+    font-size: clamp(14.5px, 4.6vw, 19px);
     font-weight: 500;
     font-family: var(--font-lyric);
     line-height: 1.5;

@@ -110,8 +110,10 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
               </p>
             )}
             <p class="hero__tagline" data-i18n={`hero.tagline.${s.slug}`}>{s.tagline}</p>
+            {/* 日文名是设计元素，中文/日文界面保留；英文界面用罗马音，
+                否则会出现「Meet 井芹仁菜」这种半英半中的按钮 */}
             <a class="btn btn--primary hero__cta" href={url(s.href)}>
-              <span data-i18n="hero.cta.prefix">认识</span>{s.nameJa}
+              <span data-i18n="hero.cta.prefix">认识</span><span class="hero__cta-ja">{s.nameJa}</span><span class="hero__cta-en">{s.nameEn}</span>
             </a>
           </div>
 
@@ -310,6 +312,19 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     justify-self: start;
   }
 
+  .hero__cta-en {
+    display: none;
+  }
+
+  /* 语言切换是 html[data-lang] 驱动的，不刷新、不重渲染，这里同步换名 */
+  :global(html[data-lang="en"]) .hero__cta-ja {
+    display: none;
+  }
+
+  :global(html[data-lang="en"]) .hero__cta-en {
+    display: inline;
+  }
+
   /* 立绘：移动端贴右下、延伸到底缘，底缘渐隐融入(消除硬切/断臂观感) */
   .hero__art {
     grid-area: 1 / 1;
@@ -454,6 +469,33 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
 
   .hero__dot:hover {
     background-color: var(--ink-300);
+  }
+
+  /* ≤479px：5 个 44px 触控区 + 两只箭头 + 容器内边距合计约 420px，
+     390 宽时右侧箭头被裁掉 6px，360 宽时被裁掉 36px（实测）。
+     窄屏把圆点收窄、间距压紧，圆点组吃掉中间剩余空间并居中，
+     左右箭头始终贴住容器两侧，320 宽也不会再出屏。 */
+  @media (max-width: 479.98px) {
+    .hero__controls {
+      gap: var(--sp-2);
+    }
+
+    .hero__dots {
+      flex: 1 1 auto;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .hero__dot {
+      width: 18px;
+      padding-inline: 5px; /* 触控目标：18 + 5×2 = 28 宽 × 44 高 */
+    }
+
+    /* 桃香的名字比仁菜长一个字，320 宽下 CTA 会比文案列宽出 35px，
+       压到立绘上；收窄左右内边距（64 → 32），5 张都能留在左半边。 */
+    .hero__cta {
+      padding-inline: var(--sp-3);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

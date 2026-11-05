@@ -156,7 +156,11 @@ const SOURCES = [
 
   .footer__sources a {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    /* 日文站名 + 中文注记是两个 flex 项，不留缝会粘成
+       「アニメ公式サイト动画官方网站」；4px 既分开又不会太散 */
+    gap: 0 var(--sp-1);
     min-height: 44px; /* 触控目标下限 */
     color: var(--ink-300);
     font-size: var(--fs-sm);

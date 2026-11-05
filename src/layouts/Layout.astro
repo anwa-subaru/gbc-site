@@ -190,6 +190,21 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
 
     <Lightbox />
 
+    {/* 回到顶部：画廊 530 张约 4.5 万 px 高，滚到中段后没有它只能一路滑回去。
+        播放条展开/折叠时由 body.has-plbar* 抬高，避免压在播放条上。 */}
+    <button
+      class="to-top"
+      type="button"
+      data-to-top
+      data-i18n-attr="aria-label:layout.toTop,title:layout.toTop"
+      aria-label="回到顶部"
+      title="回到顶部"
+    >
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 19V5M5 12l7-7 7 7" />
+      </svg>
+    </button>
+
     <script>
       import "../scripts/site.ts";
       import "../scripts/i18n.ts";

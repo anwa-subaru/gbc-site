@@ -77,8 +77,10 @@ const { variant = "nav", class: cls = "" } = Astro.props;
   .lang__btn {
     position: relative;
     z-index: 1;
-    min-width: 34px;
-    height: 26px;
+    /* 26px 高在手机上太难点；抬到 32px，宽度也撑到 36px。
+       320 窄屏单独收窄，避免和品牌标、汉堡挤在一起（见下方断点） */
+    min-width: 36px;
+    height: 32px;
     padding: 0 6px;
     border: 0;
     border-radius: 999px;
@@ -102,15 +104,17 @@ const { variant = "nav", class: cls = "" } = Astro.props;
     color: #fff;
   }
 
-  /* 320px 窄屏：顶部条要同时放品牌标、切换器、汉堡，按钮收小一点 */
-  @media (max-width: 359.98px) {
+  /* 手机顶部条要同时放品牌标、切换器、汉堡：
+     36px 宽的按钮会挤掉汉堡（360 宽实测溢出 38px），
+     这里统一收到 30px；桌面仍是 36×32 */
+  @media (max-width: 479.98px) {
     .lang {
       padding: 2px;
     }
 
     .lang__btn {
-      min-width: 29px;
-      height: 24px;
+      min-width: 30px;
+      height: 32px;
       padding: 0 4px;
       font-size: 11px;
     }

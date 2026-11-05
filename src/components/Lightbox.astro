@@ -77,14 +77,19 @@
     -webkit-backdrop-filter: blur(12px);
     opacity: 0;
     visibility: hidden;
+    /* 关闭时等淡出结束再隐藏；打开时必须立刻 visible，
+       否则接着调 focus() 会失败（visibility 是离散属性，过渡期间仍算 hidden）。 */
     transition:
       opacity var(--dur-base) var(--ease-out-cubic),
-      visibility var(--dur-base);
+      visibility 0s linear var(--dur-base);
   }
 
   .lb[data-open] {
     opacity: 1;
     visibility: visible;
+    transition:
+      opacity var(--dur-base) var(--ease-out-cubic),
+      visibility 0s;
   }
 
   .lb__bar {
@@ -164,6 +169,50 @@
     text-align: center;
     max-width: 60ch;
     padding-inline: var(--sp-2);
+  }
+
+  /* 手机：左右箭头不再占栅格列，改为浮在图片两侧。
+     旧版 44px 箭头 + 8px 内边距把 390 宽的图挤到只剩 270px（实测），
+     3:2 横图在手机上只有 178px 高，整块屏幕都浪费了。
+     浮层化之后图片拿满 374px，并在顶部/底部预留刘海与安全区。 */
+  @media (max-width: 1023.98px) {
+    .lb {
+      grid-template-columns: 1fr;
+      padding: 0;
+    }
+
+    .lb__bar {
+      position: absolute;
+      inset: 0 0 auto 0;
+      z-index: 3;
+      padding: calc(var(--sp-2) + env(safe-area-inset-top, 0px)) var(--sp-3);
+    }
+
+    .lb__figure {
+      grid-column: 1;
+      grid-row: 2;
+      padding: calc(56px + env(safe-area-inset-top, 0px)) var(--sp-2)
+        calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .lb__img {
+      max-height: calc(100% - 64px);
+    }
+
+    .lb__nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(8, 9, 11, 0.55);
+    }
+
+    .lb__nav--prev {
+      left: var(--sp-1);
+    }
+
+    .lb__nav--next {
+      right: var(--sp-1);
+    }
   }
 
   /* 桌面：限制尺寸并给出边框层次 */

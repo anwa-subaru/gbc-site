@@ -82,6 +82,7 @@
  "index.notice.meta.tail": "等 5 名成员",
  "index.stats.aria": "站点数据",
  "layout.skip": "跳到主要内容",
+ "layout.toTop": "回到顶部",
  "lightbox.aria": "图片查看器",
  "lightbox.close": "关闭（Esc）",
  "lightbox.counter": "{current} / {total}",

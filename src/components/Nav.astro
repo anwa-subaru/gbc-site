@@ -148,11 +148,19 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
   /* 320px 窄屏：品牌标收窄，给唯一的语言切换器和汉堡让位 */
   @media (max-width: 359.98px) {
     .nav__inner {
-      gap: var(--sp-2);
+      gap: var(--sp-1);
     }
 
     .nav__brand img {
       height: 20px;
+    }
+  }
+
+  /* 360–390 宽：品牌标 162 + 语言切换 100 + 汉堡 44，
+     16px 间距仍会把汉堡挤出右缘；手机上统一收到 4px */
+  @media (min-width: 360px) and (max-width: 479.98px) {
+    .nav__inner {
+      gap: var(--sp-1);
     }
   }
 
@@ -231,6 +239,9 @@ const logo = "assets/logo/brand/01-brand-wordmark.webp";
     justify-content: center;
     width: 44px;
     height: 44px;
+    /* 顶部一条是 flex 布局，品牌标 + 语言切换挤压时按钮会被压到 25px；
+       不允许收缩，否则触控目标不达标（实测 390 宽只有 25.75px） */
+    flex: 0 0 44px;
     margin-right: calc(var(--sp-2) * -1);
     color: var(--ink-000);
   }
