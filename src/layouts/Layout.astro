@@ -49,6 +49,27 @@ const description = zh[descKey] ?? "";
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? "http://localhost:4321");
 const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:4321");
+const siteBase = Astro.site ?? new URL("https://gbc.misakamikoto.xyz");
+const basePrefix = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const searchUrl = new URL(`${basePrefix}search/`, siteBase).href;
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "GIRLS BAND CRY 粉丝站",
+  alternateName: "GBC Fan Site",
+  url: new URL(basePrefix, siteBase).href,
+  inLanguage: ["zh-CN", "en", "ja"],
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${searchUrl}?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+});
 ---
 
 <!doctype html>
@@ -92,6 +113,9 @@ const ogImageUrl = new URL(assetUrl(ogImage), Astro.site ?? "http://localhost:43
     <meta property="og:url" content={canonical.href} />
     <meta property="og:image" content={ogImageUrl.href} />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- 结构化数据：WebSite + SearchAction，给搜索引擎站内搜索入口 -->
+    <script type="application/ld+json" set:html={jsonLd} />
 
     <ClientRouter />
 

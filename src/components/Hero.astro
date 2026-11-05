@@ -290,6 +290,18 @@ const { slides = defaultSlides, interval = 6000 } = Astro.props;
     text-transform: uppercase;
   }
 
+  /* 手机端罗马音名不能铺满整行：立绘从约 50% 处压上来，
+     KAWARAGI MOMOKA 会被头发吃掉一半。收在左栏内、允许按空格折两行。 */
+  @media (max-width: 1023.98px) {
+    .hero__name-en {
+      max-width: 46%;
+      font-size: var(--fs-sm);
+      letter-spacing: 0.2em;
+      line-height: 1.6;
+      text-wrap: balance;
+    }
+  }
+
   .hero__tagline {
     margin-top: var(--sp-3);
     color: var(--ink-200);

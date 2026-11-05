@@ -1,0 +1,29 @@
+# GBC 主站 Caddy 片段（Caddy 2.6+）
+# 用法：把这一段并入 /etc/caddy/Caddyfile 的 gbc.misakamikoto.xyz 块，
+#       先 `caddy validate --config /etc/caddy/Caddyfile`，再 `systemctl reload caddy`。
+# 说明：线上原来的 gbc 块只有 root/encode/file_server；这里补上安全头与 HTML 缓存策略。
+#       静态资源继续走一年 immutable；HTML 用 must-revalidate，避免部署后用户看到旧页面。
+
+gbc.misakamikoto.xyz {
+	root * /var/www/gbc
+	encode gzip zstd
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+		-Server
+	}
+
+	# 指纹资源 / 素材：一年强缓存
+	@immutable path /_astro/* /assets/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	# HTML：每次回源校验，部署后立即生效
+	@html path / /music/ /gallery/ /characters/ /story/ /search/
+	header @html Cache-Control "public, max-age=0, must-revalidate"
+
+	file_server
+}

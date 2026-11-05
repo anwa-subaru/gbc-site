@@ -6,124 +6,17 @@
  * 素材全部经 src/lib/assets.ts 的 assetUrl() 拼 BASE_URL。
  */
 import Layout from "../layouts/Layout.astro";
-import { assetUrl, category, type AssetEntry } from "../lib/assets";
+import { assetUrl, type AssetEntry } from "../lib/assets";
+import {
+  GROUPS,
+  GALLERY_ITEMS as ITEMS,
+  galleryCount as countOf,
+} from "../lib/gallery-data";
 import customLabels from "../data/gallery-labels.json";
 import customLabelsEn from "../data/gallery-labels.en.json";
 import customLabelsJa from "../data/gallery-labels.ja.json";
 
-/* ---------- 分类：按来源分区（DESIGN.md §7.4「分组」） ---------- */
-interface GroupDef {
-  id: string;
-  label: string;
-  /** 词典 key：筛选按钮文案（按钮内文字由 data-i18n 替换，计数单独成 span 不被覆盖） */
-  i18n: string;
-  ja: string;
-  note: string;
-  /** 参与该组的子目录（空数组 = 该分类根目录） */
-  subs: string[];
-  /** 每个子目录最多取几张（0 = 不限） */
-  cap: number;
-  /** 素材来源分类，默认 artworks（海报组取 posters） */
-  from?: "artworks" | "posters" | "emoji";
-}
 
-const GROUPS: GroupDef[] = [
-  {
-    id: "poster",
-    label: "海报",
-    i18n: "gallery.tab.posters",
-    ja: "宣伝ビジュアル",
-    note: "宣发海报 / KV",
-    subs: [],
-    cap: 0,
-    from: "posters",
-  },
-  {
-    id: "art",
-    label: "贺图",
-    i18n: "gallery.tab.art",
-    ja: "描き下ろし",
-    note: "官方贺图与角色设定图",
-    subs: [
-      "anime",
-      "nari-illust",
-      "character-design",
-      "movie",
-      "solo",
-      "cry-rose",
-      "heisei-gyaru",
-    ],
-    cap: 0,
-  },
-  {
-    id: "collect",
-    label: "收藏集",
-    i18n: "gallery.tab.collections",
-    ja: "グッズ",
-    note: "周边、联动与收藏用视觉资料",
-    subs: [
-      "gacha-art",
-      "jellyfish",
-      "mini",
-      "mv-unmei",
-      "merch-promo",
-      "popup-shop",
-      "shimamura",
-      "shimamura-kawasaki",
-      "acrylic-plate",
-      "acrylic-strap",
-      "badges",
-      "card-sleeve",
-      "plush",
-      "sanrio",
-      "work-cat",
-      "work-cat-2",
-      "misc",
-    ],
-    /* 0 = 不限。原先每子目录只取 10 张，导致三丽鸥 130 张、卡池 30 张、
-       水母周边 46 张等 400 多张素材根本进不了页面（用户提供的素材应当可见）。 */
-    cap: 0,
-  },
-  {
-    id: "sticker",
-    label: "表情",
-    i18n: "gallery.tab.stickers",
-    ja: "スタンプ",
-    note: "官方表情包（静图 / 动图）",
-    subs: [],
-    cap: 0,
-    from: "emoji",
-  },
-];
-
-const artworks = category("artworks");
-const posters = category("posters");
-/* 表情包：animated-1（静态 WebP 版）与 animated（GIF 版）是同一套 20 张贴纸，
-   两套都放会在画廊里出现一模一样的重复项，只保留动图那一套。 */
-const emojis = category("emoji").filter((e) => !e.path.includes("/emoji/animated-1/"));
-
-const inRoot = (e: AssetEntry): boolean => e.path.split("/").length === 3;
-const inSub = (e: AssetEntry, sub: string): boolean =>
-  e.path.startsWith(`assets/artworks/${sub}/`);
-
-function collect(g: GroupDef): AssetEntry[] {
-  if (g.from === "emoji") return emojis;
-  if (g.from === "posters" || g.subs.length === 0) return posters;
-  if (g.cap === 0) {
-    return g.subs.flatMap((s) => artworks.filter((e) => inSub(e, s)));
-  }
-  return g.subs.flatMap((s) => artworks.filter((e) => inSub(e, s)).slice(0, g.cap));
-}
-
-interface Item extends AssetEntry {
-  group: string;
-}
-
-const ITEMS: Item[] = GROUPS.flatMap((g) =>
-  collect(g).map((e) => ({ ...e, group: g.id })),
-);
-
-const countOf = (id: string): number => ITEMS.filter((i) => i.group === id).length;
 
 /** 文件名去扩展名作为可读标签。 */
 /* 显示名：优先用 src/data/gallery-labels.json 里人工核定的名称。
@@ -335,6 +228,23 @@ const EAGER = 6;
         #000 calc(100% - 28px),
         transparent 100%
       );
+    }
+  }
+
+  /* 手机上 5 个分类 chip 横向要 637px，390 屏只看得到前 3 个，
+     后两个分类（收藏集 359 / 表情 90）等于不存在。
+     窄屏改成两行铺开，比"横向滚动 + 渐隐"更好发现。 */
+  @media (max-width: 639.98px) {
+    .gp-tabs {
+      flex-wrap: wrap;
+      overflow: visible;
+      row-gap: var(--sp-2);
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+
+    .gp-tab {
+      flex: 1 1 calc(33.333% - var(--sp-2));
     }
   }
 

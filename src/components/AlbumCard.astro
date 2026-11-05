@@ -260,6 +260,9 @@ const label = playable
     font-weight: var(--fw-bold);
     letter-spacing: 0.01em;
     line-height: 1.4;
+    /* 同一行两张卡一张单行、一张两行时，副标题会差 22px；
+       统一按两行留高，网格才齐 */
+    min-height: 2.8em;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;

@@ -130,6 +130,7 @@ const mmss = (sec: number): string =>
               <button
                 class="pl__row"
                 type="button"
+                id={`track-${s.n}`}
                 data-track={s.n}
                 data-src={assetUrl(s.file)}
                 data-cover={s.cover ? assetUrl(s.cover) : ""}
@@ -326,6 +327,7 @@ const mmss = (sec: number): string =>
     color: inherit;
     text-align: left;
     cursor: pointer;
+    scroll-margin-top: calc(var(--nav-h) + var(--sp-3));
     transition: background-color var(--dur-fast) var(--ease-out-cubic);
   }
 
@@ -394,8 +396,26 @@ const mmss = (sec: number): string =>
     font-size: var(--fs-body);
     font-weight: var(--fw-medium);
     line-height: 1.35;
-    word-break: keep-all;
-    overflow-wrap: anywhere;
+    /* keep-all + anywhere 会把「アンサー」断成「アンサ / ー」。
+       日文标题允许按字符断行，再由 pretty 均衡，避免末行只剩一个字。 */
+    word-break: normal;
+    line-break: strict;
+    overflow-wrap: break-word;
+    text-wrap: pretty;
+  }
+
+  /* 手机：序号/封面/间距收紧，把宽度让给曲名，11 字日文标题可单行 */
+  @media (max-width: 767.98px) {
+    .pl__row {
+      grid-template-columns: 2em 40px minmax(0, 1fr) auto auto;
+      gap: var(--sp-2);
+      padding-inline: var(--sp-1);
+    }
+
+    .pl__thumb {
+      width: 40px;
+      height: 40px;
+    }
   }
 
   .pl__a {

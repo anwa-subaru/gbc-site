@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/music", label: "音乐", key: "footer.link.music" },
   { href: "/gallery", label: "画廊", key: "footer.link.gallery" },
   { href: "/story", label: "剧情", key: "footer.link.story" },
+  { href: "/search", label: "搜索", key: "footer.link.search" },
 ];
 
 /* label 是官方站名原文（日文），保持不动；只有 note 需要 i18n */
@@ -158,9 +159,9 @@ const SOURCES = [
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    /* 日文站名 + 中文注记是两个 flex 项，不留缝会粘成
-       「アニメ公式サイト动画官方网站」；4px 既分开又不会太散 */
-    gap: 0 var(--sp-1);
+    /* 日文站名 + 中文注记是两个 flex 项；4px 实测仍会读成
+       「アニメ公式サイト动画官方网站」，8px + 中点才看得出是两段 */
+    gap: 0 var(--sp-2);
     min-height: 44px; /* 触控目标下限 */
     color: var(--ink-300);
     font-size: var(--fs-sm);
@@ -177,6 +178,13 @@ const SOURCES = [
     display: block;
     font-size: var(--fs-xs);
     color: var(--ink-300);
+  }
+
+  /* 中日两段之间加一个弱化的中点，避免同色同排粘成一句 */
+  .footer__note::before {
+    content: "·";
+    margin-right: var(--sp-1);
+    color: var(--ink-500);
   }
 
   .footer__bottom {

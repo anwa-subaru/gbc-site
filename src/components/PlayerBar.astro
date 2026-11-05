@@ -7,21 +7,9 @@
  *  - 曲目数据以 JSON 内联，这样在没有曲目表的页面上也能知道
  *    「下一首是谁」（否则切到主页后按下一首就无歌可放）
  */
-import fs from "node:fs";
-import path from "node:path";
 import { assetUrl } from "../lib/assets";
 import songsData from "../data/songs.json";
 import LyricsPanel from "./LyricsPanel.astro";
-
-/* 歌词数据构建期内联：n → 文档（面板打开时零网络请求） */
-const LYRICS_DIR = path.resolve(process.cwd(), "src/data/lyrics");
-const lyricsPayload: Record<string, unknown> = {};
-for (const song of songsData) {
-  const fp = path.join(LYRICS_DIR, `${String(song.n).padStart(2, "0")}.json`);
-  if (fs.existsSync(fp)) {
-    lyricsPayload[String(song.n)] = JSON.parse(fs.readFileSync(fp, "utf-8"));
-  }
-}
 
 interface Song {
   n: number;
@@ -213,7 +201,6 @@ const first = payload[0];
   </button>
 
   <script type="application/json" data-songs is:inline set:html={JSON.stringify(payload)} />
-  <script type="application/json" data-lyrics is:inline set:html={JSON.stringify(lyricsPayload)} />
   <LyricsPanel />
 </div>
 

@@ -1,0 +1,447 @@
+---
+/**
+ * 站内搜索 `/search`
+ *  - 索引由 src/pages/search-index.json.ts 构建期生成
+ *  - 首次输入时才 fetch，不拖慢首屏
+ *  - 支持 ⌘K / Ctrl+K 聚焦、↑↓ 选择、Enter 打开、Esc 清空
+ */
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout titleKey="meta.title.search" descKey="meta.desc.search">
+  <header class="sh container">
+    <p class="sh__ja">サーチ</p>
+    <h1 class="sh__en">SEARCH</h1>
+    <p class="sh__lead" data-i18n="search.lead">
+      在 38 首歌曲、5 位角色与 530 张画廊素材中搜索。
+    </p>
+  </header>
+
+  <section class="search container" aria-label="站内搜索">
+    <div class="search__box">
+      <svg
+        class="search__icon"
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="M20 20l-3.5-3.5"></path>
+      </svg>
+      <input
+        id="search-input"
+        class="search__input"
+        type="search"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="搜索歌曲、角色、画廊…"
+        data-i18n-attr="placeholder:search.placeholder,aria-label:search.aria"
+        aria-label="站内搜索"
+      />
+      <kbd class="search__kbd" aria-hidden="true">⌘K</kbd>
+    </div>
+
+    <div
+      class="search__filters"
+      role="group"
+      data-i18n-attr="aria-label:search.filter.aria"
+      aria-label="筛选搜索结果"
+    >
+      <button class="search__filter is-on" type="button" data-filter="all" aria-pressed="true">
+        <span data-i18n="search.filter.all">全部</span><span class="num" data-count="all">0</span>
+      </button>
+      <button class="search__filter" type="button" data-filter="song" aria-pressed="false">
+        <span data-i18n="search.filter.song">歌曲</span><span class="num" data-count="song">0</span>
+      </button>
+      <button class="search__filter" type="button" data-filter="character" aria-pressed="false">
+        <span data-i18n="search.filter.character">角色</span><span class="num" data-count="character">0</span>
+      </button>
+      <button class="search__filter" type="button" data-filter="gallery" aria-pressed="false">
+        <span data-i18n="search.filter.gallery">画廊</span><span class="num" data-count="gallery">0</span>
+      </button>
+      <button class="search__filter" type="button" data-filter="page" aria-pressed="false">
+        <span data-i18n="search.filter.page">页面</span><span class="num" data-count="page">0</span>
+      </button>
+    </div>
+
+    <p class="search__status" data-search-status aria-live="polite"></p>
+    <ul class="search__results" data-search-results></ul>
+
+    <div class="search__state" data-search-state>
+      <p class="search__state-title" data-search-state-title data-i18n="search.hint.title">
+        输入关键词开始搜索
+      </p>
+      <p class="search__state-hint" data-search-state-hint data-i18n="search.hint.examples">
+        试试「仁菜」「空の箱」「海报」
+      </p>
+    </div>
+  </section>
+<style is:global>
+  /* 搜索结果由 src/scripts/search.ts 动态创建，拿不到 Astro 的 scoped
+     data-astro-cid；这些样式必须是全局的，否则缩略图会按原图尺寸铺满页面。 */
+  .sr__item {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-2);
+    border-bottom: 1px solid var(--border);
+    color: inherit;
+    text-decoration: none;
+    transition: background-color var(--dur-fast) var(--ease-out-cubic);
+  }
+
+  .sr__item:hover,
+  .sr__item.is-active {
+    background: color-mix(in srgb, var(--ink-700) 45%, transparent);
+  }
+
+  .sr__thumb {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    color: var(--ink-400);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  .sr__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .sr__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .sr__type {
+    color: var(--gbc-red-text);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+
+  .sr__title {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sr__title mark {
+    background: none;
+    color: var(--gbc-red-text);
+  }
+
+  .sr__sub {
+    color: var(--ink-400);
+    font-size: var(--fs-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sr__go {
+    color: var(--ink-500);
+    font-size: var(--fs-sm);
+  }
+
+  @media (max-width: 767.98px) {
+    .sr__item {
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: var(--sp-2);
+    }
+
+    .sr__thumb {
+      width: 48px;
+      height: 48px;
+    }
+  }
+</style>
+
+
+<script>
+  import "../scripts/search.ts";
+</script>
+
+<style>
+  .sh {
+    padding-block: var(--sp-6) var(--sp-4);
+  }
+
+  .sh__ja {
+    font-size: var(--fs-sm);
+    letter-spacing: 0.24em;
+    color: var(--gbc-red-text);
+  }
+
+  .sh__en {
+    font-size: var(--fs-display);
+    font-weight: var(--fw-black);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .sh__lead {
+    max-width: 62ch;
+    margin-top: var(--sp-4);
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    line-height: 1.9;
+  }
+
+  .search {
+    max-width: 920px;
+    padding-bottom: var(--sp-8);
+  }
+
+  /* ---- 搜索框 ---- */
+  .search__box {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: 0 var(--sp-4);
+    height: 64px;
+    background: var(--ink-850);
+    border: 1px solid var(--border);
+    transition: border-color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .search__box:focus-within {
+    border-color: var(--gbc-red);
+  }
+
+  .search__icon {
+    flex: 0 0 auto;
+    color: var(--ink-400);
+  }
+
+  .search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--fs-h4);
+    letter-spacing: 0.02em;
+    outline: none;
+  }
+
+  .search__input::placeholder {
+    color: var(--ink-500);
+  }
+
+  .search__input::-webkit-search-cancel-button {
+    filter: grayscale(1);
+    opacity: 0.6;
+  }
+
+  .search__kbd {
+    flex: 0 0 auto;
+    padding: 3px 6px;
+    border: 1px solid var(--border);
+    color: var(--ink-500);
+    font-family: var(--font-num, monospace);
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  /* ---- 筛选 ---- */
+  .search__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin-top: var(--sp-4);
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search__filter {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: 44px;
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--ink-300);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition:
+      color var(--dur-base) var(--ease-out-cubic),
+      border-color var(--dur-base) var(--ease-out-cubic),
+      background-color var(--dur-base) var(--ease-out-cubic);
+  }
+
+  .search__filter:hover {
+    color: var(--fg);
+    border-color: var(--ink-500);
+  }
+
+  .search__filter.is-on {
+    color: var(--ink-000);
+    background: var(--gbc-red-ink);
+    border-color: var(--gbc-red-ink);
+  }
+
+  .search__filter .num {
+    font-size: var(--fs-xs);
+    opacity: 0.7;
+  }
+
+  /* ---- 结果 ---- */
+  .search__status {
+    margin-top: var(--sp-3);
+    min-height: 1.5em;
+    color: var(--ink-400);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+  }
+
+  .search__results {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid transparent;
+  }
+
+  .sr__item {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-2);
+    border-bottom: 1px solid var(--border);
+    color: inherit;
+    text-decoration: none;
+    transition: background-color var(--dur-fast) var(--ease-out-cubic);
+  }
+
+  .sr__item:hover,
+  .sr__item.is-active {
+    background: color-mix(in srgb, var(--ink-700) 45%, transparent);
+  }
+
+  .sr__thumb {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    color: var(--ink-400);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  .sr__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .sr__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .sr__type {
+    color: var(--gbc-red-text);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+
+  .sr__title {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sr__title mark {
+    background: none;
+    color: var(--gbc-red-text);
+  }
+
+  .sr__sub {
+    color: var(--ink-400);
+    font-size: var(--fs-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sr__go {
+    color: var(--ink-500);
+    font-size: var(--fs-sm);
+  }
+
+  /* ---- 空状态 ---- */
+  .search__state {
+    padding: var(--sp-8) var(--sp-3);
+    text-align: center;
+  }
+
+  .search__state[hidden] {
+    display: none;
+  }
+
+  .search__state-title {
+    color: var(--ink-200);
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-semibold);
+  }
+
+  .search__state-hint {
+    margin-top: var(--sp-2);
+    color: var(--ink-400);
+    font-size: var(--fs-sm);
+  }
+
+  @media (max-width: 767.98px) {
+    .search__box {
+      height: 56px;
+      padding-inline: var(--sp-3);
+    }
+
+    .search__input {
+      font-size: var(--fs-body);
+    }
+
+    .search__kbd {
+      display: none;
+    }
+
+    .sr__item {
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: var(--sp-2);
+    }
+
+    .sr__thumb {
+      width: 48px;
+      height: 48px;
+    }
+  }
+</style>
+</Layout>

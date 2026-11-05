@@ -79,10 +79,26 @@ function createCore(bar: HTMLElement): Core {
     songs = [];
   }
   const byN = new Map(songs.map((s) => [s.n, s]));
-  let LYRICS = new Map<string, unknown>();
-  try {
-    LYRICS = new Map(Object.entries(JSON.parse(bar.querySelector<HTMLScriptElement>("[data-lyrics]")?.textContent ?? "{}")));
-  } catch { LYRICS = new Map(); }
+  /* 歌词按需加载：/lyrics/NN.json（构建期从 src/data/lyrics 生成）。
+     以前 38 首全量内联在每个页面里，首页也要背 ~48KB gzip。 */
+  const LYRICS = new Map<string, unknown>();
+  const lyricFetches = new Map<string, Promise<unknown | null>>();
+  const loadLyricDoc = (n: number): Promise<unknown | null> => {
+    const key = String(n);
+    const hit = LYRICS.get(key);
+    if (hit) return Promise.resolve(hit);
+    const pending = lyricFetches.get(key);
+    if (pending) return pending;
+    const p = fetch(`${import.meta.env.BASE_URL}lyrics/${key.padStart(2, "0")}.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .then((doc) => {
+        if (doc) LYRICS.set(key, doc);
+        return doc;
+      });
+    lyricFetches.set(key, p);
+    return p;
+  };
   const byAlbum = new Map<string, Song[]>();
   for (const s of songs) {
     const arr = byAlbum.get(s.album);
@@ -982,7 +998,26 @@ function createCore(bar: HTMLElement): Core {
 
   /** 打开面板时按当前曲目渲染歌词（等距时间轴：纯文本歌词没有时间标签，
       按行数均分曲目时长；以后拿到带时间的 LRC 直接换数据源即可） */
+  let lyricsSeq = 0;
   const renderLyrics = (): void => {
+    const seq = ++lyricsSeq;
+    const song = songOf(current);
+    if (!song || LYRICS.has(String(song.n))) {
+      renderLyricsNow();
+      return;
+    }
+    /* 先摆好标题/封面，正文等 JSON 回来再画；期间保持空列表，不闪旧歌词 */
+    if (lyrList) lyrList.innerHTML = "";
+    if (lyrEmpty) lyrEmpty.hidden = true;
+    if (lyrTitle) lyrTitle.textContent = song.t;
+    if (lyrArtist) lyrArtist.textContent = song.a;
+    void loadLyricDoc(song.n).then(() => {
+      if (seq !== lyricsSeq) return;
+      renderLyricsNow();
+    });
+  };
+
+  const renderLyricsNow = (): void => {
     if (!lyrList || !lyrEmpty) return;
     const song = songOf(current);
     lyrLines = [];

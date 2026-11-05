@@ -251,7 +251,16 @@ body {
   letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  /* 必须用 clip 而不是 hidden：hidden 会把 body 变成滚动容器，
+     页面里所有 position: sticky（导航、画廊筛选条、角色页立绘）全部失效。
+     clip 同样裁掉横向出血，但不建立滚动容器。 */
+  overflow-x: clip;
+}
+
+@supports not (overflow: clip) {
+  body {
+    overflow-x: hidden;
+  }
 }
 
 body.is-locked {
@@ -774,6 +783,21 @@ body.has-plbar .to-top {
 
 body.has-plbar-folded .to-top {
   bottom: calc(48px + var(--sp-4) + env(safe-area-inset-bottom, 0px));
+}
+
+/* 手机：44px 按钮会压住曲目时长（390 宽实测压 12×21px）。
+   缩到 40px、贴到 8px 安全边，正好让开右对齐的时长。 */
+@media (max-width: 767.98px) {
+  .to-top {
+    right: 0;
+    bottom: env(safe-area-inset-bottom, 0px);
+    width: 36px;
+    height: 36px;
+  }
+
+  body.has-plbar .to-top {
+    bottom: calc(96px + var(--sp-4) + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

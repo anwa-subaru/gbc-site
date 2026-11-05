@@ -1,0 +1,72 @@
+---
+/**
+ * 404 页
+ *  - Caddy 的 file_server 会自动用 dist/404.html 响应未命中的路径
+ *  - GitHub Pages 也会用 404.html
+ *  - 保持深底 + 红字，不引入额外插画，避免 404 也变成大图页
+ */
+import Layout from "../layouts/Layout.astro";
+import { url } from "../lib/assets";
+---
+
+<Layout titleKey="meta.title.404" descKey="meta.desc.404" noindex>
+  <section class="nf container">
+    <p class="nf__code num" aria-hidden="true">404</p>
+    <p class="nf__ja">ページが見つかりません</p>
+    <h1 class="nf__title" data-i18n="notfound.title">这个页面不存在</h1>
+    <p class="nf__lead" data-i18n="notfound.lead">
+      链接可能已经失效，或者素材还没被收录。可以从下面回到站点的主要入口。
+    </p>
+    <div class="nf__actions">
+      <a class="btn btn--primary" href={url("/")} data-i18n="notfound.home">回到首页</a>
+      <a class="btn btn--ghost" href={url("/search/")} data-i18n="notfound.search">站内搜索</a>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .nf {
+    min-height: calc(100vh - var(--nav-h) - 200px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: var(--sp-8);
+  }
+
+  .nf__code {
+    color: var(--gbc-red);
+    font-size: clamp(5rem, 18vw, 12rem);
+    font-weight: 900;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+  }
+
+  .nf__ja {
+    margin-top: var(--sp-4);
+    color: var(--gbc-red-text);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.24em;
+  }
+
+  .nf__title {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-h1);
+    font-weight: 900;
+    line-height: 1.1;
+  }
+
+  .nf__lead {
+    max-width: 46ch;
+    margin-top: var(--sp-3);
+    color: var(--ink-300);
+    font-size: var(--fs-body);
+    line-height: 1.9;
+  }
+
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-top: var(--sp-5);
+  }
+</style>

@@ -431,6 +431,21 @@ function applyGalleryLang(): void {
   }
 }
 
+/* 搜索/分享链接带 ?photo=<path> 进画廊时，直接打开对应灯箱。
+   匹配用 endsWith，兼容 GitHub Pages 的 /gbc-site 前缀。 */
+function openPhotoFromQuery(): void {
+  const photo = new URLSearchParams(window.location.search).get("photo");
+  if (!photo) return;
+  const target = Array.from(
+    document.querySelectorAll<HTMLElement>("[data-lightbox-src]"),
+  ).find((el) => (el.dataset.lightboxSrc || "").endsWith(photo));
+  if (!target) return;
+  const clean = new URL(window.location.href);
+  clean.searchParams.delete("photo");
+  window.history.replaceState(null, "", clean);
+  target.click();
+}
+
 /* 回到顶部：滚动位置只在这里判一次，按钮显隐交给 CSS。
    用事件委托 + 单例监听，跨页导航换掉按钮节点也不用重复绑定。 */
 let backToTopBound = false;
@@ -468,6 +483,7 @@ function initAll(): void {
   initReveal();
   initCarousel();
   initLightbox();
+  openPhotoFromQuery();
   applyGalleryLang();
   initPlayer();
   initBackToTop();

@@ -1,6 +1,6 @@
 # GBC 粉丝站 · 交接文档（HANDOVER.md）
 
-> 最后更新：2026-10-13
+> 最后更新：2026-10-13（2026-11-05 补充：前端打磨 + 构建期搜索/SEO/安全头，见 [BACKEND.md](./BACKEND.md)）
 > 对应提交：`063c09d` 歌词接上官方逐行时间轴（37/38 首）
 > 仓库路径：`/workspace/gbc-site`（**本地 git，未配置 remote**）
 > 配套文档：[DESIGN.md](./DESIGN.md) 设计规范（色板/字体/网格/组件）、[REVIEW.md](./REVIEW.md) 一次双端视觉审计报告
@@ -824,12 +824,10 @@ console.log('错误:', errs.length ? errs.join(' | ') : '无');
    要补的话得人工翻译那 18 行，写进对应 JSON 的 `zh` 数组。
 5. **英文译文是本站翻译，不是官方**
    官方从未发行英译歌词。UI 已标注"英文译词：本站翻译"。
-6. **歌词数据内联在每个页面里，页面变重**
-   `PlayerBar.astro` 构建期把 38 首歌词全部 `JSON.stringify` 进
-   `<script type="application/json" data-lyrics>`，于是每个页面（包括首页）
-   都要多传约 48 KB gzip。音乐页 gzip 后 89 KB。
-   优化方向：把歌词改成 `public/lyrics/NN.json` 按需 `fetch`（打开面板时加载），
-   代价是引入异步与竞态处理。
+6. ~~**歌词数据内联在每个页面里，页面变重**~~
+   **2026-11-05 已修**：改为 `src/pages/lyrics/[n].json.ts` 构建期输出
+   `/lyrics/NN.json`，`player.ts` 在打开歌词面板时按需 fetch（带请求序号防竞态）。
+   首页 HTML 304KB → 52KB，音乐页 396KB → 148KB，画廊 876KB → 624KB。
 
 7. **画廊还有 51 张图没有人工图注**
    页面会把这些素材的**原始文件名**当说明显示（例：`assets/posters/01.webp` → `【ゲーム】…ティザーPV【ガルリフ】`，
