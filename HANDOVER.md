@@ -2,7 +2,7 @@
 
 > 最后更新：2026-10-13（2026-11-05 补充：前端打磨 + 构建期搜索/SEO/安全头，见 [BACKEND.md](./BACKEND.md)）
 > 对应提交：`063c09d` 歌词接上官方逐行时间轴（37/38 首）
-> 仓库路径：`/workspace/gbc-site`（**本地 git，未配置 remote**）
+> 仓库路径：`/workspace/gbc-site`（GitHub: `anwa-subaru/gbc-site`）
 > 配套文档：[DESIGN.md](./DESIGN.md) 设计规范（色板/字体/网格/组件）、[REVIEW.md](./REVIEW.md) 一次双端视觉审计报告
 
 ---
