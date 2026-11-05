@@ -37,6 +37,11 @@ import { DICTS, DEFAULT_LANG, isLang, type Lang } from "../i18n";
 /* getLang 在运行时模块里（src/scripts/i18n.ts），词典在 src/i18n/index.ts */
 import { getLang } from "./i18n";
 
+/* base 在 GitHub Pages 下是 "/gbc-site"（不带尾斜杠），拼 URL 前必须补齐 */
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+
 /* 播放模式：随机已并进这一个按钮里，四种模式轮换，各有各的图标 */
 type PlayMode = "list" | "one" | "shuffle" | "off";
 const MODE_ORDER: PlayMode[] = ["list", "one", "shuffle", "off"];
@@ -89,7 +94,7 @@ function createCore(bar: HTMLElement): Core {
     if (hit) return Promise.resolve(hit);
     const pending = lyricFetches.get(key);
     if (pending) return pending;
-    const p = fetch(`${import.meta.env.BASE_URL}lyrics/${key.padStart(2, "0")}.json`)
+    const p = fetch(`${BASE}lyrics/${key.padStart(2, "0")}.json`)
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null)
       .then((doc) => {

@@ -7,6 +7,11 @@
  */
 import { t } from "./i18n";
 
+/* base 在 GitHub Pages 下是 "/gbc-site"（不带尾斜杠），拼 URL 前必须补齐 */
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+
 type ItemType = "song" | "character" | "gallery" | "page";
 
 interface Item {
@@ -227,7 +232,7 @@ if (input && resultsEl && statusEl && stateEl) {
     loadPromise = (async () => {
       showState(t("search.loading"));
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}search-index.json`);
+        const res = await fetch(`${BASE}search-index.json`);
         if (!res.ok) throw new Error(String(res.status));
         const data = (await res.json()) as Payload;
         items = Array.isArray(data.items) ? data.items : [];
