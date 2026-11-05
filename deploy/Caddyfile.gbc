@@ -26,4 +26,12 @@ gbc.misakamikoto.xyz {
 	header @html Cache-Control "public, max-age=0, must-revalidate"
 
 	file_server
+
+	# 404 页面（可选）：Caddy 的 file_server 不会自动读 404.html。
+	# 需要品牌化 404 时取消下面注释；注意确认响应状态仍为 404，而不是 200。
+	# handle_errors {
+	# 	@notfound expression {http.error.status_code} == 404
+	# 	rewrite @notfound /404.html
+	# 	file_server
+	# }
 }

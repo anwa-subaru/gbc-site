@@ -1,8 +1,8 @@
 ---
 /**
  * 404 页
- *  - Caddy 的 file_server 会自动用 dist/404.html 响应未命中的路径
- *  - GitHub Pages 也会用 404.html
+ *  - GitHub Pages 会用 404.html 响应未命中的路径
+ *  - Caddy 需在 handle_errors 里显式指向 404.html（见 deploy/Caddyfile.gbc 注释）
  *  - 保持深底 + 红字，不引入额外插画，避免 404 也变成大图页
  */
 import Layout from "../layouts/Layout.astro";

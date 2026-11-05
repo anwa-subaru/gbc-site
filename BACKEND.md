@@ -58,7 +58,7 @@
 
 - `Layout.astro` 注入 `WebSite` + `SearchAction` JSON-LD；
 - `sitemap.xml` 纳入 6 个页面；
-- `404.astro` 提供品牌化 404（Caddy 的 `file_server` 与 GitHub Pages 都会用 `404.html`）。
+- `404.astro` 提供品牌化 404（GitHub Pages 直接使用 `404.html`；Caddy 需在 `handle_errors` 里显式指向，见 `deploy/Caddyfile.gbc`）。
 - 站内搜索页 `/search/`：⌘K/Ctrl+K 聚焦、↑↓ 选择、Enter 打开、Esc 清空、三语类型标签、`?q=` 可分享；索引只在搜索页加载，不影响其他页面首屏。
 
 ---
